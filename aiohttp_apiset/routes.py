@@ -1,7 +1,7 @@
 
 
 class APIRouter:
-    def __init__(self, prefix_url):
+    def __init__(self, prefix_url=None):
         self.views = []
         self.prefix_url = prefix_url
 

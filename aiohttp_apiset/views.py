@@ -4,7 +4,6 @@ import os
 import sys
 
 from aiohttp import web
-from aiohttp.web_urldispatcher import PlainRoute
 import yaml
 
 
@@ -29,8 +28,7 @@ class ApiSet:
     prefix = '/api/'
     version = 1
     docs = '/docs/'
-    api_docs = 'api-docs'
-    spacename = ''
+    namespace = ''
     swagger_file = 'swagger.yaml'
     default_response = 'json'
     actions = (
@@ -48,21 +46,29 @@ class ApiSet:
             os.path.dirname(module_path), self.swagger_file)
         return (yield from swagger_yaml(swagger_file)(request))
 
-    @classmethod
-    def append_routes_to(cls, router):
-        self = cls()
-        url = self.prefix + str(self.version) + '/' + self.spacename + '/'
-        router.register_route(PlainRoute(
-            'GET', self.swagger, ':'.join((self.spacename, 'swagger')),
-            self.prefix + str(self.version) + self.docs + self.api_docs + url))
+    def add_swagger_route(self, router):
+        router.add_route(
+            'GET',
+            self.prefix + str(self.version) + self.docs + self.namespace,
+            self.swagger,
+            name=':'.join((self.namespace, 'swagger')),
+        )
 
+    def add_action_routes(self, router):
+        url = self.prefix + str(self.version) + '/' + self.namespace + '/'
         for action_name, method, postfix_url in self.actions:
             action = getattr(self, action_name, None)
             if action:
-                router.register_route(
-                    PlainRoute(method, action,
-                               ':'.join((self.spacename, action_name)),
-                               url + postfix_url))
+                router.add_route(
+                    method, url + postfix_url, action,
+                    name=':'.join((self.namespace, action_name)),
+                )
+
+    @classmethod
+    def append_routes_to(cls, router):
+        self = cls()
+        self.add_swagger_route(router)
+        self.add_action_routes(router)
 
     def response(self, data, **kwargs):
         if isinstance(data, dict):
@@ -73,10 +79,10 @@ class ApiSet:
         return getattr(
             self,
             'response_' + self.default_response,
-        )(data)
+        )(data, **kwargs)
 
     @classmethod
-    def response_json(cls, data):
+    def response_json(cls, data, **kwargs):
         data = json.dumps(
             data,
             indent=3,
@@ -84,4 +90,6 @@ class ApiSet:
         )
         return web.Response(
             body=data.encode(),
-            content_type='application/json')
+            content_type='application/json',
+            status=kwargs.get('status', 200),
+        )
