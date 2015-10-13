@@ -46,16 +46,16 @@ class ApiSet:
             os.path.dirname(module_path), self.swagger_file)
         return (yield from swagger_yaml(swagger_file)(request))
 
-    def add_swagger_route(self, router):
+    def add_swagger_route(self, router, prefix=None):
         router.add_route(
             'GET',
-            self.prefix + str(self.version) + self.docs + self.namespace,
+            prefix + str(self.version) + self.docs + self.namespace,
             self.swagger,
             name=':'.join((self.namespace, 'swagger')),
         )
 
-    def add_action_routes(self, router):
-        url = self.prefix + str(self.version) + '/' + self.namespace + '/'
+    def add_action_routes(self, router, prefix=None):
+        url = prefix + str(self.version) + '/' + self.namespace + '/'
         for action_name, method, postfix_url in self.actions:
             action = getattr(self, action_name, None)
             if action:
@@ -65,10 +65,11 @@ class ApiSet:
                 )
 
     @classmethod
-    def append_routes_to(cls, router):
+    def append_routes_to(cls, router, prefix=None):
         self = cls()
-        self.add_swagger_route(router)
-        self.add_action_routes(router)
+        prefix = prefix or self.prefix
+        self.add_swagger_route(router, prefix)
+        self.add_action_routes(router, prefix)
 
     def response(self, data, **kwargs):
         if isinstance(data, dict):
@@ -90,6 +91,6 @@ class ApiSet:
         )
         return web.Response(
             body=data.encode(),
-            content_type='application/json',
+            content_type='application/json; charset=utf-8',
             status=kwargs.get('status', 200),
         )
