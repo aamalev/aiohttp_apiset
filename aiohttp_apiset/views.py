@@ -32,12 +32,27 @@ class ApiSet:
     swagger_file = 'swagger.yaml'
     default_response = 'json'
     actions = (
+        ('options', 'OPTIONS', ''),
         ('create', 'POST', ''),
         ('post', 'POST', ''),
+        ('put', 'PUT', ''),
         ('list', 'GET', ''),
         ('get', 'GET', ''),
         ('retrieve', 'GET', '{id}/'),
+        ('delete', 'DELETE', '{id}/'),
     )
+
+    @asyncio.coroutine
+    def options(self, request):
+        return web.Response(body=b'')
+
+    @asyncio.coroutine
+    def data(self, request):
+        if 'json' in request.content_type:
+            data = yield from request.json()
+        else:
+            data = yield from request.post()
+        return data
 
     @asyncio.coroutine
     def swagger(self, request):
@@ -46,34 +61,37 @@ class ApiSet:
             os.path.dirname(module_path), self.swagger_file)
         return (yield from swagger_yaml(swagger_file)(request))
 
-    def add_swagger_route(self, router, prefix=None):
+    def add_swagger_route(self, router, prefix=None, namespace=None):
         router.add_route(
             'GET',
             prefix + str(self.version) + self.docs + self.namespace,
             self.swagger,
-            name=':'.join((self.namespace, 'swagger')),
+            name=':'.join((namespace, 'swagger')),
         )
 
-    def add_action_routes(self, router, prefix=None):
+    def add_action_routes(self, router, prefix=None, namespace=None):
         url = prefix + str(self.version) + '/' + self.namespace + '/'
         for action_name, method, postfix_url in self.actions:
             action = getattr(self, action_name, None)
             if action:
                 router.add_route(
                     method, url + postfix_url, action,
-                    name=':'.join((self.namespace, action_name)),
+                    name=':'.join((namespace, action_name)),
                 )
 
     @classmethod
     def append_routes_to(cls, router, prefix=None):
         self = cls()
         prefix = prefix or self.prefix
-        self.add_swagger_route(router, prefix)
-        self.add_action_routes(router, prefix)
+        namespace = self.namespace.replace('/', '.')
+        self.add_swagger_route(router, prefix, namespace)
+        self.add_action_routes(router, prefix, namespace)
 
-    def response(self, data, **kwargs):
+    def response(self, data=None, **kwargs):
         if isinstance(data, dict):
             data = data.copy()
+        elif not data:
+            data = {}
         else:
             data = {'data_text': str(data)}
         data.update(kwargs)
