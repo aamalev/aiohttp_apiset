@@ -121,6 +121,8 @@ class ApiSet(BaseApiSet, SwaggerLoaderMixin):
         self = cls(app)
         prefix = prefix or self.prefix
         namespace = self.namespace.replace('/', '.')
+        namespace = namespace.replace('{', '')
+        namespace = namespace.replace('}', '')
         self.add_swagger_route(app.router, prefix, namespace)
         self.add_action_routes(app.router, prefix, namespace)
 
