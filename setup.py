@@ -15,8 +15,8 @@ with codecs.open(os.path.join(os.path.abspath(os.path.dirname(
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
-install_requires = ['aiohttp>=0.14']
-tests_require = install_requires + ['nose', 'flake8']
+install_requires = ['aiohttp>=0.21']
+tests_require = ['pytest', 'flake8', 'pytest-asyncio', 'pytest-cov']
 
 
 setup(name='aiohttp_apiset',
