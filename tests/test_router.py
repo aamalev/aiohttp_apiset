@@ -21,3 +21,13 @@ async def test_routes(swagger_router: SwaggerRouter):
 async def test_route_include(swagger_router: SwaggerRouter):
     paths = [url for url, v, n in swagger_router.routes]
     assert '/api/1/include2/inc/image' in paths
+
+
+def test_route_swagger_include(swagger_router: SwaggerRouter):
+    paths = swagger_router._swagger_data['paths']
+    assert '/include/image' in paths
+
+
+def test_route_swagger_view(swagger_router: SwaggerRouter):
+    paths = swagger_router._swagger_data['paths']
+    assert '/file/image' in paths

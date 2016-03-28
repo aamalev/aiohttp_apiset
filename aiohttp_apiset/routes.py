@@ -65,9 +65,10 @@ class SwaggerRouter:
             if '$view' in item:
                 view = self.import_view(item.pop('$view'))
                 view.add_routes(self.routes, prefix=base_url)
-                s = view.get_sub_swagger(['paths', url], default={})
-                if s:
-                    paths[base_url] = s
+                s = view.get_sub_swagger(['paths'], default={})
+                b = view.get_sub_swagger('basePath', default='')
+                for u, i in s.items():
+                    paths[swagger_prefix + url + b + u] = i
             elif '$include' in item:
                 f = utils.find_file(
                     file_path=item['$include'],
@@ -79,7 +80,7 @@ class SwaggerRouter:
                     swagger_prefix=swagger_prefix + url,
                     paths=paths)
             else:
-                paths[base_url] = item
+                paths[swagger_prefix + url] = item
         return data
 
 
