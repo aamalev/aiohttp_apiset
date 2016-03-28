@@ -45,14 +45,17 @@ class SwaggerRouter:
             path = data['paths'].setdefault(d['path'], {})
             path.update(d['swagger_path'])
 
-    def include(self, file_path, prefix=None, paths=None):
+    def include(self, file_path, prefix=None, swagger_prefix=None, paths=None):
         base_dir = os.path.dirname(file_path)
         with open(file_path) as f:
             data = yaml.load(f)
-        if prefix:
-            prefix = data.get('basePath', '') + prefix
-        else:
+        if prefix is None:
             prefix = ''
+        if swagger_prefix is None:
+            swagger_prefix = ''
+        else:
+            swagger_prefix += data.get('basePath', '')
+        prefix += data.get('basePath', '')
         base_paths = data['paths']
         if paths is None:
             data['paths'] = paths = {}
@@ -70,7 +73,7 @@ class SwaggerRouter:
                     file_path=item['$include'],
                     search_dirs=self._search_dirs,
                     base_dir=base_dir)
-                self.include(f, prefix=base_url, paths=paths)
+                self.include(f, prefix=swagger_prefix + url, paths=paths)
             else:
                 paths[base_url] = item
         return data
