@@ -73,7 +73,11 @@ class SwaggerRouter:
                     file_path=item['$include'],
                     search_dirs=self._search_dirs,
                     base_dir=base_dir)
-                self.include(f, prefix=swagger_prefix + url, paths=paths)
+                self.include(
+                    f,
+                    prefix=prefix + url,
+                    swagger_prefix=swagger_prefix + url,
+                    paths=paths)
             else:
                 paths[base_url] = item
         return data

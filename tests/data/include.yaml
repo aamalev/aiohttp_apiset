@@ -5,4 +5,4 @@ basePath: /inc
 paths:
 
   '':
-    get: test
+    $view: tests.conftest.View
