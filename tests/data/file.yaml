@@ -1,0 +1,11 @@
+swagger: '2.0'
+
+basePath: /image
+
+paths:
+
+  '':
+    get: test
+
+  '/{id}':
+    get: test

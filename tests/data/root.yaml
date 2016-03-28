@@ -1,0 +1,11 @@
+swagger: '2.0'
+
+basePath: /api/1
+
+paths:
+  /file:
+    $view: tests.conftest.View
+  /include:
+    $include: data/file.yaml
+  /include2:
+    $include: ./include.yaml
