@@ -1,13 +1,17 @@
 import asyncio
+import inspect
 import json
 import os
 import sys
 
-from aiohttp import web
+from aiohttp import web, abc
 from aiohttp.web import Application
 import yaml
 
 from .swagger.loader import SwaggerLoaderMixin
+from . import utils
+
+PY_35 = sys.version_info >= (3, 5)
 
 
 class BaseApiSet:
@@ -34,29 +38,92 @@ def swagger_yaml(file_path, *, executor=None, loop=None):
     return aresponse
 
 
-class ApiSet(BaseApiSet, SwaggerLoaderMixin):
-    prefix = '/api/'
-    version = 1
-    docs = '/docs/'
-    namespace = ''
-    swagger_file = 'swagger.yaml'
+class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
+    namespace = NotImplemented
+    root_dir = '/'
+    swagger_ref = None
     default_response = 'json'
-    actions = (
-        ('options', 'OPTIONS', ''),
-        ('create', 'POST', ''),
-        ('post', 'POST', ''),
-        ('put', 'PUT', ''),
-        ('patch', 'PATCH', ''),
-        ('list', 'GET', ''),
-        ('get', 'GET', ''),
-        ('retrieve', 'GET', '{id}/'),
-        ('delete', 'DELETE', '{id}/'),
-    )
+    methods = {
+        '': (
+            ('options', 'OPTIONS'),
+            ('create', 'POST'),
+            ('post', 'POST'),
+            ('put', 'PUT'),
+            ('patch', 'PATCH'),
+            ('list', 'GET'),
+            ('get', 'GET'),
+        ),
+        '/{id}': (
+            ('retrieve', 'GET'),
+            ('delete', 'DELETE'),
+        ),
+    }
+    prefix = None
 
-    def __init__(self, app: Application, prefix=None):
-        self.app = app
-        if prefix:
+    @classmethod
+    def factory(cls, prefi):
+        class View(cls):
+            prefix = prefi
+        return View
+
+    def __init__(self, request, *, prefix=None):
+        super().__init__(request)
+        if prefix is not None:
             self.prefix = prefix
+        self._methods = {}
+        self._postfixes = sorted(self.methods, key=len, reverse=True)
+        for pref, methods in self.methods.items():
+            meths = self._methods[pref] = {}
+            for name, mt in methods:
+                if hasattr(self, name):
+                    meths[mt] = name
+
+    @asyncio.coroutine
+    def __iter__(self):
+        if self.prefix is not None:
+            postfix = self.request.path[len(self.prefix):]
+            if postfix not in self._methods:
+                raise web.HTTPMethodNotAllowed(self.request.method, ())
+        else:
+            for postfix in self._postfixes:
+                if self.request.path.endswith(postfix):
+                    break
+            else:
+                raise web.HTTPMethodNotAllowed(self.request.method, ())
+
+        methods = self._methods[postfix]
+        if self.request.method not in methods:
+            raise web.HTTPMethodNotAllowed(
+                self.request.method, tuple(methods))
+        method_name = methods[self.request.method.upper()]
+        method = getattr(self, method_name)
+
+        params = inspect.signature(method).parameters
+        kwargs = {}
+        if 'request' in params:
+            kwargs['request'] = self.request
+        for k in params:
+            if k in self.request.match_info:
+                kwargs[k] = self.request.match_info[k]
+
+        resp = yield from method(**kwargs)
+        return resp
+
+    if PY_35:
+        def __await__(self):
+            return (yield from self.__iter__())
+
+    @classmethod
+    def add_routes(cls, routes: list, prefix):
+        view = cls.factory(prefix)
+        basePath = cls.get_sub_swagger('basePath', default='')
+        for postfix in cls.methods:
+            name = utils.to_name(cls.namespace + postfix)
+            routes.append((prefix + basePath + postfix, view, name))
+
+    @classmethod
+    def get_swagger_paths(cls):
+        return cls.get_sub_swagger('paths')
 
     @property
     def loop(self):
@@ -67,7 +134,7 @@ class ApiSet(BaseApiSet, SwaggerLoaderMixin):
         return web.Response(body=b'')
 
     @asyncio.coroutine
-    def data(self, request):
+    def data(self, request) -> dict:
         if 'json' in request.content_type:
             data = yield from request.json()
         else:
@@ -110,7 +177,7 @@ class ApiSet(BaseApiSet, SwaggerLoaderMixin):
             if action:
                 yield {
                     'method': method,
-                    'path': base_url + namespace + postfix_url,
+                    'path': base_url + postfix_url,
                     'handler': action,
                     'name': ':'.join((namespace, action_name)),
                     'swagger_path': self.swagger_path,

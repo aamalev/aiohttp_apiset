@@ -7,13 +7,22 @@ import yaml
 class SwaggerLoaderMixin:
     swagger_files = {}
 
-    def get_swagger_ref(self):
-        return self.swagger_ref
+    @classmethod
+    def get_swagger_ref(cls):
+        if getattr(cls, 'swagger_ref'):
+            return cls.swagger_ref
+        f = os.path.join(
+            cls.get_dir(),
+            'swagger',
+            cls.__name__.lower() + '.yaml')
+        return f
 
-    def get_root_dir(self):
-        return self.root_dir
+    @classmethod
+    def get_root_dir(cls):
+        return cls.root_dir
 
-    def split_ref(self, file_path):
+    @classmethod
+    def split_ref(cls, file_path):
         path = file_path.split('#')
         if len(path) == 2:
             file_path, path = path
@@ -22,30 +31,44 @@ class SwaggerLoaderMixin:
             path = []
         return file_path, path
 
-    def get_swagger_filepath(self):
-        fpath, ipath = self.split_ref(self.get_swagger_ref())
+    @classmethod
+    def get_dir(cls):
+        return os.path.dirname(sys.modules[cls.__module__].__file__)
+
+    @classmethod
+    def get_swagger_filepath(cls):
+        fpath, ipath = cls.split_ref(cls.get_swagger_ref())
         if fpath.startswith('/'):
             fpath = fpath[1:]
-            directory = self.get_root_dir()
+            directory = cls.get_root_dir()
         else:
-            directory = os.path.dirname(sys.modules[self.__module__].__file__)
+            directory = cls.get_dir()
         fpath = os.path.join(directory, fpath)
         return fpath, ipath
 
-    def load_yaml(self, file_path: str):
+    @classmethod
+    def load_yaml(cls, file_path: str):
         file_path = file_path.split('#')[0]
-        data = self.swagger_files.get(file_path)
+        data = cls.swagger_files.get(file_path)
         if not data:
             with open(file_path) as f:
                 data = yaml.load(f)
-            self.swagger_files[file_path] = data
+            cls.swagger_files[file_path] = data
         return data
 
-    def get_sub_swagger(self, path: list):
-        fp, path = self.get_swagger_filepath()
-        data = self.load_yaml(fp)
+    @classmethod
+    def get_sub_swagger(cls, path, *, default=None):
+        if isinstance(path, str):
+            path = path.split('.')
+        elif not isinstance(path, (list, tuple)):
+            raise ValueError(path)
+        fp = cls.get_swagger_filepath()[0]
+        data = cls.load_yaml(fp)
         for i in path:
-            data = data[i]
+            if i in data:
+                data = data[i]
+            else:
+                return default
         return data
 
     @property
