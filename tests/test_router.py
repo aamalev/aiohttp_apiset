@@ -13,13 +13,13 @@ async def test_setup(app):
 
 @pytest.mark.asyncio
 async def test_routes(swagger_router: SwaggerRouter):
-    paths = [url for url, v, n in swagger_router.routes]
+    paths = [url for m, url, *args in swagger_router.routes]
     assert '/api/1/file/image' in paths
 
 
 @pytest.mark.asyncio
 async def test_route_include(swagger_router: SwaggerRouter):
-    paths = [url for url, v, n in swagger_router.routes]
+    paths = [url for m, url, *args in swagger_router.routes]
     assert '/api/1/include2/inc/image' in paths
 
 
@@ -31,3 +31,9 @@ def test_route_swagger_include(swagger_router: SwaggerRouter):
 def test_route_swagger_view(swagger_router: SwaggerRouter):
     paths = swagger_router._swagger_data['paths']
     assert '/file/image' in paths
+
+
+@pytest.mark.asyncio
+async def test_handler(swagger_router: SwaggerRouter):
+    paths = [(m, url) for m, url, *args in swagger_router.routes]
+    assert ('GET', '/api/1/include/image') in paths

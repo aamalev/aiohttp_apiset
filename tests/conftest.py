@@ -10,6 +10,10 @@ def app():
     return web.Application()
 
 
+async def handler(request):
+    raise web.HTTPOk()
+
+
 class View(ApiSet):
     swagger_ref = 'data/file.yaml'
     namespace = 'test'

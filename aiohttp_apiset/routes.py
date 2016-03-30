@@ -21,8 +21,8 @@ class SwaggerRouter:
 
     def setup(self, app: web.Application):
         self.app = app
-        for url, view, name in self.routes:
-            app.router.add_route('*', url, view)
+        for route_args in self.routes:
+            app.router.add_route(*route_args[:3])
 
         if self._swagger:
             url = self._swagger_data.get('basePath', '') + '/swagger.yaml'
@@ -81,6 +81,15 @@ class SwaggerRouter:
                     paths=paths)
             else:
                 paths[swagger_prefix + url] = item
+                for method, body in item.items():
+                    handler = body.pop('$handler', None)
+                    if handler:
+                        func = self.import_view(handler)
+                        self.routes.append((
+                            method.upper(),
+                            base_url,
+                            func,
+                        ))
         return data
 
 

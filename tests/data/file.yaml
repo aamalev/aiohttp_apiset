@@ -5,7 +5,10 @@ basePath: /image
 paths:
 
   '':
-    get: test
+    get:
+      $handler: tests.conftest.handler
 
   '/{id}':
-    get: test
+    get: 
+      description: test
+
