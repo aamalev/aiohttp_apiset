@@ -26,7 +26,8 @@ class SwaggerRouter:
 
         if self._swagger:
             url = self._swagger_data.get('basePath', '') + '/swagger.yaml'
-            app.router.add_route('GET', url, self.swagger_view)
+            app.router.add_route(
+                'GET', utils.url_normolize(url), self.swagger_view)
 
     def swagger_view(self, request):
         return web.Response(text=self._swagger_yaml)
@@ -47,28 +48,38 @@ class SwaggerRouter:
 
     def include(self, file_path, prefix=None, swagger_prefix=None, paths=None):
         base_dir = os.path.dirname(file_path)
+
         with open(file_path) as f:
             data = yaml.load(f)
+
         if prefix is None:
             prefix = ''
+
         if swagger_prefix is None:
             swagger_prefix = ''
         else:
             swagger_prefix += data.get('basePath', '')
+
         prefix += data.get('basePath', '')
         base_paths = data['paths']
+
         if paths is None:
             data['paths'] = paths = {}
+
         for url in base_paths:
             item = base_paths[url]
             base_url = prefix + url
+
             if '$view' in item:
                 view = self.import_view(item.pop('$view'))
                 view.add_routes(self.routes, prefix=base_url)
                 s = view.get_sub_swagger(['paths'], default={})
                 b = view.get_sub_swagger('basePath', default='')
                 for u, i in s.items():
-                    paths[swagger_prefix + url + b + u] = i
+                    u = swagger_prefix + url + b + u
+                    u = utils.url_normolize(u)
+                    paths[u] = i
+
             elif '$include' in item:
                 f = utils.find_file(
                     file_path=item['$include'],
@@ -79,12 +90,14 @@ class SwaggerRouter:
                     prefix=prefix + url,
                     swagger_prefix=swagger_prefix + url,
                     paths=paths)
+
             else:
                 paths[swagger_prefix + url] = item
                 for method, body in item.items():
                     handler = body.pop('$handler', None)
                     if handler:
                         func = self.import_view(handler)
+                        base_url = utils.url_normolize(base_url)
                         self.routes.append((
                             method.upper(),
                             base_url,

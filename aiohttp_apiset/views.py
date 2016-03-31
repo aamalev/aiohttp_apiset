@@ -119,8 +119,9 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
         prefix += basePath
         view = cls.factory(prefix)
         for postfix in cls.methods:
+            u = utils.url_normolize(prefix + postfix)
             name = utils.to_name(cls.namespace + postfix)
-            routes.append(('*', prefix + postfix, view, name))
+            routes.append(('*', u, view, name))
 
     @classmethod
     def get_swagger_paths(cls):
