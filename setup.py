@@ -16,7 +16,10 @@ def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
 install_requires = ['aiohttp>=0.21', 'pyyaml']
-tests_require = ['pytest', 'flake8', 'pytest-asyncio', 'pytest-cov']
+tests_require = ['pytest',
+                 'pytest-asyncio',
+                 'pytest-cov',
+                 'pytest-pep8']
 
 
 setup(name='aiohttp_apiset',
@@ -37,6 +40,5 @@ setup(name='aiohttp_apiset',
       packages=find_packages(),
       install_requires=install_requires,
       tests_require=tests_require,
-      test_suite='nose.collector',
       include_package_data=True,
 )
