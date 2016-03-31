@@ -6,6 +6,7 @@ import yaml
 
 class SwaggerLoaderMixin:
     swagger_files = {}
+    _encoding = None
 
     @classmethod
     def get_swagger_ref(cls):
@@ -51,7 +52,7 @@ class SwaggerLoaderMixin:
         file_path = file_path.split('#')[0]
         data = cls.swagger_files.get(file_path)
         if not data:
-            with open(file_path) as f:
+            with open(file_path, encoding=cls._encoding) as f:
                 data = yaml.load(f)
             cls.swagger_files[file_path] = data
         return data

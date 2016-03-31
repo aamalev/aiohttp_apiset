@@ -58,18 +58,19 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
             ('delete', 'DELETE'),
         ),
     }
-    prefix = None
+    _prefix = None
 
     @classmethod
-    def factory(cls, prefi):
+    def factory(cls, prefix, encoding=None):
         class View(cls):
-            prefix = prefi
+            _prefix = prefix
+            _encoding = encoding
         return View
 
     def __init__(self, request, *, prefix=None):
         super().__init__(request)
         if prefix is not None:
-            self.prefix = prefix
+            self._prefix = prefix
         self._methods = {}
         self._postfixes = sorted(self.methods, key=len, reverse=True)
         for pref, methods in self.methods.items():
@@ -80,8 +81,8 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
 
     @asyncio.coroutine
     def __iter__(self):
-        if self.prefix is not None:
-            postfix = self.request.path[len(self.prefix):]
+        if self._prefix is not None:
+            postfix = self.request.path[len(self._prefix):]
             if postfix not in self._methods:
                 raise web.HTTPMethodNotAllowed(self.request.method, ())
         else:
@@ -114,10 +115,10 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
             return (yield from self.__iter__())
 
     @classmethod
-    def add_routes(cls, routes: list, prefix):
+    def add_routes(cls, routes: list, prefix, encoding=None):
         basePath = cls.get_sub_swagger('basePath', default='')
         prefix += basePath
-        view = cls.factory(prefix)
+        view = cls.factory(prefix, encoding=encoding)
         for postfix in cls.methods:
             u = utils.url_normolize(prefix + postfix)
             name = utils.to_name(cls.namespace + postfix)
@@ -188,7 +189,7 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
     @classmethod
     def append_routes_to(cls, app: Application, prefix=None):
         self = cls(app)
-        prefix = prefix or self.prefix
+        prefix = prefix or self._prefix
         namespace = self.namespace.replace('/', '.')
         namespace = namespace.replace('{', '')
         namespace = namespace.replace('}', '')

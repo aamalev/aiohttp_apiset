@@ -8,9 +8,11 @@ from . import utils, views
 
 
 class SwaggerRouter:
-    def __init__(self, path: str, *, search_dirs=None, swagger=True):
+    def __init__(self, path: str, *, search_dirs=None, swagger=True,
+                 encoding=None):
         self.app = None
         self.routes = []
+        self._encoding = encoding
         search_dirs = search_dirs or ()
         self._swagger_root = utils.find_file(path, search_dirs)
         self._search_dirs = search_dirs or [
@@ -49,7 +51,7 @@ class SwaggerRouter:
     def include(self, file_path, prefix=None, swagger_prefix=None, paths=None):
         base_dir = os.path.dirname(file_path)
 
-        with open(file_path) as f:
+        with open(file_path, encoding=self._encoding) as f:
             data = yaml.load(f)
 
         if prefix is None:
@@ -72,7 +74,8 @@ class SwaggerRouter:
 
             if '$view' in item:
                 view = self.import_view(item.pop('$view'))
-                view.add_routes(self.routes, prefix=base_url)
+                view.add_routes(
+                    self.routes, prefix=base_url, encoding=self._encoding)
                 s = view.get_sub_swagger(['paths'], default={})
                 b = view.get_sub_swagger('basePath', default='')
                 for u, i in s.items():
