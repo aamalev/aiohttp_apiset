@@ -1,4 +1,5 @@
 import os
+import re
 from urllib import parse
 
 
@@ -42,3 +43,18 @@ def url_normolize(url: str):
     """
     u = parse.urljoin('///{}/'.format(url), '.')
     return u if url.endswith('/') else u[:-1]
+
+
+re_patt = re.compile('\{(\w+):.*?\}')
+
+
+def re_patt_replacer(m):
+    return '{%s}' % m.group(1)
+
+
+def remove_patterns(url: str):
+    """
+    >>> remove_patterns('/{w:\d+}x{h:\d+}')
+    '/{w}x{h}'
+    """
+    return re_patt.sub(re_patt_replacer, url)

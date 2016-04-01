@@ -80,7 +80,7 @@ class SwaggerRouter:
                 b = view.get_sub_swagger('basePath', default='')
                 for u, i in s.items():
                     u = swagger_prefix + url + b + u
-                    u = utils.url_normolize(u)
+                    u = utils.remove_patterns(u)
                     paths[u] = i
 
             elif '$include' in item:
@@ -95,7 +95,7 @@ class SwaggerRouter:
                     paths=paths)
 
             else:
-                paths[swagger_prefix + url] = item
+                paths[utils.remove_patterns(swagger_prefix + url)] = item
                 for method, body in item.items():
                     handler = body.pop('$handler', None)
                     if handler:
