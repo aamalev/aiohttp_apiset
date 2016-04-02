@@ -26,6 +26,9 @@ class SwaggerRouter:
             name = ''
         self._routes.add(name, utils.Route(method, path, handler))
 
+    def __getitem__(self, item):
+        return self._routes.get(item)
+
     def setup(self, app: web.Application):
         self.app = app
         for name, (method, url, handler) in self._routes.items():
