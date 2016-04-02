@@ -1,6 +1,10 @@
+import collections
 import os
 import re
 from urllib import parse
+
+
+Route = collections.namedtuple('Route', 'method url handler')
 
 
 def to_name(name):

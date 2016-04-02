@@ -1,3 +1,4 @@
+import collections
 import importlib
 import os
 
@@ -11,7 +12,7 @@ class SwaggerRouter:
     def __init__(self, path: str, *, search_dirs=None, swagger=True,
                  encoding=None):
         self.app = None
-        self.routes = []
+        self.routes = collections.OrderedDict()
         self._encoding = encoding
         search_dirs = search_dirs or ()
         self._swagger_root = utils.find_file(path, search_dirs)
@@ -23,8 +24,8 @@ class SwaggerRouter:
 
     def setup(self, app: web.Application):
         self.app = app
-        for route_args in self.routes:
-            app.router.add_route(*route_args[:3])
+        for name, (method, url, handler) in self.routes.items():
+            app.router.add_route(method, url, handler, name=name)
 
         if self._swagger:
             url = self._swagger_data.get('basePath', '') + '/swagger.yaml'
@@ -101,11 +102,11 @@ class SwaggerRouter:
                     if handler:
                         func = self.import_view(handler)
                         base_url = utils.url_normolize(base_url)
-                        self.routes.append((
+                        self.routes[handler] = utils.Route(
                             method.upper(),
                             base_url,
                             func,
-                        ))
+                        )
         return data
 
 

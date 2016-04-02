@@ -115,14 +115,14 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
             return (yield from self.__iter__())
 
     @classmethod
-    def add_routes(cls, routes: list, prefix, encoding=None):
+    def add_routes(cls, routes: dict, prefix, encoding=None):
         basePath = cls.get_sub_swagger('basePath', default='')
         prefix += basePath
         view = cls.factory(prefix, encoding=encoding)
         for postfix in cls.methods:
             u = utils.url_normolize(prefix + postfix)
             name = utils.to_name(cls.namespace + postfix)
-            routes.append(('*', u, view, name))
+            routes[name] = utils.Route('*', u, view)
 
     @classmethod
     def get_swagger_paths(cls):
