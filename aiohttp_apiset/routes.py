@@ -97,15 +97,15 @@ class SwaggerRouter:
 
             else:
                 paths[utils.remove_patterns(swagger_prefix + url)] = item
+                base_url = utils.url_normolize(base_url)
                 for method, body in item.items():
-                    handler = body.pop('$handler', None)
-                    if handler:
-                        func = self.import_view(handler)
-                        base_url = utils.url_normolize(base_url)
-                        self.routes[handler] = utils.Route(
+                    handler_str = body.pop('$handler', None)
+                    if handler_str:
+                        handler = self.import_view(handler_str)
+                        self.routes[handler_str] = utils.Route(
                             method.upper(),
                             base_url,
-                            func,
+                            handler,
                         )
         return data
 
