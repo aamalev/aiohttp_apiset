@@ -1,9 +1,8 @@
-import collections
 import importlib
 import os
 
 import yaml
-from aiohttp import web
+from aiohttp import web, multidict
 
 from . import utils, views
 
@@ -12,7 +11,7 @@ class SwaggerRouter:
     def __init__(self, path: str, *, search_dirs=None, swagger=True,
                  encoding=None):
         self.app = None
-        self.routes = collections.OrderedDict()
+        self._routes = multidict.MultiDict()
         self._encoding = encoding
         search_dirs = search_dirs or ()
         self._swagger_root = utils.find_file(path, search_dirs)
@@ -22,9 +21,15 @@ class SwaggerRouter:
         self._swagger_yaml = yaml.dump(self._swagger_data)
         self._swagger = swagger
 
+    def add_route(self, method, path, handler, *, name=None):
+        if name in self._routes:
+            name = ''
+        self._routes.add(name, utils.Route(method, path, handler))
+
     def setup(self, app: web.Application):
         self.app = app
-        for name, (method, url, handler) in self.routes.items():
+        for name, (method, url, handler) in self._routes.items():
+            name = name or None
             app.router.add_route(method, url, handler, name=name)
 
         if self._swagger:
@@ -76,7 +81,7 @@ class SwaggerRouter:
             if '$view' in item:
                 view = self.import_view(item.pop('$view'))
                 view.add_routes(
-                    self.routes, prefix=base_url, encoding=self._encoding)
+                    self, prefix=base_url, encoding=self._encoding)
                 s = view.get_sub_swagger(['paths'], default={})
                 b = view.get_sub_swagger('basePath', default='')
                 for u, i in s.items():
@@ -102,11 +107,9 @@ class SwaggerRouter:
                     handler_str = body.pop('$handler', None)
                     if handler_str:
                         handler = self.import_view(handler_str)
-                        self.routes[handler_str] = utils.Route(
-                            method.upper(),
-                            base_url,
-                            handler,
-                        )
+                        self.add_route(
+                            method.upper(), base_url, handler,
+                            name=handler_str)
         return data
 
 
