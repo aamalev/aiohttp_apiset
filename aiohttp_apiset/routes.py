@@ -17,8 +17,9 @@ class SwaggerRouter:
         self._swagger_root = utils.find_file(path, search_dirs)
         self._search_dirs = search_dirs or [
             os.path.dirname(self._swagger_root)]
-        self._swagger_data = self.include(file_path=self._swagger_root)
-        self._swagger_yaml = yaml.dump(self._swagger_data)
+        if swagger:
+            self._swagger_data = self.include(file_path=self._swagger_root)
+            self._swagger_yaml = yaml.dump(self._swagger_data)
         self._swagger = swagger
 
     def add_route(self, method, path, handler, *, name=None):
