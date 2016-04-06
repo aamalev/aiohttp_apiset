@@ -37,3 +37,9 @@ def test_route_swagger_view(swagger_router: SwaggerRouter):
 async def test_handler(swagger_router: SwaggerRouter):
     paths = [(r.method, r.url) for r in swagger_router._routes.values()]
     assert ('GET', '/api/1/include/image') in paths
+
+
+def test_definitions(swagger_router: SwaggerRouter):
+    d = swagger_router._swagger_data['definitions']
+    assert 'File' in d
+    assert 'Defi' in d

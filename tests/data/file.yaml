@@ -12,3 +12,5 @@ paths:
     get: 
       description: test
 
+definitions:
+  File: {}

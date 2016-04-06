@@ -6,3 +6,6 @@ paths:
 
   '':
     $view: tests.conftest.View
+
+definitions:
+  Defi: {}

@@ -58,7 +58,8 @@ class SwaggerRouter:
             path = data['paths'].setdefault(d['path'], {})
             path.update(d['swagger_path'])
 
-    def include(self, file_path, prefix=None, swagger_prefix=None, paths=None):
+    def include(self, file_path, prefix=None, swagger_prefix=None,
+                swagger_data=None):
         base_dir = os.path.dirname(file_path)
 
         with open(file_path, encoding=self._encoding) as f:
@@ -75,8 +76,13 @@ class SwaggerRouter:
         prefix += data.get('basePath', '')
         base_paths = data['paths']
 
-        if paths is None:
-            data['paths'] = paths = {}
+        if swagger_data is None:
+            swagger_data = data.copy()
+            swagger_data['paths'] = {}
+            swagger_data['definitions'] = {}
+        paths = swagger_data['paths']
+        definitions = swagger_data['definitions']
+        definitions.update(data.get('definitions', {}))
 
         for url in base_paths:
             item = base_paths[url]
@@ -92,6 +98,8 @@ class SwaggerRouter:
                     u = swagger_prefix + url + b + u
                     u = utils.remove_patterns(u)
                     paths[u] = i
+                definitions.update(
+                    view.get_sub_swagger(['definitions'], default={}))
 
             elif '$include' in item:
                 f = utils.find_file(
@@ -102,7 +110,7 @@ class SwaggerRouter:
                     f,
                     prefix=prefix + url,
                     swagger_prefix=swagger_prefix + url,
-                    paths=paths)
+                    swagger_data=swagger_data)
 
             else:
                 paths[utils.remove_patterns(swagger_prefix + url)] = item
@@ -114,7 +122,7 @@ class SwaggerRouter:
                         self.add_route(
                             method.upper(), base_url, handler,
                             name=handler_str)
-        return data
+        return swagger_data
 
 
 class APIRouter(views.BaseApiSet):
