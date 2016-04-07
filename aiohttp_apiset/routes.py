@@ -32,7 +32,8 @@ class SwaggerRouter:
 
     def setup(self, app: web.Application):
         self.app = app
-        for name, (method, url, handler) in self._routes.items():
+        routes = sorted(self._routes.items(), key=utils.sort_key)
+        for name, (method, url, handler) in routes:
             name = name or None
             app.router.add_route(method, url, handler, name=name)
 

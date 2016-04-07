@@ -62,3 +62,12 @@ def remove_patterns(url: str):
     '/{w}x{h}'
     """
     return re_patt.sub(re_patt_replacer, url)
+
+
+def sort_key(x):
+    """
+    >>> sort_key(('name', ('GET', 'URL', 'HANDLER')))
+    -3
+    """
+    name, (m, u, h) = x
+    return - len(u) + u.count('}') * 100
