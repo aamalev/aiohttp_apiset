@@ -54,7 +54,9 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
             ('get', 'GET'),
         ),
         '/{id}': (
+            ('options', 'OPTIONS'),
             ('retrieve', 'GET'),
+            ('save', 'POST'),
             ('delete', 'DELETE'),
         ),
     }
@@ -62,37 +64,38 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
 
     @classmethod
     def factory(cls, prefix, encoding=None):
+        assert prefix in cls.methods
+
         class View(cls):
             _prefix = prefix
             _encoding = encoding
+            _methods = dict((y, x) for x, y in cls.methods[prefix])
+
         return View
 
-    def __init__(self, request, *, prefix=None):
+    def __init__(self, request):
         super().__init__(request)
-        if prefix is not None:
-            self._prefix = prefix
-        self._methods = {}
-        self._postfixes = sorted(self.methods, key=len, reverse=True)
-        for pref, methods in self.methods.items():
-            meths = self._methods[pref] = {}
-            for name, mt in methods:
-                if hasattr(self, name):
-                    meths[mt] = name
+        if not self._prefix:
+            self._methods = {}
+            self._postfixes = sorted(self.methods, key=len, reverse=True)
+            for pref, methods in self.methods.items():
+                meths = self._methods[pref] = {}
+                for name, mt in methods:
+                    if hasattr(self, name):
+                        meths[mt] = name
 
     @asyncio.coroutine
     def __iter__(self):
-        if self._prefix is not None:
-            postfix = self.request.path[len(self._prefix):]
-            if postfix not in self._methods:
-                raise web.HTTPMethodNotAllowed(self.request.method, ())
+        if self._prefix:
+            methods = self._methods
         else:
             for postfix in self._postfixes:
                 if self.request.path.endswith(postfix):
                     break
             else:
                 raise web.HTTPMethodNotAllowed(self.request.method, ())
-
-        methods = self._methods[postfix]
+            methods = self._methods[postfix]
+        assert self.request.method in methods
         if self.request.method not in methods:
             raise web.HTTPMethodNotAllowed(
                 self.request.method, tuple(methods))
@@ -118,8 +121,8 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
     def add_routes(cls, router, prefix, encoding=None):
         basePath = cls.get_sub_swagger('basePath', default='')
         prefix += basePath
-        view = cls.factory(prefix, encoding=encoding)
         for postfix in cls.methods:
+            view = cls.factory(postfix, encoding=encoding)
             u = utils.url_normolize(prefix + postfix)
             name = utils.to_name(cls.namespace + postfix)
             router.add_route('*', u, view, name=name)
