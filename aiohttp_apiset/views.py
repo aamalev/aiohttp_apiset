@@ -95,7 +95,7 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
             else:
                 raise web.HTTPMethodNotAllowed(self.request.method, ())
             methods = self._methods[postfix]
-        assert self.request.method in methods
+
         if self.request.method not in methods:
             raise web.HTTPMethodNotAllowed(
                 self.request.method, tuple(methods))
