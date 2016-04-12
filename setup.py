@@ -24,7 +24,7 @@ tests_require = ['pytest',
 
 setup(name='aiohttp_apiset',
       version=version,
-      description=("scafold for make api on aiohttp.web"),
+      description=("scaffold for make api on aiohttp.web"),
       classifiers=[
           'License :: OSI Approved :: Apache Software License',
           'Intended Audience :: Developers',
