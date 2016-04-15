@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import inspect
 import json
 import os
@@ -61,6 +62,12 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
         ),
     }
     _prefix = None
+
+    dumps = functools.partial(
+        json.dumps,
+        indent=3,
+        ensure_ascii=False,
+    )
 
     @classmethod
     def factory(cls, prefix, encoding=None):
@@ -199,28 +206,25 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
         self.add_swagger_route(app.router, prefix, namespace)
         self.add_action_routes(app.router, prefix, namespace)
 
-    def response(self, data=None, **kwargs):
+    @classmethod
+    def response(cls, data=None, **kwargs):
+        response = getattr(cls, 'response_' + cls.default_response)
         if isinstance(data, dict):
             data = data.copy()
         elif not data:
             data = {}
+        elif isinstance(data, (map, list, set, tuple)):
+            return response(data, **kwargs)
         else:
             data = {'data_text': str(data)}
         data.update(kwargs)
-        return getattr(
-            self,
-            'response_' + self.default_response,
-        )(data, **kwargs)
+        return response(data, **kwargs)
 
     @classmethod
     def response_json(cls, data, **kwargs):
-        data = json.dumps(
+        return web.json_response(
             data,
-            indent=3,
-            ensure_ascii=False,
-        )
-        return web.Response(
-            body=data.encode(),
             content_type='application/json; charset=utf-8',
             status=kwargs.get('status', 200),
+            dumps=cls.dumps,
         )
