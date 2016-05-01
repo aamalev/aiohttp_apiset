@@ -26,6 +26,8 @@ Handler:
 
 Swagger spec:
 
+.. code-block:: yaml
+
     swagger: '2.0'
 
     basePath: /api/1
