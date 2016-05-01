@@ -1,8 +1,8 @@
 import pytest
 from aiohttp import web
 
-from aiohttp_apiset.routes import SwaggerRouter
-from aiohttp_apiset.views import ApiSet
+from aiohttp_apiset import SwaggerRouter
+from aiohttp_apiset import ApiSet
 
 
 @pytest.fixture
