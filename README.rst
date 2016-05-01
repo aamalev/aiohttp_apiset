@@ -49,10 +49,11 @@ Equal:
       handler,
       name='mymodule.handler')
 
-To setup route to use in application:
 
-setup to application
+Setup to application
 ====================
+
+To setup route to use in application:
 
 .. code-block:: python
 
