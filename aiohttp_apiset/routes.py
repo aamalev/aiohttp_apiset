@@ -13,6 +13,7 @@ class SwaggerRouter:
         self.app = None
         self._routes = multidict.MultiDict()
         self._encoding = encoding
+        self._singleton_cbv = {}
         search_dirs = search_dirs or ()
         self._swagger_root = utils.find_file(path, search_dirs)
         self._search_dirs = search_dirs or [
@@ -49,6 +50,33 @@ class SwaggerRouter:
         p, c = p.rsplit('.', 1)
         package = importlib.import_module(p)
         return getattr(package, c)
+
+    def import_handler(self, path: str):
+        p = path.rsplit('.', 2)
+        if len(p) == 3:
+            p, v, h = p
+            if v == v.lower():
+                p = '.'.join((p, v))
+                v = None
+        elif len(p) == 2:
+            p, h = p
+            v = None
+        else:
+            raise ValueError('.'.join(p))
+
+        package = importlib.import_module(p)
+
+        if not v:
+            return getattr(package, h)
+
+        key = '.'.join((p, v))
+        if key in self._singleton_cbv:
+            v = self._singleton_cbv[key]
+        else:
+            View = getattr(package, v)
+            v = View()
+            self._singleton_cbv[key] = v
+        return getattr(v, h)
 
     def connect_view(self, data, base_url, url, klass):
         view = klass(self.app, prefix=url)
@@ -104,7 +132,7 @@ class SwaggerRouter:
             for method, body in item.items():
                 handler_str = body.pop('$handler', None)
                 if handler_str:
-                    handler = self.import_view(handler_str)
+                    handler = self.import_handler(handler_str)
                     self.add_route(
                         method.upper(), base_url, handler,
                         name=handler_str)

@@ -8,6 +8,10 @@ paths:
     get:
       $handler: tests.conftest.handler
 
+  '/':
+    get:
+      $handler: tests.conftest.SimpleView.get
+
   '/{id}':
     get: 
       description: test
