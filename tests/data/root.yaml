@@ -9,3 +9,6 @@ paths:
     $include: data/file.yaml
   /include2:
     $include: ./include.yaml
+  /include3:
+    - $include: ./include.yaml
+    - $view: tests.conftest.View

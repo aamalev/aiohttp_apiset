@@ -59,6 +59,56 @@ class SwaggerRouter:
             path = data['paths'].setdefault(d['path'], {})
             path.update(d['swagger_path'])
 
+    def _include_item(self, item, base_dir, prefix, url,
+                      swagger_prefix, swagger_data,
+                      definitions, paths):
+        base_url = prefix + url
+
+        if isinstance(item, list):
+            for i in item:
+                self._include_item(
+                    i, base_dir, prefix, url,
+                    swagger_prefix, swagger_data,
+                    definitions, paths)
+
+        elif isinstance(item, str):
+            raise NotImplementedError()
+
+        elif '$view' in item:
+            view = self.import_view(item.pop('$view'))
+            view.add_routes(
+                self, prefix=base_url, encoding=self._encoding)
+            s = view.get_sub_swagger(['paths'], default={})
+            b = view.get_sub_swagger('basePath', default='')
+            for u, i in s.items():
+                u = swagger_prefix + url + b + u
+                u = utils.remove_patterns(u)
+                paths[u] = i
+            definitions.update(
+                view.get_sub_swagger(['definitions'], default={}))
+
+        elif '$include' in item:
+            f = utils.find_file(
+                file_path=item['$include'],
+                search_dirs=self._search_dirs,
+                base_dir=base_dir)
+            self.include(
+                f,
+                prefix=prefix + url,
+                swagger_prefix=swagger_prefix + url,
+                swagger_data=swagger_data)
+
+        else:
+            paths[utils.remove_patterns(swagger_prefix + url)] = item
+            base_url = utils.url_normolize(base_url)
+            for method, body in item.items():
+                handler_str = body.pop('$handler', None)
+                if handler_str:
+                    handler = self.import_view(handler_str)
+                    self.add_route(
+                        method.upper(), base_url, handler,
+                        name=handler_str)
+
     def include(self, file_path, prefix=None, swagger_prefix=None,
                 swagger_data=None):
         base_dir = os.path.dirname(file_path)
@@ -87,42 +137,11 @@ class SwaggerRouter:
 
         for url in base_paths:
             item = base_paths[url]
-            base_url = prefix + url
+            self._include_item(
+                item, base_dir, prefix, url,
+                swagger_prefix, swagger_data,
+                definitions, paths)
 
-            if '$view' in item:
-                view = self.import_view(item.pop('$view'))
-                view.add_routes(
-                    self, prefix=base_url, encoding=self._encoding)
-                s = view.get_sub_swagger(['paths'], default={})
-                b = view.get_sub_swagger('basePath', default='')
-                for u, i in s.items():
-                    u = swagger_prefix + url + b + u
-                    u = utils.remove_patterns(u)
-                    paths[u] = i
-                definitions.update(
-                    view.get_sub_swagger(['definitions'], default={}))
-
-            elif '$include' in item:
-                f = utils.find_file(
-                    file_path=item['$include'],
-                    search_dirs=self._search_dirs,
-                    base_dir=base_dir)
-                self.include(
-                    f,
-                    prefix=prefix + url,
-                    swagger_prefix=swagger_prefix + url,
-                    swagger_data=swagger_data)
-
-            else:
-                paths[utils.remove_patterns(swagger_prefix + url)] = item
-                base_url = utils.url_normolize(base_url)
-                for method, body in item.items():
-                    handler_str = body.pop('$handler', None)
-                    if handler_str:
-                        handler = self.import_view(handler_str)
-                        self.add_route(
-                            method.upper(), base_url, handler,
-                            name=handler_str)
         return swagger_data
 
 
