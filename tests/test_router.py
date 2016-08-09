@@ -24,12 +24,12 @@ async def test_route_include(swagger_router: SwaggerRouter):
 
 
 def test_route_swagger_include(swagger_router: SwaggerRouter):
-    paths = swagger_router._swagger_data['paths']
+    paths = next(iter(swagger_router._swagger_data.values()))['paths']
     assert '/include/image' in paths
 
 
 def test_route_swagger_view(swagger_router: SwaggerRouter):
-    paths = swagger_router._swagger_data['paths']
+    paths = next(iter(swagger_router._swagger_data.values()))['paths']
     assert '/file/image' in paths
 
 
@@ -40,6 +40,6 @@ async def test_handler(swagger_router: SwaggerRouter):
 
 
 def test_definitions(swagger_router: SwaggerRouter):
-    d = swagger_router._swagger_data['definitions']
+    d = next(iter(swagger_router._swagger_data.values()))['definitions']
     assert 'File' in d
     assert 'Defi' in d
