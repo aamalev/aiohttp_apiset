@@ -8,20 +8,33 @@ from . import utils, views
 
 
 class SwaggerRouter:
-    def __init__(self, path: str, *, search_dirs=None, swagger=True,
+    def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
                  encoding=None):
         self.app = None
         self._routes = multidict.MultiDict()
         self._encoding = encoding
         self._singleton_cbv = {}
-        search_dirs = search_dirs or ()
-        self._swagger_root = utils.find_file(path, search_dirs)
-        self._search_dirs = search_dirs or [
-            os.path.dirname(self._swagger_root)]
-        if swagger:
-            self._swagger_data = self.include(file_path=self._swagger_root)
-            self._swagger_yaml = yaml.dump(self._swagger_data)
+        self._search_dirs = search_dirs or []
+        self._swagger_data = {}
+        self._swagger_yaml = {}
         self._swagger = swagger
+        self.include(path)
+
+    def include(self, spec, *, basePath=None):
+        path = utils.find_file(spec, self._search_dirs)
+        if not self._search_dirs:
+            d = os.path.dirname(path)
+            self._search_dirs.append(d)
+        if self._swagger:
+            data = self._include(file_path=path)
+            if basePath is None:
+                basePath = data.get('basePath', '')
+            url = basePath + '/swagger.yaml'
+            self._swagger_data[url] = data
+            self._swagger_yaml[url] = yaml.dump(data)
+
+    def add_search_dir(self, path):
+        self._search_dirs.append(path)
 
     def add_route(self, method, path, handler, *, name=None):
         if name in self._routes:
@@ -39,12 +52,16 @@ class SwaggerRouter:
             app.router.add_route(method, url, handler, name=name)
 
         if self._swagger:
-            url = self._swagger_data.get('basePath', '') + '/swagger.yaml'
-            app.router.add_route(
-                'GET', utils.url_normolize(url), self.swagger_view)
+            def generator(data):
+                async def view(request):
+                    return web.Response(text=data)
+                return view
 
-    def swagger_view(self, request):
-        return web.Response(text=self._swagger_yaml)
+            for url, body in self._swagger_yaml.items():
+                app.router.add_route(
+                    'GET',
+                    utils.url_normolize(url),
+                    generator(body))
 
     def import_view(self, p: str):
         p, c = p.rsplit('.', 1)
@@ -120,7 +137,7 @@ class SwaggerRouter:
                 file_path=item['$include'],
                 search_dirs=self._search_dirs,
                 base_dir=base_dir)
-            self.include(
+            self._include(
                 f,
                 prefix=prefix + url,
                 swagger_prefix=swagger_prefix + url,
@@ -137,8 +154,8 @@ class SwaggerRouter:
                         method.upper(), base_url, handler,
                         name=handler_str)
 
-    def include(self, file_path, prefix=None, swagger_prefix=None,
-                swagger_data=None):
+    def _include(self, file_path, prefix=None, swagger_prefix=None,
+                 swagger_data=None):
         base_dir = os.path.dirname(file_path)
 
         with open(file_path, encoding=self._encoding) as f:
