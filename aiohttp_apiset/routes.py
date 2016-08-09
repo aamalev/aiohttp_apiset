@@ -18,7 +18,8 @@ class SwaggerRouter:
         self._swagger_data = {}
         self._swagger_yaml = {}
         self._swagger = swagger
-        self.include(path)
+        if path:
+            self.include(path)
 
     def include(self, spec, *, basePath=None):
         path = utils.find_file(spec, self._search_dirs)
