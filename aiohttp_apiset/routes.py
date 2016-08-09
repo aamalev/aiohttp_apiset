@@ -8,6 +8,10 @@ from . import utils, views
 
 
 class SwaggerRouter:
+    INCLUDE = '$include'
+    VIEW = '$view'
+    HANDLER = '$handler'
+
     def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
                  encoding=None):
         self.app = None
@@ -120,8 +124,8 @@ class SwaggerRouter:
         elif isinstance(item, str):
             raise NotImplementedError()
 
-        elif '$view' in item:
-            view = self.import_view(item.pop('$view'))
+        elif self.VIEW in item:
+            view = self.import_view(item.pop(self.VIEW))
             view.add_routes(
                 self, prefix=base_url, encoding=self._encoding)
             s = view.get_sub_swagger(['paths'], default={})
@@ -133,9 +137,9 @@ class SwaggerRouter:
             definitions.update(
                 view.get_sub_swagger(['definitions'], default={}))
 
-        elif '$include' in item:
+        elif self.INCLUDE in item:
             f = utils.find_file(
-                file_path=item['$include'],
+                file_path=item[self.INCLUDE],
                 search_dirs=self._search_dirs,
                 base_dir=base_dir)
             self._include(
@@ -148,7 +152,7 @@ class SwaggerRouter:
             paths[utils.remove_patterns(swagger_prefix + url)] = item
             base_url = utils.url_normolize(base_url)
             for method, body in item.items():
-                handler_str = body.pop('$handler', None)
+                handler_str = body.pop(self.HANDLER, None)
                 if handler_str:
                     handler = self.import_handler(handler_str)
                     self.add_route(
