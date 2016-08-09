@@ -26,7 +26,7 @@ class SwaggerRouter:
             d = os.path.dirname(path)
             self._search_dirs.append(d)
         if self._swagger:
-            data = self._include(file_path=path)
+            data = self._include(file_path=path, override_basePath=basePath)
             if basePath is None:
                 basePath = data.get('basePath', '')
             url = basePath + '/swagger.yaml'
@@ -155,7 +155,7 @@ class SwaggerRouter:
                         name=handler_str)
 
     def _include(self, file_path, prefix=None, swagger_prefix=None,
-                 swagger_data=None):
+                 swagger_data=None, override_basePath=''):
         base_dir = os.path.dirname(file_path)
 
         with open(file_path, encoding=self._encoding) as f:
@@ -167,9 +167,9 @@ class SwaggerRouter:
         if swagger_prefix is None:
             swagger_prefix = ''
         else:
-            swagger_prefix += data.get('basePath', '')
+            swagger_prefix += data.get('basePath', override_basePath)
 
-        prefix += data.get('basePath', '')
+        prefix += data.get('basePath', override_basePath)
         base_paths = data['paths']
 
         if swagger_data is None:
