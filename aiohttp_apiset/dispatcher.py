@@ -9,9 +9,10 @@ from aiohttp import web_urldispatcher as wu
 class SubLocation:
     SPLIT = re.compile(r'/((?:(?:\{.+?\})|(?:[^/{}]+))+)')
 
-    def __init__(self, name, formatter=None):
+    def __init__(self, name, formatter=None, parent=None):
         self._name = name
         self._formatter = formatter or name
+        self._parent = parent
         self._subs = {}
         self._patterns = []
         self._routes = {}
@@ -20,8 +21,15 @@ class SubLocation:
     def name(self):
         return self._name
 
+    @property
+    def url(self):
+        if self._parent is None:
+            return self._formatter
+        return self._parent.url + '/' + self._formatter
+
     def __repr__(self):
-        return '<SubLocation {name}>'.format(name=self.name)
+        return '<SubLocation {name}, url={url}>' \
+               ''.format(name=self.name, url=self.url)
 
     @classmethod
     def split(cls, path):
@@ -34,12 +42,12 @@ class SubLocation:
         allowed_methods = set()
 
         if path is None:
+            allowed_methods.update(self._routes)
             if method in self._routes:
                 route = self._routes[method]
             elif hdrs.METH_ANY in self._routes:
                 route = self._routes[hdrs.METH_ANY]
             else:
-                allowed_methods.update(self._routes)
                 return None, allowed_methods
             return wu.UrlMappingMatchInfo(match_dict, route), allowed_methods
         elif not path:
@@ -51,7 +59,7 @@ class SubLocation:
                 location, tail = parts
             else:
                 location = parts[0]
-                tail = ''
+                tail = None
 
         if location in self._subs:
             return self._subs[location].resolve(
@@ -79,7 +87,7 @@ class SubLocation:
 
     def register_route(self, path: list, route: wu.ResourceRoute):
         if not path:
-            assert route.method not in self._routes
+            assert route.method not in self._routes, self
             self._routes[route.method] = route
             return
 
@@ -93,12 +101,12 @@ class SubLocation:
             else:
                 pattern, formatter = \
                     TreeUrlDispatcher.get_pattern_formatter(location_name)
-                location = SubLocation(location_name, formatter)
+                location = SubLocation(location_name, formatter, parent=self)
                 self._patterns.append((re.compile(pattern), location))
         elif location_name in self._subs:
             location = self._subs[location_name]
         else:
-            location = SubLocation(location_name)
+            location = SubLocation(location_name, parent=self)
             self._subs[location_name] = location
 
         location.register_route(path, route)
@@ -108,7 +116,7 @@ class TreeResource(wu.Resource):
 
     def __init__(self, *, name=None):
         super().__init__(name=name)
-        self._location = SubLocation('/')
+        self._location = SubLocation('')
 
     def add_route(self, method, handler, *,
                   path='/', expect_handler=None):
@@ -137,8 +145,8 @@ class TreeUrlDispatcher(wu.UrlDispatcher):
 
     def __init__(self):
         super().__init__()
-        self._resources = [TreeResource()]
-        self._named_resources = {}
+        assert not self._resources
+        self._resources.append(TreeResource())
 
     @property
     def tree_resource(self) -> TreeResource:
