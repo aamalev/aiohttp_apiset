@@ -22,9 +22,12 @@ class SubLocation:
         return self._name
 
     def url(self, *, parts=None, query=None):
-        url = self._formatter
-        if self._parent is not None:
-            url = self._parent.url + '/' + url
+        formatters = [self._formatter]
+        parent = self._parent
+        while parent is not None:
+            formatters.append(parent._formatter)
+            parent = parent._parent
+        url = '/'.join(reversed(formatters))
         if parts:
             url = url.format_map(parts)
         return self._append_query(url, query)
