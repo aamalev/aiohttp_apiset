@@ -93,7 +93,7 @@ class SubLocation:
                     method=method, path=tail, match_dict=match_dict)
         return None, allowed_methods
 
-    def register_route(self, path: list, route: wu.ResourceRoute):
+    def register_route(self, path: list, route: wu.AbstractRoute):
         if not path:
             assert route.method not in self._routes, self
             self._routes[route.method] = route
@@ -132,6 +132,10 @@ class Route(wu.ResourceRoute):
     def location(self):
         return self._location
 
+    @location.setter
+    def location(self, value):
+        self._location = value
+
 
 class TreeResource(wu.Resource):
     route_class = Route
@@ -147,7 +151,7 @@ class TreeResource(wu.Resource):
         route = self.route_class(method, handler, self,
                                  expect_handler=expect_handler)
         location = self._location.register_route(path, route)
-        route._location = location
+        route.location = location
         return route
 
     @asyncio.coroutine
@@ -186,7 +190,7 @@ class TreeUrlDispatcher(wu.UrlDispatcher):
             path=path, expect_handler=expect_handler,
         )
         if name:
-            self._named_resources[name] = route._location
+            self._named_resources[name] = route.location
         return route
 
     def validate_name(self, name: str):
