@@ -1,3 +1,4 @@
+import asyncio
 from unittest import mock
 
 import pytest
@@ -34,7 +35,7 @@ def test_create(dispatcher: TreeUrlDispatcher):
     assert dispatcher.tree_resource._location._subs
 
 
-@pytest.mark.asyncio
+@asyncio.coroutine
 def test_simple(dispatcher: TreeUrlDispatcher, request: web.Request):
     request.raw_path = '/api/1/pet/1'
     md = yield from dispatcher.resolve(request)
@@ -45,7 +46,7 @@ def test_simple(dispatcher: TreeUrlDispatcher, request: web.Request):
     assert not md
 
 
-@pytest.mark.asyncio
+@asyncio.coroutine
 def test_multisubs(dispatcher: TreeUrlDispatcher, request: web.Request):
     url = '/api/1/host/{host}/eth{num}/{ip:[.\d]+}/'
     dispatcher.add_route('GET', url, handler)

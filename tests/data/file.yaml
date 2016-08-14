@@ -11,6 +11,8 @@ paths:
   '/':
     get:
       $handler: tests.conftest.SimpleView.get
+    post:
+      $handler: tests.conftest.SimpleView.post
 
   '/{id}':
     get: 
