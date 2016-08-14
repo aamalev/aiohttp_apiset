@@ -25,7 +25,7 @@ def dispatcher():
     d.add_route('GET', '/api/', handler)
     d.add_route('GET', '/api', handler)
     d.add_route('*', '/api/1/pets', handler)
-    d.add_route('GET', '/api/1/pet/{id}', handler)
+    d.add_route('GET', '/api/1/pet/{id}', handler, name='pet')
     d.add_route('GET', '/api/1/pet/{id}/', handler)
     return d
 
@@ -62,5 +62,5 @@ def test_multisubs(dispatcher: TreeUrlDispatcher, request: web.Request):
     assert isinstance(md, MatchInfoError)
 
 
-def test_url(dispatcher: TreeUrlDispatcher, request: web.Request):
-    dispatcher.tree_resource._location.url()
+def test_url(dispatcher: TreeUrlDispatcher):
+    assert dispatcher['pet'].url(parts={'id': 1}) == '/api/1/pet/1'

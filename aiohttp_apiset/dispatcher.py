@@ -1,4 +1,5 @@
 import asyncio
+import keyword
 import re
 from urllib import parse
 
@@ -96,7 +97,7 @@ class SubLocation:
         if not path:
             assert route.method not in self._routes, self
             self._routes[route.method] = route
-            return
+            return self
 
         location_name, *path = path
 
@@ -116,7 +117,7 @@ class SubLocation:
             location = SubLocation(location_name, parent=self)
             self._subs[location_name] = location
 
-        location.register_route(path, route)
+        return location.register_route(path, route)
 
 
 class TreeResource(wu.Resource):
@@ -130,7 +131,8 @@ class TreeResource(wu.Resource):
         path = SubLocation.split(path)
         route = wu.ResourceRoute(method, handler, self,
                                  expect_handler=expect_handler)
-        self._location.register_route(path, route)
+        location = self._location.register_route(path, route)
+        route._location = location
         return route
 
     @asyncio.coroutine
@@ -161,10 +163,32 @@ class TreeUrlDispatcher(wu.UrlDispatcher):
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None):
-        return self.tree_resource.add_route(
+        if name in self._named_resources:
+            self.validate_name(name)
+
+        route = self.tree_resource.add_route(
             method=method, handler=handler,
             path=path, expect_handler=expect_handler,
         )
+        if name:
+            self._named_resources[name] = route._location
+        return route
+
+    def validate_name(self, name: str):
+        """
+        Fragment aiohttp.web_urldispatcher.UrlDispatcher#_reg_resource
+        """
+        parts = self.NAME_SPLIT_RE.split(name)
+        for part in parts:
+            if not part.isidentifier() or keyword.iskeyword(part):
+                raise ValueError('Incorrect route name {!r}, '
+                                 'the name should be a sequence of '
+                                 'python identifiers separated '
+                                 'by dash, dot or column'.format(name))
+        if name in self._named_resources:
+            raise ValueError('Duplicate {!r}, '
+                             'already handled by {!r}'
+                             .format(name, self._named_resources[name]))
 
     @classmethod
     def get_pattern_formatter(cls, location):
