@@ -21,15 +21,19 @@ class SubLocation:
     def name(self):
         return self._name
 
-    @property
-    def url(self):
-        if self._parent is None:
-            return self._formatter
-        return self._parent.url + '/' + self._formatter
+    def url(self, *, parts=None, query=None):
+        url = self._formatter
+        if self._parent is not None:
+            url = self._parent.url + '/' + url
+        if parts:
+            url = url.format_map(parts)
+        return self._append_query(url, query)
+
+    _append_query = staticmethod(wu.Resource._append_query)
 
     def __repr__(self):
         return '<SubLocation {name}, url={url}>' \
-               ''.format(name=self.name, url=self.url)
+               ''.format(name=self.name, url=self.url())
 
     @classmethod
     def split(cls, path):
@@ -134,7 +138,7 @@ class TreeResource(wu.Resource):
         return {}
 
     def url(self, *, parts, query=None):
-        raise NotImplemented
+        return self._append_query('/', query)
 
     def __repr__(self):
         name = "'" + self.name + "' " if self.name is not None else ""

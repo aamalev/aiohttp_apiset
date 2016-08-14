@@ -60,3 +60,7 @@ def test_multisubs(dispatcher: TreeUrlDispatcher, request: web.Request):
     request.raw_path = '/api/1/host/myhost/eth0/127.0.0.1'
     md = yield from dispatcher.resolve(request)
     assert isinstance(md, MatchInfoError)
+
+
+def test_url(dispatcher: TreeUrlDispatcher, request: web.Request):
+    dispatcher.tree_resource._location.url()
