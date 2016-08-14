@@ -163,7 +163,7 @@ class TreeUrlDispatcher(wu.UrlDispatcher):
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None):
-        if name in self._named_resources:
+        if name:
             self.validate_name(name)
 
         route = self.tree_resource.add_route(
