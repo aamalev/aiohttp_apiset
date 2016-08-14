@@ -120,16 +120,31 @@ class SubLocation:
         return location.register_route(path, route)
 
 
+class Route(wu.ResourceRoute):
+    def __init__(self, method, handler, resource, *,
+                 expect_handler=None, location=None):
+        super().__init__(method, handler,
+                         expect_handler=expect_handler,
+                         resource=resource)
+        self._location = location
+
+    @property
+    def location(self):
+        return self._location
+
+
 class TreeResource(wu.Resource):
+    route_class = Route
+    sublocation_class = SubLocation
 
     def __init__(self, *, name=None):
         super().__init__(name=name)
-        self._location = SubLocation('')
+        self._location = self.sublocation_class('')
 
     def add_route(self, method, handler, *,
                   path='/', expect_handler=None):
-        path = SubLocation.split(path)
-        route = wu.ResourceRoute(method, handler, self,
+        path = self.sublocation_class.split(path)
+        route = self.route_class(method, handler, self,
                                  expect_handler=expect_handler)
         location = self._location.register_route(path, route)
         route._location = location
