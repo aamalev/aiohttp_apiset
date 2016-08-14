@@ -58,7 +58,7 @@ class SwaggerRouter:
 
         if self._swagger:
             def generator(data):
-                async def view(request):
+                def view(request):
                     return web.Response(text=data)
                 return view
 
