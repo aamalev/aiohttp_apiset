@@ -46,6 +46,7 @@ def url_normolize(url: str):
     '/status/'
     """
     u = parse.urljoin('///{}/'.format(url), '.')
+    u = re.sub(r'/+', '/', u)
     return u if url.endswith('/') else u[:-1]
 
 
