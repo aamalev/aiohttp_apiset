@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import os
 
 import yaml
@@ -17,7 +18,6 @@ class SwaggerRouter:
         self.app = None
         self._routes = multidict.MultiDict()
         self._encoding = encoding
-        self._singleton_cbv = {}
         self._search_dirs = search_dirs or []
         self._swagger_data = {}
         self._swagger_yaml = {}
@@ -91,14 +91,22 @@ class SwaggerRouter:
         if not v:
             return getattr(package, h)
 
-        key = '.'.join((p, v))
-        if key in self._singleton_cbv:
-            v = self._singleton_cbv[key]
+        View = getattr(package, v)
+        handler = getattr(View, h)
+        signature = inspect.signature(getattr(View(), h))
+        if 'request' in signature.parameters:
+            def wrap_handler(request, *args, **kwargs):
+                vi = View()
+                vi.request = request
+                return handler(vi, request, *args, **kwargs)
         else:
-            View = getattr(package, v)
-            v = View()
-            self._singleton_cbv[key] = v
-        return getattr(v, h)
+            def wrap_handler(request, *args, **kwargs):
+                vi = View()
+                vi.request = request
+                return handler(vi, *args, **kwargs)
+
+        wrap_handler.__signature__ = signature
+        return wrap_handler
 
     def connect_view(self, data, base_url, url, klass):
         view = klass(self.app, prefix=url)
