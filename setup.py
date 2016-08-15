@@ -31,7 +31,8 @@ class PyTest(TestCommand):
 
 tests_require = install_requires + [
     'pytest',
-    'pytest-asyncio',
+    'pytest-aiohttp',
+    'pytest-mock',
     'pytest-cov',
     'pytest-pep8']
 
