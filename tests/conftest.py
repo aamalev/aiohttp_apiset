@@ -11,6 +11,15 @@ def app(loop):
     return web.Application(loop=loop)
 
 
+@pytest.fixture
+def client(loop, test_client, swagger_router):
+    def create_app(loop):
+        app = web.Application(loop=loop)
+        swagger_router.setup(app)
+        return app
+    return loop.run_until_complete(test_client(create_app))
+
+
 @asyncio.coroutine
 def handler(request):
     raise web.HTTPOk()
@@ -20,11 +29,11 @@ class SimpleView:
 
     @asyncio.coroutine
     def get(self, request):
-        raise web.HTTPOk()
+        raise web.HTTPOk(text='simple handler get')
 
     @asyncio.coroutine
     def post(self):
-        raise web.HTTPOk()
+        raise web.HTTPOk(text='simple handler post')
 
 
 class View(ApiSet):

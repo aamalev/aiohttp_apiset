@@ -1,3 +1,5 @@
+import asyncio
+
 from aiohttp_apiset.routes import SwaggerRouter
 
 
@@ -37,3 +39,17 @@ def test_definitions(swagger_router: SwaggerRouter):
     d = next(iter(swagger_router._swagger_data.values()))['definitions']
     assert 'File' in d
     assert 'Defi' in d
+
+
+@asyncio.coroutine
+def test_cbv_handler_get(client):
+    url = client.app.router['tests.conftest.SimpleView.get'].url()
+    res = yield from client.get(url)
+    assert (yield from res.text()) == 'simple handler get'
+
+
+@asyncio.coroutine
+def test_cbv_handler_post(client):
+    url = client.app.router['tests.conftest.SimpleView.post'].url()
+    res = yield from client.post(url)
+    assert (yield from res.text()) == 'simple handler post'
