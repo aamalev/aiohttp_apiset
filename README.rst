@@ -56,7 +56,7 @@ Equal:
 Setup to application
 ====================
 
-To setup route to use in application:
+Create router:
 
 .. code-block:: python
 
@@ -76,4 +76,4 @@ or use as router:
 
 .. code-block:: python
 
-  Application(route=router)
+  Application(router=router)
