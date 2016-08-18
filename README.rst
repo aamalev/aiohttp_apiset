@@ -65,4 +65,15 @@ To setup route to use in application:
   router = SwaggerRouter(
       'data/root.yaml',
       search_dirs=['routes'])
+
+Setup to application:
+
+.. code-block:: python
+
   router.setup(app)
+
+or use as router:
+
+.. code-block:: python
+
+  Application(route=router)
