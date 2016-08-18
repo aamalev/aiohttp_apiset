@@ -14,8 +14,7 @@ def app(loop):
 @pytest.fixture
 def client(loop, test_client, swagger_router):
     def create_app(loop):
-        app = web.Application(loop=loop)
-        swagger_router.setup(app)
+        app = web.Application(loop=loop, router=swagger_router)
         return app
     return loop.run_until_complete(test_client(create_app))
 
@@ -56,6 +55,6 @@ def view():
 
 @pytest.fixture
 def swagger_router():
-    return SwaggerRouter(
-        path='data/root.yaml',
-        search_dirs=['tests'])
+    router = SwaggerRouter(search_dirs=['tests'])
+    router.include('data/root.yaml')
+    return router

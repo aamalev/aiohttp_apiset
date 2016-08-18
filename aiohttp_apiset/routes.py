@@ -5,16 +5,17 @@ import os
 import yaml
 from aiohttp import web, multidict
 
-from . import utils, views
+from . import utils, views, dispatcher
 
 
-class SwaggerRouter:
+class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     INCLUDE = '$include'
     VIEW = '$view'
     HANDLER = '$handler'
 
     def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
                  encoding=None):
+        super().__init__()
         self.app = None
         self._routes = multidict.MultiDict()
         self._encoding = encoding
@@ -41,13 +42,13 @@ class SwaggerRouter:
     def add_search_dir(self, path):
         self._search_dirs.append(path)
 
-    def add_route(self, method, path, handler, *, name=None):
+    def add_route(self, method, path, handler,
+                  *, name=None, expect_handler=None):
         if name in self._routes:
             name = ''
         self._routes.add(name, utils.Route(method, path, handler))
-
-    def __getitem__(self, item):
-        return self._routes.get(item)
+        return super().add_route(method, path, handler,
+                                 name=name, expect_handler=expect_handler)
 
     def setup(self, app: web.Application):
         self.app = app

@@ -3,13 +3,6 @@ import asyncio
 from aiohttp_apiset.routes import SwaggerRouter
 
 
-def test_setup(app):
-    SwaggerRouter(
-        'data/root.yaml',
-        search_dirs=['tests']
-    ).setup(app)
-
-
 def test_routes(swagger_router: SwaggerRouter):
     paths = [url for method, url, handler in swagger_router._routes.values()]
     assert '/api/1/file/image' in paths
