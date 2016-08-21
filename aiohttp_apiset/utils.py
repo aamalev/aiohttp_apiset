@@ -1,10 +1,6 @@
-import collections
 import os
 import re
 from urllib import parse
-
-
-Route = collections.namedtuple('Route', 'method url handler')
 
 
 def to_name(name):
@@ -67,8 +63,8 @@ def remove_patterns(url: str):
 
 def sort_key(x):
     """
-    >>> sort_key(('name', ('GET', 'URL', 'HANDLER')))
+    >>> sort_key(('name', ('ROUTE', 'URL')))
     -3
     """
-    name, (m, u, h) = x
+    name, (r, u) = x
     return - len(u) + u.count('}') * 100

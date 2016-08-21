@@ -1,15 +1,22 @@
 import asyncio
 
+from aiohttp import web
+
 from aiohttp_apiset.routes import SwaggerRouter
 
 
+def test_app(loop, swagger_router):
+    app = web.Application(loop=loop)
+    swagger_router.setup(app)
+
+
 def test_routes(swagger_router: SwaggerRouter):
-    paths = [url for method, url, handler in swagger_router._routes.values()]
+    paths = [url for route, url in swagger_router._routes.values()]
     assert '/api/1/file/image' in paths
 
 
 def test_route_include(swagger_router: SwaggerRouter):
-    paths = [url for method, url, handler in swagger_router._routes.values()]
+    paths = [url for route, url in swagger_router._routes.values()]
     assert '/api/1/include2/inc/image' in paths
 
 
@@ -24,7 +31,8 @@ def test_route_swagger_view(swagger_router: SwaggerRouter):
 
 
 def test_handler(swagger_router: SwaggerRouter):
-    paths = [(r.method, r.url) for r in swagger_router._routes.values()]
+    paths = [(route.method, path)
+             for route, path in swagger_router._routes.values()]
     assert ('GET', '/api/1/include/image') in paths
 
 

@@ -7,11 +7,6 @@ from aiohttp_apiset import ApiSet
 
 
 @pytest.fixture
-def app(loop):
-    return web.Application(loop=loop)
-
-
-@pytest.fixture
 def client(loop, test_client, swagger_router):
     def create_app(loop):
         app = web.Application(loop=loop, router=swagger_router)

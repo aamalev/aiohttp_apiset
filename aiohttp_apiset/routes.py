@@ -46,16 +46,19 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                   *, name=None, expect_handler=None):
         if name in self._routes:
             name = ''
-        self._routes.add(name, utils.Route(method, path, handler))
-        return super().add_route(method, path, handler,
-                                 name=name, expect_handler=expect_handler)
+        route = super().add_route(method, path, handler,
+                                  name=name, expect_handler=expect_handler)
+        self._routes.add(name, (route, path))
+        return route
 
     def setup(self, app: web.Application):
         self.app = app
         routes = sorted(self._routes.items(), key=utils.sort_key)
-        for name, (method, url, handler) in routes:
+        for name, (route, path) in routes:
             name = name or None
-            app.router.add_route(method, url, handler, name=name)
+            app.router.add_route(
+                route.method, path,
+                route.handler, name=name)
 
         if self._swagger:
             def generator(data):
