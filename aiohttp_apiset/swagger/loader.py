@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -48,12 +49,21 @@ class SwaggerLoaderMixin:
         return fpath, ipath
 
     @classmethod
-    def load_yaml(cls, file_path: str):
+    def load_file(cls, file_path: str, loader=None):
         file_path = file_path.split('#')[0]
         data = cls.swagger_files.get(file_path)
-        if not data:
+        if data is None:
+            if loader is None:
+                _, ext = os.path.splitext(file_path)
+                ext = ext.lower()
+                if ext == '.json':
+                    loader = json.load
+                elif ext in ('.yml', '.yaml'):
+                    loader = yaml.load
+                else:
+                    raise ValueError('File type {} not supported'.format(ext))
             with open(file_path, encoding=cls._encoding) as f:
-                data = yaml.load(f)
+                data = loader(f)
             cls.swagger_files[file_path] = data
         return data
 
@@ -64,7 +74,7 @@ class SwaggerLoaderMixin:
         elif not isinstance(path, (list, tuple)):
             raise ValueError(path)
         fp = cls.get_swagger_filepath()[0]
-        data = cls.load_yaml(fp)
+        data = cls.load_file(fp)
         for i in path:
             if i in data:
                 data = data[i]
