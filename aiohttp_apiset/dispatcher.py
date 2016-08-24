@@ -169,29 +169,7 @@ class TreeResource(wu.Resource):
         return "<TreeResource {name}".format(name=name)
 
 
-class TreeUrlDispatcher(wu.UrlDispatcher):
-
-    def __init__(self):
-        super().__init__()
-        assert not self._resources
-        self._resources.append(TreeResource())
-
-    @property
-    def tree_resource(self) -> TreeResource:
-        return self._resources[0]
-
-    def add_route(self, method, path, handler,
-                  *, name=None, expect_handler=None):
-        if name:
-            self.validate_name(name)
-
-        route = self.tree_resource.add_route(
-            method=method, handler=handler,
-            path=path, expect_handler=expect_handler,
-        )
-        if name:
-            self._named_resources[name] = route.location
-        return route
+class BaseUrlDispatcher(wu.UrlDispatcher):
 
     def validate_name(self, name: str):
         """
@@ -244,3 +222,28 @@ class TreeUrlDispatcher(wu.UrlDispatcher):
             raise ValueError(
                 "Bad pattern '{}': {}".format(pattern, exc)) from None
         return pattern, formatter
+
+
+class TreeUrlDispatcher(BaseUrlDispatcher):
+
+    def __init__(self):
+        super().__init__()
+        assert not self._resources
+        self._resources.append(TreeResource())
+
+    @property
+    def tree_resource(self) -> TreeResource:
+        return self._resources[0]
+
+    def add_route(self, method, path, handler,
+                  *, name=None, expect_handler=None):
+        if name:
+            self.validate_name(name)
+
+        route = self.tree_resource.add_route(
+            method=method, handler=handler,
+            path=path, expect_handler=expect_handler,
+        )
+        if name:
+            self._named_resources[name] = route.location
+        return route
