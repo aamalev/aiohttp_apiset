@@ -225,11 +225,12 @@ class BaseUrlDispatcher(wu.UrlDispatcher):
 
 
 class TreeUrlDispatcher(BaseUrlDispatcher):
+    tree_resource_class = TreeResource
 
     def __init__(self):
         super().__init__()
         assert not self._resources
-        self._resources.append(TreeResource())
+        self._resources.append(self.tree_resource_class())
 
     @property
     def tree_resource(self) -> TreeResource:
