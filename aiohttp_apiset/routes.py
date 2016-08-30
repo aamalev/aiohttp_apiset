@@ -6,6 +6,7 @@ import yaml
 from aiohttp import web, multidict
 
 from . import utils, views, dispatcher
+from .swagger import route
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -205,6 +206,23 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 definitions, paths)
 
         return swagger_data
+
+
+class SwaggerValidationResource(dispatcher.TreeResource):
+    route_class = route.SwaggerValidationRoute
+
+
+class SwaggerValidationRouter(SwaggerRouter):
+    tree_resource_class = SwaggerValidationResource
+
+    def add_route(self, method, path, handler,
+                  *, name=None, expect_handler=None,
+                  swagger_data=None, definitions=None):
+        route = super().add_route(
+            method, path, handler, name=name,
+            expect_handler=expect_handler)
+        route.set_swagger(swagger_data, definitions)
+        return route
 
 
 class APIRouter(views.BaseApiSet):
