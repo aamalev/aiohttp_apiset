@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
 import os
 import re
 
@@ -16,25 +15,20 @@ with open(os.path.join(os.path.abspath(os.path.dirname(
 def read(f):
     return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
 
-install_requires = ['aiohttp>=0.21', 'pyyaml', 'jsonschema']
 
+install_requires = [
+    'aiohttp>=0.21',
+    'pyyaml',
+    'jsonschema',
+]
 
-class PyTest(TestCommand):
-    user_options = []
-
-    def run(self):
-        import subprocess
-        import sys
-        errno = subprocess.call([sys.executable, '-m', 'pytest', 'tests'])
-        raise SystemExit(errno)
-
-
-tests_require = install_requires + [
+tests_require = [
     'pytest',
     'pytest-aiohttp',
     'pytest-mock',
     'pytest-cov',
-    'pytest-pep8']
+    'pytest-pep8',
+]
 
 
 setup(name='aiohttp_apiset',
@@ -56,5 +50,4 @@ setup(name='aiohttp_apiset',
       install_requires=install_requires,
       tests_require=tests_require,
       include_package_data=True,
-      cmdclass=dict(test=PyTest),
 )
