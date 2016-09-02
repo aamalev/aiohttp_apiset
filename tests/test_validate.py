@@ -34,7 +34,7 @@ parameters = yaml.load("""
 
 def handler(request, road_id):
     assert road_id
-    return {**request}
+    return request
 
 
 @asyncio.coroutine
