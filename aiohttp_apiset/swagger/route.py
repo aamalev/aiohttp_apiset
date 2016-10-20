@@ -7,8 +7,7 @@ from ..dispatcher import Route
 from .validate import types_mapping, validate
 
 
-class SwaggerValidationRoute(Route):
-
+class SwaggerRoute(Route):
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None):
         super().__init__(method, handler,
@@ -54,7 +53,7 @@ class SwaggerValidationRoute(Route):
         return response
 
     def _validate(self, data, schema):
-        return validate(data, schema)
+        return data
 
     @asyncio.coroutine
     def validate(self, request: web.Request):
@@ -123,3 +122,26 @@ class SwaggerValidationRoute(Route):
             self._validate(value, param)
             parameters[name] = value
         return parameters, missing
+
+
+class SwaggerValidationRoute(SwaggerRoute):
+    def _validate(self, data, schema):
+        return validate(data, schema)
+
+
+def route_factory(method, handler, resource, *,
+                  expect_handler=None, **kwargs):
+    if kwargs.get('swagger_data') is None:
+        return Route(method, handler, resource=resource,
+                     expect_handler=expect_handler)
+
+    elif kwargs.get('validate') is True:
+        route_class = SwaggerValidationRoute
+    else:
+        route_class = SwaggerRoute
+
+    route = route_class(method, handler, resource=resource,
+                        expect_handler=expect_handler)
+    route.set_swagger(swagger_data=kwargs.get('swagger_data'),
+                      definitions=kwargs.get('definitions'))
+    return route

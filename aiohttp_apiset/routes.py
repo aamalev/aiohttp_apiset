@@ -6,7 +6,7 @@ import yaml
 from aiohttp import web, multidict
 
 from . import utils, views, dispatcher
-from .swagger import route
+from .swagger.route import route_factory
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -15,8 +15,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     HANDLER = '$handler'
 
     def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
-                 encoding=None):
-        super().__init__()
+                 encoding=None, route_factory=route_factory):
+        super().__init__(route_factory=route_factory)
         self.app = None
         self._routes = multidict.MultiDict()
         self._encoding = encoding
@@ -44,11 +44,15 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         self._search_dirs.append(path)
 
     def add_route(self, method, path, handler,
-                  *, name=None, expect_handler=None):
+                  *, name=None, expect_handler=None,
+                  swagger_data=None, definitions=None):
         if name in self._routes:
             name = ''
-        route = super().add_route(method, path, handler,
-                                  name=name, expect_handler=expect_handler)
+        route = super().add_route(
+            method, path, handler, name=name,
+            expect_handler=expect_handler,
+            swagger_data=swagger_data,
+            definitions=definitions)
         self._routes.add(name, (route, path))
         return route
 
@@ -206,23 +210,6 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 definitions, paths)
 
         return swagger_data
-
-
-class SwaggerValidationResource(dispatcher.TreeResource):
-    route_factory = route.SwaggerValidationRoute
-
-
-class SwaggerValidationRouter(SwaggerRouter):
-    resource_factory = SwaggerValidationResource
-
-    def add_route(self, method, path, handler,
-                  *, name=None, expect_handler=None,
-                  swagger_data=None, definitions=None):
-        route = super().add_route(
-            method, path, handler, name=name,
-            expect_handler=expect_handler)
-        route.set_swagger(swagger_data, definitions)
-        return route
 
 
 class APIRouter(views.BaseApiSet):

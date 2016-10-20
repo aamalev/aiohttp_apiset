@@ -122,7 +122,7 @@ class SubLocation:
 
 class Route(wu.ResourceRoute):
     def __init__(self, method, handler, resource, *,
-                 expect_handler=None, location=None):
+                 expect_handler=None, location=None, **kwargs):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource)
@@ -138,18 +138,19 @@ class Route(wu.ResourceRoute):
 
 
 class TreeResource(wu.Resource):
-    route_factory = Route
-    sublocation_factory = SubLocation
-
-    def __init__(self, *, name=None):
+    def __init__(self, *, name=None,
+                 route_factory=None,
+                 sublocation_factory=None):
         super().__init__(name=name)
-        self._location = self.sublocation_factory('')
+        self._route_factory = route_factory or Route
+        self._sublocation_factory = sublocation_factory or SubLocation
+        self._location = self._sublocation_factory('')
 
     def add_route(self, method, handler, *,
-                  path='/', expect_handler=None):
+                  path='/', expect_handler=None, **kwargs):
         path = self._location.split(path)
-        route = self.route_factory(method, handler, self,
-                                   expect_handler=expect_handler)
+        route = self._route_factory(method, handler, self,
+                                    expect_handler=expect_handler, **kwargs)
         location = self._location.register_route(path, route)
         route.location = location
         return route
@@ -225,26 +226,25 @@ class BaseUrlDispatcher(wu.UrlDispatcher):
 
 
 class TreeUrlDispatcher(BaseUrlDispatcher):
-    resource_factory = TreeResource
-
-    def __init__(self):
+    def __init__(self, resource_factory=TreeResource, route_factory=Route):
         super().__init__()
         assert not self._resources
-        self._resources.append(self.resource_factory())
+        self._resources.append(resource_factory(route_factory=route_factory))
 
     @property
     def tree_resource(self) -> TreeResource:
         return self._resources[0]
 
     def add_route(self, method, path, handler,
-                  *, name=None, expect_handler=None):
+                  *, name=None, expect_handler=None, **kwargs):
         if name:
             self.validate_name(name)
 
         route = self.tree_resource.add_route(
             method=method, handler=handler,
             path=path, expect_handler=expect_handler,
-        )
+            **kwargs)
+
         if name:
             self._named_resources[name] = route.location
         return route

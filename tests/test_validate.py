@@ -6,7 +6,7 @@ from aiohttp import web
 
 from aiohttp_apiset.swagger.validate import validate
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
-from aiohttp_apiset.routes import SwaggerValidationRouter
+from aiohttp_apiset.routes import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
 
 
@@ -51,7 +51,7 @@ def test_route():
 
 @asyncio.coroutine
 def test_router(test_client):
-    router = SwaggerValidationRouter()
+    router = SwaggerRouter()
     router.add_route(
         'POST', '/', handler,
         swagger_data={'parameters': parameters},
