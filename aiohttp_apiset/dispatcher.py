@@ -109,12 +109,12 @@ class SubLocation:
             else:
                 pattern, formatter = \
                     TreeUrlDispatcher.get_pattern_formatter(location_name)
-                location = SubLocation(location_name, formatter, parent=self)
+                location = type(self)(location_name, formatter, parent=self)
                 self._patterns.append((re.compile(pattern), location))
         elif location_name in self._subs:
             location = self._subs[location_name]
         else:
-            location = SubLocation(location_name, parent=self)
+            location = type(self)(location_name, parent=self)
             self._subs[location_name] = location
 
         return location.register_route(path, route)
@@ -138,18 +138,18 @@ class Route(wu.ResourceRoute):
 
 
 class TreeResource(wu.Resource):
-    route_class = Route
-    sublocation_class = SubLocation
+    route_factory = Route
+    sublocation_factory = SubLocation
 
     def __init__(self, *, name=None):
         super().__init__(name=name)
-        self._location = self.sublocation_class('')
+        self._location = self.sublocation_factory('')
 
     def add_route(self, method, handler, *,
                   path='/', expect_handler=None):
-        path = self.sublocation_class.split(path)
-        route = self.route_class(method, handler, self,
-                                 expect_handler=expect_handler)
+        path = self._location.split(path)
+        route = self.route_factory(method, handler, self,
+                                   expect_handler=expect_handler)
         location = self._location.register_route(path, route)
         route.location = location
         return route
@@ -225,12 +225,12 @@ class BaseUrlDispatcher(wu.UrlDispatcher):
 
 
 class TreeUrlDispatcher(BaseUrlDispatcher):
-    tree_resource_class = TreeResource
+    resource_factory = TreeResource
 
     def __init__(self):
         super().__init__()
         assert not self._resources
-        self._resources.append(self.tree_resource_class())
+        self._resources.append(self.resource_factory())
 
     @property
     def tree_resource(self) -> TreeResource:

@@ -209,11 +209,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
 
 class SwaggerValidationResource(dispatcher.TreeResource):
-    route_class = route.SwaggerValidationRoute
+    route_factory = route.SwaggerValidationRoute
 
 
 class SwaggerValidationRouter(SwaggerRouter):
-    tree_resource_class = SwaggerValidationResource
+    resource_factory = SwaggerValidationResource
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
