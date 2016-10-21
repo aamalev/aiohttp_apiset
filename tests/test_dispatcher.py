@@ -5,7 +5,7 @@ from aiohttp import web
 from aiohttp.web_urldispatcher import MatchInfoError
 from aiohttp.test_utils import make_mocked_request as make_request
 
-from aiohttp_apiset.dispatcher import TreeUrlDispatcher
+from aiohttp_apiset.dispatcher import TreeUrlDispatcher, Route
 
 
 def handler(request):
@@ -58,3 +58,13 @@ def test_multisubs(dispatcher: TreeUrlDispatcher):
 
 def test_url(dispatcher: TreeUrlDispatcher):
     assert dispatcher['pet'].url(parts={'id': 1}) == '/api/1/pet/1'
+
+
+@pytest.mark.parametrize('hstr', [
+    'tests.conftest.View.retrieve',
+    'tests.conftest.SimpleView.get',
+    'tests.conftest.SimpleView.post',
+])
+def test_import_handler(hstr):
+    handler, parameters = Route._import_handler(hstr)
+    handler(**{k: None for k in parameters})
