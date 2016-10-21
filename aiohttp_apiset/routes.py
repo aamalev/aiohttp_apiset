@@ -57,7 +57,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             method, path, handler, name=name,
             expect_handler=expect_handler,
             swagger_data=swagger_data,
-            definitions=definitions)
+            definitions=definitions,
+            validate=validate,
+        )
         self._routes.add(name, (route, path))
         return route
 
@@ -86,50 +88,6 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         p, c = p.rsplit('.', 1)
         package = importlib.import_module(p)
         return getattr(package, c)
-
-    def import_handler(self, path: str):
-        p = path.rsplit('.', 2)
-        if len(p) == 3:
-            p, v, h = p
-            if v == v.lower():
-                p = '.'.join((p, v))
-                v = None
-        elif len(p) == 2:
-            p, h = p
-            v = None
-        else:
-            raise ValueError('.'.join(p))
-
-        package = importlib.import_module(p)
-
-        if not v:
-            return getattr(package, h)
-
-        View = getattr(package, v)
-        handler = getattr(View, h)
-        signature = inspect.signature(getattr(View(), h))
-        if 'request' in signature.parameters:
-            def wrap_handler(request, *args, **kwargs):
-                vi = View()
-                vi.request = request
-                return handler(vi, request, *args, **kwargs)
-        else:
-            def wrap_handler(request, *args, **kwargs):
-                vi = View()
-                vi.request = request
-                return handler(vi, *args, **kwargs)
-
-        wrap_handler.__signature__ = signature
-        return wrap_handler
-
-    def connect_view(self, data, base_url, url, klass):
-        view = klass(self.app, prefix=url)
-        for d in view.get_routes(base_url=url):
-            self.app.router.add_route(
-                d['method'], base_url + d['path'],
-                d['handler'], name=d['name'])
-            path = data['paths'].setdefault(d['path'], {})
-            path.update(d['swagger_path'])
 
     def _include_item(self, item, base_dir, prefix, url,
                       swagger_prefix, swagger_data,
@@ -177,10 +135,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             for method, body in item.items():
                 handler_str = body.pop(self.HANDLER, None)
                 if handler_str:
-                    handler = self.import_handler(handler_str)
                     validate = body.pop(self.VALIDATE, self._default_validate)
                     self.add_route(
-                        method.upper(), base_url, handler,
+                        method.upper(), base_url, handler=handler_str,
                         name=name or handler_str,
                         swagger_data=body, definitions=definitions,
                         validate=validate,
