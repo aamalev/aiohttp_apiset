@@ -12,8 +12,47 @@ paths:
     $name: file:simple:view
     get:
       $handler: tests.conftest.SimpleView.get
+      parameters:
+        - name: road_id
+          in: query
+          required: true
+          type: array
+          items:
+            type: integer
+        - name: gt
+          in: path
+          required: false
+          type: string
+        - name: qu
+          in: query
+          required: false
+          type: string
+        - name: fd
+          in: formData
+          required: false
+          type: string
     post:
       $handler: tests.conftest.SimpleView.post
+      $validate: true
+      parameters:
+        - name: road_id2
+          in: query
+          required: true
+          type: array
+          items:
+            type: integer
+        - name: gt
+          in: path
+          required: false
+          type: string
+        - name: qu
+          in: query
+          required: false
+          type: string
+        - name: fd
+          in: formData
+          required: false
+          type: string
 
   '/{id}':
     get: 

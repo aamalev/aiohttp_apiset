@@ -4,7 +4,6 @@ import yaml
 from aiohttp.test_utils import make_mocked_request
 from aiohttp import web
 
-from aiohttp_apiset.swagger.validate import validate
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.routes import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
@@ -66,3 +65,23 @@ def test_router(test_client):
     assert resp.status == 200, resp
     txt = yield from resp.text()
     assert 'road_id' in txt, txt
+
+
+@asyncio.coroutine
+def test_router_files(test_client):
+    router = SwaggerRouter(search_dirs=['tests'], default_validate=True)
+    router.include('data/root.yaml')
+
+    def factory(loop, *args, **kwargs):
+        app = web.Application(router=router, loop=loop, middlewares=[jsonify])
+        return app
+
+    cli = yield from test_client(factory)
+    url = router['file:simple:view'].url()
+
+    assert isinstance(
+        router['file:simple:view']._routes['POST'],
+        SwaggerValidationRoute)
+
+    resp = yield from cli.post(url + '?road_id=g')
+    assert resp.status == 200, resp
