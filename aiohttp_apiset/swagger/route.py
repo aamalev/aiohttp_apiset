@@ -1,5 +1,4 @@
 import asyncio
-import inspect
 
 from aiohttp import web
 
@@ -17,13 +16,13 @@ class SwaggerRoute(Route):
         self._swagger_data = {}
         self._parameters = []
         self._required = []
-        self._signature = inspect.signature(handler)
         self._definitions = {}
 
     def set_swagger(self, swagger_data=None, definitions=None):
         if swagger_data:
+            self._required = []
             self._swagger_data = swagger_data
-            parameters = self._parameters
+            parameters = self._parameters = []
             for param in swagger_data.get('parameters', ()):
                 p = param.copy()
                 if p.pop('required', False):
@@ -37,16 +36,16 @@ class SwaggerRoute(Route):
         parameters, missing = yield from self.validate(request)
 
         if missing:
-            return self.rend({
+            raise web.HTTPBadRequest(reason={
                 'required': missing,
-            }, status=400)
+            })
 
         dict.update(request, parameters)
 
         parameters['request'] = request
         kwargs = {
             k: parameters.get(k)
-            for k in self._signature.parameters
+            for k in self._handler_args
         }
 
         response = yield from self._handler(**kwargs)
