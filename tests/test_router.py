@@ -44,13 +44,13 @@ def test_definitions(swagger_router: SwaggerRouter):
 
 @asyncio.coroutine
 def test_cbv_handler_get(client):
-    url = client.app.router['tests.conftest.SimpleView.get'].url()
+    url = client.app.router['file:simple:view'].url()
     res = yield from client.get(url)
     assert (yield from res.text()) == 'simple handler get'
 
 
 @asyncio.coroutine
 def test_cbv_handler_post(client):
-    url = client.app.router['tests.conftest.SimpleView.post'].url()
+    url = client.app.router['file:simple:view'].url()
     res = yield from client.post(url)
     assert (yield from res.text()) == 'simple handler post'

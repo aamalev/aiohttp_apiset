@@ -9,6 +9,7 @@ paths:
       $handler: tests.conftest.handler
 
   '/':
+    $name: file:simple:view
     get:
       $handler: tests.conftest.SimpleView.get
     post:
