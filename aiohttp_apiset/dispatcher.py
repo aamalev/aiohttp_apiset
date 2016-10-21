@@ -1,10 +1,13 @@
 import asyncio
+import importlib
+import inspect
 import keyword
 import re
 from urllib import parse
 
 from aiohttp import hdrs
 from aiohttp import web_urldispatcher as wu
+from aiohttp.abc import AbstractView
 
 
 class SubLocation:
@@ -123,10 +126,14 @@ class SubLocation:
 class Route(wu.ResourceRoute):
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None, **kwargs):
+        handler, self._handler_args = self._wrap_handler(handler)
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource)
         self._location = location
+
+    def __repr__(self):
+        return type(self).__name__
 
     @property
     def location(self):
@@ -135,6 +142,55 @@ class Route(wu.ResourceRoute):
     @location.setter
     def location(self, value):
         self._location = value
+
+    @classmethod
+    def _wrap_handler(cls, handler):
+        if isinstance(handler, str):
+            return cls._import_handler(handler)
+        signature = inspect.signature(handler)
+        handler_kwargs = frozenset(signature.parameters.keys())
+        return handler, handler_kwargs
+
+    @classmethod
+    def _import_handler(cls, path: str):
+        p = path.rsplit('.', 2)
+        if len(p) == 3:
+            p, v, h = p
+            if v == v.lower():
+                p = '.'.join((p, v))
+                v = None
+        elif len(p) == 2:
+            p, h = p
+            v = None
+        else:
+            raise ValueError('.'.join(p))
+
+        package = importlib.import_module(p)
+
+        if not v:
+            return cls._wrap_handler(getattr(package, h))
+
+        View = getattr(package, v)
+
+        if issubclass(View, AbstractView):
+            return cls._wrap_handler(View)
+
+        handler = getattr(View, h)
+        signature = inspect.signature(getattr(View(), h))
+        handler_kwargs = frozenset(signature.parameters.keys())
+        if 'request' in handler_kwargs:
+            def wrap_handler(request, *args, **kwargs):
+                vi = View()
+                vi.request = request
+                return handler(vi, request, *args, **kwargs)
+        else:
+            def wrap_handler(request, *args, **kwargs):
+                vi = View()
+                vi.request = request
+                return handler(vi, *args, **kwargs)
+
+        wrap_handler.__signature__ = signature
+        return wrap_handler, {'request'}.union(handler_kwargs)
 
 
 class TreeResource(wu.Resource):
