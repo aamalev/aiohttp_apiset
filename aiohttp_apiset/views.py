@@ -39,11 +39,10 @@ def swagger_yaml(file_path, *, executor=None, loop=None):
     return aresponse
 
 
-class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
+class ApiSet(BaseApiSet, SwaggerLoaderMixin):
     namespace = NotImplemented
     root_dir = '/'
     swagger_ref = None
-    default_response = 'json'
     methods = {
         '': (
             ('options', 'OPTIONS'),
@@ -79,50 +78,6 @@ class ApiSet(abc.AbstractView, BaseApiSet, SwaggerLoaderMixin):
             _methods = dict((y, x) for x, y in cls.methods[prefix])
 
         return View
-
-    def __init__(self, request):
-        super().__init__(request)
-        if not self._prefix:
-            self._methods = {}
-            self._postfixes = sorted(self.methods, key=len, reverse=True)
-            for pref, methods in self.methods.items():
-                meths = self._methods[pref] = {}
-                for name, mt in methods:
-                    if hasattr(self, name):
-                        meths[mt] = name
-
-    @asyncio.coroutine
-    def __iter__(self):
-        if self._prefix:
-            methods = self._methods
-        else:
-            for postfix in self._postfixes:
-                if self.request.path.endswith(postfix):
-                    break
-            else:
-                raise web.HTTPMethodNotAllowed(self.request.method, ())
-            methods = self._methods[postfix]
-
-        if self.request.method not in methods:
-            raise web.HTTPMethodNotAllowed(
-                self.request.method, tuple(methods))
-        method_name = methods[self.request.method.upper()]
-        method = getattr(self, method_name)
-
-        params = inspect.signature(method).parameters
-        kwargs = {}
-        if 'request' in params:
-            kwargs['request'] = self.request
-        for k in params:
-            if k in self.request.match_info:
-                kwargs[k] = self.request.match_info[k]
-
-        resp = yield from method(**kwargs)
-        return resp
-
-    if PY_35:
-        def __await__(self):
-            return (yield from self.__iter__())
 
     @classmethod
     def add_routes(cls, router, prefix, encoding=None):
