@@ -13,6 +13,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     INCLUDE = '$include'
     VIEW = '$view'
     HANDLER = '$handler'
+    NAME = '$name'
 
     def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
                  encoding=None, route_factory=route_factory):
@@ -167,6 +168,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         else:
             paths[utils.remove_patterns(swagger_prefix + url)] = item
+            name = item.pop(self.NAME, None)
             base_url = utils.url_normolize(base_url)
             for method, body in item.items():
                 handler_str = body.pop(self.HANDLER, None)
@@ -174,7 +176,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                     handler = self.import_handler(handler_str)
                     self.add_route(
                         method.upper(), base_url, handler,
-                        name=handler_str)
+                        name=name or handler_str)
 
     def _include(self, file_path, prefix=None, swagger_prefix=None,
                  swagger_data=None, override_basePath=''):
