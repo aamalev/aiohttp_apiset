@@ -14,9 +14,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     VIEW = '$view'
     HANDLER = '$handler'
     NAME = '$name'
+    VALIDATE = '$validate'
 
     def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
-                 encoding=None, route_factory=route_factory):
+                 encoding=None, route_factory=route_factory,
+                 default_validate=False):
         super().__init__(route_factory=route_factory)
         self.app = None
         self._routes = multidict.MultiDict()
@@ -25,6 +27,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         self._swagger_data = {}
         self._swagger_yaml = {}
         self._swagger = swagger
+        self._default_validate = default_validate
         if path:
             self.include(path)
 
@@ -46,7 +49,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
-                  swagger_data=None, definitions=None):
+                  swagger_data=None, definitions=None,
+                  validate=None):
         if name in self._routes:
             name = ''
         route = super().add_route(
@@ -174,9 +178,13 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 handler_str = body.pop(self.HANDLER, None)
                 if handler_str:
                     handler = self.import_handler(handler_str)
+                    validate = body.pop(self.VALIDATE, self._default_validate)
                     self.add_route(
                         method.upper(), base_url, handler,
-                        name=name or handler_str)
+                        name=name or handler_str,
+                        swagger_data=body, definitions=definitions,
+                        validate=validate,
+                    )
 
     def _include(self, file_path, prefix=None, swagger_prefix=None,
                  swagger_data=None, override_basePath=''):
