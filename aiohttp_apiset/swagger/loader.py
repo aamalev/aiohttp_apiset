@@ -103,31 +103,31 @@ def get_ref(spec: dict, ref: str):
     return current
 
 
-def deref(data, spec: dict) -> (dict, bool):
+def deref(data, spec: dict):
     """
-    Return dereference data and flag True if data changes
+    Return dereference data
     :param data:
     :param spec:
     :return:
     """
     is_dict = isinstance(data, dict)
+
     if is_dict and '$ref' in data:
-        return get_ref(spec, data['$ref']), True
+        return get_ref(spec, data['$ref'])
+
+    if not isinstance(data, (dict, list)):
+        return data
+
     result = None
-    flag = False
-    if isinstance(data, (dict, list)):
-        gen = data.items() if is_dict else enumerate(data)
-        for k, v in gen:
-            new_v, changes = deref(v, spec)
-            if changes:
-                flag = flag or changes
-                if result is not None:
-                    pass
-                elif is_dict:
-                    result = data.copy()
-                else:
-                    result = data[:]
-                result[k] = new_v
-        return result or data, flag
-    else:
-        return data, flag
+    gen = data.items() if is_dict else enumerate(data)
+    for k, v in gen:
+        new_v = deref(v, spec)
+        if new_v is not v:
+            if result is not None:
+                pass
+            elif is_dict:
+                result = data.copy()
+            else:
+                result = data[:]
+            result[k] = new_v
+    return result or data

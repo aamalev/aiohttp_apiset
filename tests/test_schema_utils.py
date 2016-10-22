@@ -18,8 +18,8 @@ spec = {
 
 
 def test_deref():
-    deref_data, changes = deref(data, spec)
-    assert changes
+    deref_data = deref(data, spec)
+    assert deref_data is not data
     assert deref_data == {
         'a': {
             'b': [
