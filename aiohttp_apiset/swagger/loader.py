@@ -113,7 +113,7 @@ def deref(data, spec: dict):
     is_dict = isinstance(data, dict)
 
     if is_dict and '$ref' in data:
-        return get_ref(spec, data['$ref'])
+        return deref(get_ref(spec, data['$ref']), spec)
 
     if not isinstance(data, (dict, list)):
         return data

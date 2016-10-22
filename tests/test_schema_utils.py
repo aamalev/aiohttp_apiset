@@ -4,7 +4,7 @@ from aiohttp_apiset.swagger.loader import deref
 data = {
     'a': {
         'b': [
-            {'$ref': '#/definitions/F'},
+            {'$ref': '#/definitions/G'},
             3,
         ]
     }
@@ -12,7 +12,8 @@ data = {
 
 spec = {
     'definitions': {
-        'F': 1
+        'F': 1,
+        'G': {'$ref': '#/definitions/F'}
     }
 }
 
