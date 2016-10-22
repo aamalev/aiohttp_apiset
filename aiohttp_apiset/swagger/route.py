@@ -4,32 +4,32 @@ from aiohttp import web
 
 from ..dispatcher import Route
 from .validate import types_mapping, validate
+from .loader import deref
 
 
 class SwaggerRoute(Route):
     def __init__(self, method, handler, resource, *,
-                 expect_handler=None, location=None):
+                 expect_handler=None, location=None, swagger_data=None):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource, location=location)
 
-        self._swagger_data = {}
-        self._parameters = []
+        self._swagger_data = swagger_data
+        self._parameters = {}
         self._required = []
-        self._definitions = {}
 
-    def set_swagger(self, swagger_data=None, definitions=None):
-        if swagger_data:
-            self._required = []
-            self._swagger_data = swagger_data
-            parameters = self._parameters = []
-            for param in swagger_data.get('parameters', ()):
-                p = param.copy()
-                if p.pop('required', False):
-                    self._required.append(p['name'])
-                parameters.append(p)
-        if definitions:
-            self._definitions = definitions
+    def build_swagger_data(self, swagger_scheme):
+        self._required = []
+        self._parameters = {}
+        if not self._swagger_data:
+            return
+        self._swagger_data = deref(self._swagger_data, swagger_scheme)
+        for param in self._swagger_data.get('parameters', ()):
+            p = param.copy()
+            name = p.pop('name')
+            self._parameters[name] = p
+            if p.pop('required', False):
+                self._required.append(name)
 
     @asyncio.coroutine
     def handler(self, request):
@@ -71,8 +71,7 @@ class SwaggerRoute(Route):
         else:
             body = {}
 
-        for param in self._parameters:
-            name = param['name']
+        for name, param in self._parameters.items():
             where = param['in']
             vtype = param['type']
             is_array = vtype == 'array'
@@ -140,7 +139,6 @@ def route_factory(method, handler, resource, *,
         route_class = SwaggerRoute
 
     route = route_class(method, handler, resource=resource,
-                        expect_handler=expect_handler)
-    route.set_swagger(swagger_data=kwargs.get('swagger_data'),
-                      definitions=kwargs.get('definitions'))
+                        expect_handler=expect_handler,
+                        swagger_data=kwargs['swagger_data'])
     return route

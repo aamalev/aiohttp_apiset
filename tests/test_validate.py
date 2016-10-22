@@ -39,8 +39,10 @@ def handler(request, road_id):
 @asyncio.coroutine
 def test_route():
     sd = {'parameters': parameters}
-    r = SwaggerValidationRoute('GET', handler=handler, resource=None)
-    r.set_swagger(sd)
+    r = SwaggerValidationRoute(
+        'GET', handler=handler, resource=None,
+        swagger_data=sd)
+    r.build_swagger_data({})
     request = make_mocked_request('GET', '/?road_id=1&road_id=2')
     request._match_info = {}
     resp = yield from r.handler(request)
@@ -54,7 +56,7 @@ def test_router(test_client):
     router.add_route(
         'POST', '/', handler,
         swagger_data={'parameters': parameters},
-    )
+    ).build_swagger_data({})
 
     def factory(loop, *args, **kwargs):
         app = web.Application(router=router, loop=loop, middlewares=[jsonify])

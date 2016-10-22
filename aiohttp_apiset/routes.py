@@ -1,12 +1,11 @@
 import importlib
-import inspect
 import os
 
 import yaml
 from aiohttp import web, multidict
 
 from . import utils, views, dispatcher
-from .swagger.route import route_factory
+from .swagger.route import route_factory, SwaggerRoute
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -36,20 +35,26 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         if not self._search_dirs:
             d = os.path.dirname(path)
             self._search_dirs.append(d)
+        data = self._include(file_path=path, override_basePath=basePath)
+        if basePath is None:
+            basePath = data.get('basePath', '')
+        url = basePath + '/swagger.yaml'
+        self._swagger_data[url] = data
+
         if self._swagger:
-            data = self._include(file_path=path, override_basePath=basePath)
-            if basePath is None:
-                basePath = data.get('basePath', '')
-            url = basePath + '/swagger.yaml'
-            self._swagger_data[url] = data
             self._swagger_yaml[url] = yaml.dump(data)
+
+        for url in self._routes:
+            for route, path in self._routes.getall(url):
+                if isinstance(route, SwaggerRoute):
+                    route.build_swagger_data(data)
 
     def add_search_dir(self, path):
         self._search_dirs.append(path)
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
-                  swagger_data=None, definitions=None,
+                  swagger_data=None,
                   validate=None):
         if name in self._routes:
             name = ''
@@ -57,7 +62,6 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             method, path, handler, name=name,
             expect_handler=expect_handler,
             swagger_data=swagger_data,
-            definitions=definitions,
             validate=validate,
         )
         self._routes.add(name, (route, path))
@@ -139,7 +143,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                     self.add_route(
                         method.upper(), base_url, handler=handler_str,
                         name=name or handler_str,
-                        swagger_data=body, definitions=definitions,
+                        swagger_data=body,
                         validate=validate,
                     )
 
