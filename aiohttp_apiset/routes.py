@@ -30,19 +30,23 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         if path:
             self.include(path)
 
+    def _handler_swagger(self, request):
+        key = request.raw_path
+        return web.Response(text=self._swagger_yaml[key])
+
     def include(self, spec, *, basePath=None):
         path = utils.find_file(spec, self._search_dirs)
         if not self._search_dirs:
             d = os.path.dirname(path)
             self._search_dirs.append(d)
         data = self._include(file_path=path, override_basePath=basePath)
-        if basePath is None:
-            basePath = data.get('basePath', '')
-        url = basePath + '/swagger.yaml'
-        self._swagger_data[url] = data
+        basePath = data.get('basePath', '')
+        self._swagger_data[basePath] = data
 
         if self._swagger:
+            url = basePath + '/swagger.yaml'
             self._swagger_yaml[url] = yaml.dump(data)
+            self.add_route('GET', url, self._handler_swagger)
 
         for url in self._routes:
             for route, path in self._routes.getall(url):
