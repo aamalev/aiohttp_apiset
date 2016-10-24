@@ -1,11 +1,13 @@
 import importlib
 import os
+from urllib.parse import urljoin
 
 import yaml
 from aiohttp import web, multidict
 
 from . import utils, views, dispatcher
 from .swagger.route import route_factory, SwaggerRoute
+from .swagger import ui
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -15,7 +17,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     NAME = '$name'
     VALIDATE = '$validate'
 
-    def __init__(self, path: str=None, *, search_dirs=None, swagger=True,
+    def __init__(self, path: str=None, *, search_dirs=None, swagger_ui=True,
                  encoding=None, route_factory=route_factory,
                  default_validate=False):
         super().__init__(route_factory=route_factory)
@@ -25,14 +27,19 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         self._search_dirs = search_dirs or []
         self._swagger_data = {}
         self._swagger_yaml = {}
-        self._swagger = swagger
+        self._swagger_ui = swagger_ui
         self._default_validate = default_validate
         if path:
             self.include(path)
 
-    def _handler_swagger(self, request):
+    def _handler_swagger_spec(self, request):
         key = request.raw_path
         return web.Response(text=self._swagger_yaml[key])
+
+    def _handler_swagger_ui(self, request):
+        url = urljoin(request.raw_path, 'swagger.yaml')
+        return web.Response(text=ui.rend_template(url),
+                            content_type='text/html')
 
     def include(self, spec, *, basePath=None):
         path = utils.find_file(spec, self._search_dirs)
@@ -43,10 +50,14 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         basePath = data.get('basePath', '')
         self._swagger_data[basePath] = data
 
-        if self._swagger:
-            url = basePath + '/swagger.yaml'
-            self._swagger_yaml[url] = yaml.dump(data)
-            self.add_route('GET', url, self._handler_swagger)
+        if self._swagger_ui:
+            base_ui = basePath + '/apidoc/'
+            spec = base_ui + 'swagger.yaml'
+            index = base_ui + 'index.html'
+            self._swagger_yaml[spec] = yaml.dump(data)
+            self.add_route('GET', spec, self._handler_swagger_spec)
+            self.add_route('GET', index, self._handler_swagger_ui)
+            self.add_static(base_ui, ui.static_ui)
 
         for url in self._routes:
             for route, path in self._routes.getall(url):
@@ -80,7 +91,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 route.method, path,
                 route.handler, name=name)
 
-        if self._swagger:
+        if self._swagger_ui:
             def generator(data):
                 def view(request):
                     return web.Response(text=data)
