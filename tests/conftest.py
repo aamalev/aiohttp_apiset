@@ -1,9 +1,18 @@
 import asyncio
+import os
+
 import pytest
 from aiohttp import web
 
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset import ApiSet
+from aiohttp_apiset.swagger import ui
+
+
+if not os.path.exists(ui.STATIC_UI):
+    os.makedirs(ui.STATIC_UI)
+    with open(ui.TEMPLATE_UI, 'w'):
+        pass
 
 
 @pytest.fixture
