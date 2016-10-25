@@ -11,6 +11,7 @@ from aiohttp_apiset.swagger import ui
 
 if not os.path.exists(ui.STATIC_UI):
     os.makedirs(ui.STATIC_UI)
+    os.makedirs(os.path.dirname(ui.TEMPLATE_UI))
     with open(ui.TEMPLATE_UI, 'w'):
         pass
 
