@@ -57,7 +57,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             self._swagger_yaml[spec] = yaml.dump(data)
             self.add_route('GET', spec, self._handler_swagger_spec)
             self.add_route('GET', index, self._handler_swagger_ui)
-            self.add_static(base_ui, ui.static_ui)
+            self.add_static(base_ui, ui.STATIC_UI)
+            ui.get_template()  # warm up
 
         for url in self._routes:
             for route, path in self._routes.getall(url):
