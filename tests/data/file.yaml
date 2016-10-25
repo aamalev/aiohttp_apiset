@@ -53,6 +53,8 @@ paths:
           in: formData
           required: false
           type: string
+    put:
+      $handler: tests.conftest.SimpleView.return_json
 
   '/{id}':
     get: 

@@ -39,6 +39,10 @@ class SimpleView:
     def post(self):
         raise web.HTTPOk(text='simple handler post')
 
+    @asyncio.coroutine
+    def return_json(self):
+        return {'status': 200}
+
 
 class View(ApiSet):
     swagger_ref = 'data/file.yaml'
