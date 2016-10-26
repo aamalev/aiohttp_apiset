@@ -17,6 +17,7 @@ class SwaggerRoute(Route):
         self._swagger_data = swagger_data
         self._parameters = {}
         self._required = []
+        self._json_form = False
 
     def build_swagger_data(self, swagger_scheme):
         self._required = []
@@ -30,6 +31,14 @@ class SwaggerRoute(Route):
             self._parameters[name] = p
             if p.pop('required', False):
                 self._required.append(name)
+        if self._parameters:
+            consumes = self._swagger_data.get('consumes', ())
+            j = False
+            f = False
+            for i in consumes:
+                j = j or 'json' in i
+                f = f or 'form' in i
+            self._json_form = all([j, f])
 
     @asyncio.coroutine
     def handler(self, request):
@@ -67,6 +76,7 @@ class SwaggerRoute(Route):
             is_form = True
         elif request.content_type == 'application/json':
             body = yield from request.json()
+            is_form = self._json_form
         else:
             body = {}
 
@@ -91,12 +101,17 @@ class SwaggerRoute(Route):
             elif where == 'formData':
                 if not is_form:
                     value = None
+                elif isinstance(body, dict):  # jsonForm
+                    if name in body:
+                        parameters[name] = body[name]
+                    elif name in self._required:
+                        errors.add(name, 'Required')
+                    continue
                 elif is_array:
                     value = body.getall(name, ())
                 else:
                     value = body.get(name)
             elif where == 'body':
-                self._validate(body, param)
                 parameters[name] = body
                 continue
             else:
@@ -115,7 +130,8 @@ class SwaggerRoute(Route):
             value = convert(name, value, vtype, vformat, errors)
 
             parameters[name] = value
-        self._validate(parameters, errors)
+
+        parameters = self._validate(parameters, errors)
         return parameters, errors
 
 
