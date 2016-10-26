@@ -1,0 +1,2 @@
+graft aiohttp_apiset/templates
+graft aiohttp_apiset/static
