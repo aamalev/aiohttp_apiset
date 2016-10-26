@@ -131,7 +131,7 @@ class SwaggerRoute(Route):
 
             parameters[name] = value
 
-        parameters = self._validate(parameters, errors)
+        self._validate(parameters, errors)
         return parameters, errors
 
 
