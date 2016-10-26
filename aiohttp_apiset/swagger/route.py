@@ -1,9 +1,9 @@
 import asyncio
 
-from aiohttp import web
+from aiohttp import web, multidict
 
 from ..dispatcher import Route
-from .validate import types_mapping, validate
+from .validate import convert, validate
 from .loader import deref
 
 
@@ -33,12 +33,10 @@ class SwaggerRoute(Route):
 
     @asyncio.coroutine
     def handler(self, request):
-        parameters, missing = yield from self.validate(request)
+        parameters, errors = yield from self.validate(request)
 
-        if missing:
-            raise web.HTTPBadRequest(reason={
-                'required': missing,
-            })
+        if errors:
+            raise web.HTTPBadRequest(reason=errors)
 
         dict.update(request, parameters)
 
@@ -51,14 +49,15 @@ class SwaggerRoute(Route):
         response = yield from self._handler(**kwargs)
         return response
 
-    def _validate(self, data, schema):
+    def _validate(self, data, errors):
         return data
 
     @asyncio.coroutine
     def validate(self, request: web.Request):
         is_form = False
         parameters = {}
-        missing = []
+        errors = multidict.MultiDict()
+
         if request.method not in request.POST_METHODS:
             body = None
         elif request.content_type in (
@@ -105,26 +104,27 @@ class SwaggerRoute(Route):
 
             if is_array:
                 vtype = param['items']['type']
+                vformat = param['items'].get('format')
             elif value is None:
                 if name in self._required:
-                    missing.append(name)
+                    errors.add(name, 'Required')
                 continue
+            else:
+                vformat = param.get('format')
 
-            conv = types_mapping[vtype]
-            if vtype != 'string':
-                if isinstance(value, (list, tuple)):
-                    value = [conv(i) for i in value]
-                else:
-                    value = conv(value)
+            value = convert(name, value, vtype, vformat, errors)
 
-            self._validate(value, param)
             parameters[name] = value
-        return parameters, missing
+        self._validate(parameters, errors)
+        return parameters, errors
 
 
 class SwaggerValidationRoute(SwaggerRoute):
-    def _validate(self, data, schema):
-        return validate(data, schema)
+    def _validate(self, data, errors):
+        return validate(data, {
+            'type': 'object',
+            'parameters': self._parameters,
+        })
 
 
 def route_factory(method, handler, resource, *,
