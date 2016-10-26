@@ -12,6 +12,17 @@ Package to build routes using swagger specification.
 
 Extends specification with directives $include, $view and $handler.
 
+Features
+--------
+
+- Building of the routing from specification swagger
+- Using inclusions other specifications with concatenate url
+- Optional output of the resulting specification and view embed swagger-ui
+- Advanced router with TreeResource
+- Extract specify parameters from request and validate with jsonschema
+- Serialize data as response with middleware
+
+
 -------
 Usecase
 -------
