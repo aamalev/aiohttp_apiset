@@ -2,6 +2,12 @@
 History
 =======
 
+0.2.1 (2016-10-27)
+------------------
+
+* Output conversion parameter errors in response
+* Fix validation
+
 0.2.0 (2016-10-26)
 ------------------
 
