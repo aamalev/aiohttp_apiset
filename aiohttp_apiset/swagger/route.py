@@ -31,14 +31,6 @@ class SwaggerRoute(Route):
             self._parameters[name] = p
             if p.pop('required', False):
                 self._required.append(name)
-        if self._parameters:
-            consumes = self._swagger_data.get('consumes', ())
-            j = False
-            f = False
-            for i in consumes:
-                j = j or 'json' in i
-                f = f or 'form' in i
-            self._json_form = all([j, f])
 
     @asyncio.coroutine
     def handler(self, request):
@@ -63,8 +55,8 @@ class SwaggerRoute(Route):
 
     @asyncio.coroutine
     def validate(self, request: web.Request):
-        is_form = False
         parameters = {}
+        files = {}
         errors = multidict.MultiDict()
 
         if request.method not in request.POST_METHODS:
@@ -73,63 +65,56 @@ class SwaggerRoute(Route):
                 'application/x-www-form-urlencoded',
                 'multipart/form-data'):
             body = yield from request.post()
-            is_form = True
         elif request.content_type == 'application/json':
             body = yield from request.json()
-            is_form = self._json_form
         else:
-            body = {}
+            body = None
 
         for name, param in self._parameters.items():
             where = param['in']
             vtype = param['type']
             is_array = vtype == 'array'
 
-            if where in ('query', 'header'):
-                if where == 'query':
-                    source = request.GET
-                else:
-                    source = request.headers
-                if is_array:
-                    value = source.getall(name, ())
-                else:
-                    value = source.get(name)
+            if where == 'query':
+                source = request.GET
+            elif where == 'header':
+                source = request.headers
             elif where == 'path':
-                value = request.match_info.get(name)
-            elif not body:
-                continue
+                source = request.match_info
+            elif body is None:
+                source = ()
             elif where == 'formData':
-                if not is_form:
-                    value = None
-                elif isinstance(body, dict):  # jsonForm
-                    if name in body:
-                        parameters[name] = body[name]
-                    elif name in self._required:
-                        errors.add(name, 'Required')
-                    continue
-                elif is_array:
-                    value = body.getall(name, ())
-                else:
-                    value = body.get(name)
+                source = body
             elif where == 'body':
                 parameters[name] = body
                 continue
             else:
                 raise ValueError(where)
 
+            if is_array and hasattr(source, 'getall'):
+                value = source.getall(name, ())
+            elif name in source:
+                value = source[name]
+            elif name in self._required:
+                errors.add(name, 'Required')
+                continue
+            else:
+                continue
+
             if is_array:
                 vtype = param['items']['type']
                 vformat = param['items'].get('format')
-            elif value is None:
-                if name in self._required:
-                    errors.add(name, 'Required')
-                continue
             else:
                 vformat = param.get('format')
 
-            value = convert(name, value, vtype, vformat, errors)
+            if not isinstance(source, dict) \
+                    and vtype not in ('string', 'file'):
+                value = convert(name, value, vtype, vformat, errors)
 
-            parameters[name] = value
+            if vtype == 'file':
+                files[name] = value
+            else:
+                parameters[name] = value
 
         self._validate(parameters, errors)
         return parameters, errors
