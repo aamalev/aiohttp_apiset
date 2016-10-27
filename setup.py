@@ -13,7 +13,8 @@ with open(os.path.join(os.path.abspath(os.path.dirname(
 
 
 def read(f):
-    return open(os.path.join(os.path.dirname(__file__), f)).read().strip()
+    path = os.path.join(os.path.dirname(__file__), f)
+    return open(path).read().strip()
 
 
 install_requires = [
@@ -31,23 +32,25 @@ tests_require = [
 ]
 
 
-setup(name='aiohttp_apiset',
-      version=version,
-      description='Build routes using swagger specification',
-      classifiers=[
-          'License :: OSI Approved :: Apache Software License',
-          'Intended Audience :: Developers',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
-          'Topic :: Internet :: WWW/HTTP'],
-      author='Alexander Malev',
-      author_email='malev@somedev.ru',
-      url='https://github.com/aamalev/aiohttp_apiset/',
-      license='Apache 2',
-      packages=find_packages(include=('aiohttp_apiset*',)),
-      install_requires=install_requires,
-      tests_require=tests_require,
-      include_package_data=True,
+setup(
+    name='aiohttp_apiset',
+    version=version,
+    description='Build routes using swagger specification',
+    long_description=read('README.rst') + '\n\n' + read('HISTORY.rst'),
+    classifiers=[
+        'License :: OSI Approved :: Apache Software License',
+        'Intended Audience :: Developers',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Topic :: Internet :: WWW/HTTP'],
+    author='Alexander Malev',
+    author_email='malev@somedev.ru',
+    url='https://github.com/aamalev/aiohttp_apiset/',
+    license='Apache 2',
+    packages=find_packages(include=('aiohttp_apiset*',)),
+    install_requires=install_requires,
+    tests_require=tests_require,
+    include_package_data=True,
 )
