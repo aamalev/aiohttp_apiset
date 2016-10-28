@@ -107,8 +107,9 @@ class SwaggerRoute(Route):
             else:
                 vformat = param.get('format')
 
-            if not isinstance(source, dict) \
-                    and vtype not in ('string', 'file'):
+            if source is body and isinstance(body, dict):
+                pass
+            elif vtype not in ('string', 'file'):
                 value = convert(name, value, vtype, vformat, errors)
 
             if vtype == 'file':
