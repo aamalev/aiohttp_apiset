@@ -1,8 +1,8 @@
 import asyncio
 
 import yaml
+from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
-from aiohttp import web
 
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.routes import SwaggerRouter
@@ -28,6 +28,15 @@ parameters = yaml.load("""
   in: formData
   required: false
   type: string
+- name: jso
+  in: body
+  required: false
+  scheme:
+    type: object
+    required: [f]
+    parameters:
+      f:
+        type: string
 """)
 
 
@@ -44,6 +53,32 @@ def test_route():
         swagger_data=sd)
     r.build_swagger_data({})
     request = make_mocked_request('GET', '/?road_id=1&road_id=2')
+    request._match_info = {}
+    resp = yield from r.handler(request)
+    assert isinstance(resp, dict), resp
+    assert 'road_id' in resp, resp
+
+
+@asyncio.coroutine
+def test_json():
+
+    def handler(request):
+        assert request.content_type == 'application/json'
+        assert 'jso' in request
+        return request
+
+    sd = {'parameters': parameters}
+    r = SwaggerValidationRoute(
+        'GET', handler=handler, resource=None,
+        swagger_data=sd)
+    r.build_swagger_data({})
+    request = make_mocked_request(
+        'POST', '/',
+        headers={
+            hdrs.CONTENT_TYPE: 'application/json'
+        },
+    )
+    request.json = asyncio.coroutine(lambda: {'f': 1})
     request._match_info = {}
     resp = yield from r.handler(request)
     assert isinstance(resp, dict), resp
