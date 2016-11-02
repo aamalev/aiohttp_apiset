@@ -31,8 +31,8 @@ class SwaggerRoute(Route):
             self._parameters[name] = p
             if p.pop('required', False):
                 self._required.append(name)
-            if 'scheme' in p:
-                p.update(p.pop('scheme'))
+            if 'schema' in p:
+                p.update(p.pop('schema'))
 
     @asyncio.coroutine
     def handler(self, request):

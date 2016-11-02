@@ -31,7 +31,7 @@ parameters = yaml.load("""
 - name: jso
   in: body
   required: false
-  scheme:
+  schema:
     type: object
     required: [f]
     parameters:
