@@ -66,9 +66,15 @@ class SwaggerRoute(Route):
         elif request.content_type in (
                 'application/x-www-form-urlencoded',
                 'multipart/form-data'):
-            body = yield from request.post()
+            try:
+                body = yield from request.post()
+            except Exception:
+                body = Exception('Bad form')
         elif request.content_type == 'application/json':
-            body = yield from request.json()
+            try:
+                body = yield from request.json()
+            except Exception:
+                body = Exception('Bad json')
         else:
             body = None
 
@@ -95,10 +101,12 @@ class SwaggerRoute(Route):
 
             if is_array and hasattr(source, 'getall'):
                 value = source.getall(name, ())
-            elif name in source:
+            elif name in source and not isinstance(body, BaseException):
                 value = source[name]
             elif name in self._required:
                 errors.add(name, 'Required')
+                if isinstance(body, BaseException):
+                    errors.add(name, str(body))
                 continue
             else:
                 continue
