@@ -42,7 +42,7 @@ parameters = yaml.load("""
 
 def handler(request, road_id):
     assert road_id
-    return {**request}
+    return dict(request)
 
 
 @asyncio.coroutine
@@ -65,7 +65,7 @@ def test_json():
     def handler(request):
         assert request.content_type == 'application/json'
         assert 'jso' in request
-        return {**request}
+        return dict(request)
 
     sd = {'parameters': parameters}
     r = SwaggerValidationRoute(

@@ -10,7 +10,7 @@ class JsonEncoder(json.JSONEncoder):
         if isinstance(o, multidict.MultiDict):
             return {k: o.getall(k) for k in o}
         elif isinstance(o, collections.MutableMapping):
-            return {**o}
+            return dict(o)
         return super().default(o)
 
     @classmethod
