@@ -2,6 +2,14 @@ from setuptools import setup, find_packages
 import os
 import re
 
+try:
+    import swagger_ui
+except ImportError:
+    pass
+else:
+    if not os.path.exists(swagger_ui.static):
+        swagger_ui.setup_ui()
+
 
 with open(os.path.join(os.path.abspath(os.path.dirname(
         __file__)), 'aiohttp_apiset', '__init__.py'), 'r',
