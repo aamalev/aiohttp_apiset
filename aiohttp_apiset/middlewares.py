@@ -1,4 +1,5 @@
 import asyncio
+import collections
 import json
 
 from aiohttp import web, multidict
@@ -8,6 +9,8 @@ class JsonEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, multidict.MultiDict):
             return {k: o.getall(k) for k in o}
+        elif isinstance(o, collections.MutableMapping):
+            return {**o}
         return super().default(o)
 
     @classmethod
