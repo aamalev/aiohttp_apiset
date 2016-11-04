@@ -41,7 +41,7 @@ class SwaggerRoute(Route):
         if errors:
             raise web.HTTPBadRequest(reason=errors)
 
-        dict.update(request, parameters)
+        request.update(parameters)
 
         parameters['request'] = request
         kwargs = {
