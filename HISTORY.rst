@@ -2,6 +2,13 @@
 History
 =======
 
+0.2.3 (2016-11-05)
+------------------
+
+* Added compatibility with aiohttp >= 1.1
+* Added safe decode form and json
+* Fixed extract body
+
 0.2.2 (2016-10-28)
 ------------------
 
