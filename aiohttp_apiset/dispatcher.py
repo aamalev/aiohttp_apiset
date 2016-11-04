@@ -5,6 +5,7 @@ import keyword
 import re
 from urllib import parse
 
+import aiohttp
 from aiohttp import hdrs
 from aiohttp import web_urldispatcher as wu
 from aiohttp.abc import AbstractView
@@ -34,9 +35,8 @@ class SubLocation:
         url = '/'.join(reversed(formatters))
         if parts:
             url = url.format_map(parts)
-        return self._append_query(url, query)
-
-    _append_query = staticmethod(wu.Resource._append_query)
+        # TODO use query
+        return url
 
     def __repr__(self):
         return '<SubLocation {name}, url={url}>' \
@@ -212,14 +212,27 @@ class TreeResource(wu.Resource):
         return route
 
     @asyncio.coroutine
-    def resolve(self, method, path):
+    def _resolve(self, method, path):
         return self._location.resolve(method, path[1:], {})
+
+    if aiohttp.__version__ >= '1.1':
+        def resolve(self, request):
+            return self._resolve(request.method, request.raw_path)
+    else:
+        resolve = _resolve
 
     def get_info(self):
         return {}
 
+    def url_for(self, **kwargs):
+        return '/'
+
     def url(self, *, parts, query=None):
-        return self._append_query('/', query)
+        # TODO use query
+        return self.url_for()
+
+    def add_prefix(self, prefix):
+        pass  # TODO
 
     def __repr__(self):
         name = "'" + self.name + "' " if self.name is not None else ""
@@ -282,8 +295,13 @@ class BaseUrlDispatcher(wu.UrlDispatcher):
 
 
 class TreeUrlDispatcher(BaseUrlDispatcher):
-    def __init__(self, resource_factory=TreeResource, route_factory=Route):
-        super().__init__()
+    def __init__(self, app=None, *,
+                 resource_factory=TreeResource,
+                 route_factory=Route):
+        if aiohttp.__version__ >= '1.1':
+            super().__init__(app)
+        else:
+            super().__init__()
         assert not self._resources
         self._resources.append(resource_factory(route_factory=route_factory))
 
