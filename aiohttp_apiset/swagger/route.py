@@ -101,8 +101,10 @@ class SwaggerRoute(Route):
 
             if is_array and hasattr(source, 'getall'):
                 value = source.getall(name, ())
-            elif name in source and not isinstance(body, BaseException):
-                value = source[name]
+            elif hasattr(source, 'get') \
+                    and name in source \
+                    and not isinstance(body, BaseException):
+                value = source.get(name)
             elif name in self._required:
                 errors.add(name, 'Required')
                 if isinstance(body, BaseException):
