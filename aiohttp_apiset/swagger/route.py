@@ -19,12 +19,12 @@ class SwaggerRoute(Route):
         self._required = []
         self._json_form = False
 
-    def build_swagger_data(self, swagger_scheme):
+    def build_swagger_data(self, swagger_schema):
         self._required = []
         self._parameters = {}
         if not self._swagger_data:
             return
-        self._swagger_data = deref(self._swagger_data, swagger_scheme)
+        self._swagger_data = deref(self._swagger_data, swagger_schema)
         for param in self._swagger_data.get('parameters', ()):
             p = param.copy()
             name = p.pop('name')
