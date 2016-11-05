@@ -1,5 +1,6 @@
 import asyncio
 
+import pytest
 import yaml
 from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
@@ -34,7 +35,7 @@ parameters = yaml.load("""
   schema:
     type: object
     required: [f]
-    parameters:
+    properties:
       f:
         type: string
 """)
@@ -78,11 +79,23 @@ def test_json():
             hdrs.CONTENT_TYPE: 'application/json'
         },
     )
-    request.json = asyncio.coroutine(lambda: {'f': 1})
+    request.json = asyncio.coroutine(lambda: {'f': ''})
     request._match_info = {}
     resp = yield from r.handler(request)
     assert isinstance(resp, dict), resp
     assert 'road_id' in resp, resp
+
+    # not valid data
+    request.json = asyncio.coroutine(lambda: {'f': 1})
+    with pytest.raises(web.HTTPBadRequest):
+        yield from r.handler(request)
+
+    try:
+        yield from r.handler(request)
+    except web.HTTPBadRequest as e:
+        resp = e
+
+    assert resp.reason['jso.f'], resp.reason
 
 
 @asyncio.coroutine
