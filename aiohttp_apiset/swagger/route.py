@@ -3,7 +3,7 @@ import asyncio
 from aiohttp import web, multidict
 
 from ..dispatcher import Route
-from .validate import convert, validate
+from .validate import convert, validator
 from .loader import deref
 
 
@@ -129,16 +129,18 @@ class SwaggerRoute(Route):
             else:
                 parameters[name] = value
 
-        self._validate(parameters, errors)
+        parameters = self._validate(parameters, errors)
         return parameters, errors
 
 
 class SwaggerValidationRoute(SwaggerRoute):
-    def _validate(self, data, errors):
-        return validate(data, {
+    def build_swagger_data(self, swagger_schema):
+        super().build_swagger_data(swagger_schema)
+        schema = {
             'type': 'object',
-            'parameters': self._parameters,
-        })
+            'properties': self._parameters,
+        }
+        self._validate = validator(schema)
 
 
 def route_factory(method, handler, resource, *,

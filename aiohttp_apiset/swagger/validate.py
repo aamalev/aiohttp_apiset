@@ -1,4 +1,4 @@
-from jsonschema import validate
+from jsonschema import Draft4Validator
 
 ERROR_TYPE = "Not valid value '{}' for type {}:{}"
 
@@ -51,3 +51,15 @@ def convert(name, value, sw_type, sw_format, errors):
                 name,
                 ERROR_TYPE.format(value, sw_type, sw_format)
             )
+
+
+def validator(schema):
+    validator = Draft4Validator(schema)
+
+    def validate(value, errors):
+        for error in validator.descend(value, schema):
+            param = '.'.join(error.path)
+            errors.add(param, error.message)
+        return value
+
+    return validate
