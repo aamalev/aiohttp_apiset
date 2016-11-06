@@ -8,6 +8,10 @@ aiohttp_apiset
 .. image:: https://badge.fury.io/py/aiohttp_apiset.svg
     :target: https://badge.fury.io/py/aiohttp_apiset
 
+.. image:: https://readthedocs.org/projects/aiohttp-apiset/badge/?version=latest
+    :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 Package to build routes using swagger specification.
 
 Extends specification with directives $include, $view and $handler.
