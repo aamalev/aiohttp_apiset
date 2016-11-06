@@ -8,6 +8,14 @@ from .loader import deref
 
 
 class SwaggerRoute(Route):
+    """
+    :param method: as well as in aiohttp
+    :param handler: as well as in aiohttp
+    :param resource: as well as in aiohttp
+    :param expect_handler: as well as in aiohttp
+    :param location: SubLocation instance
+    :param swagger_data: data
+    """
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None, swagger_data=None):
         super().__init__(method, handler,
@@ -17,9 +25,12 @@ class SwaggerRoute(Route):
         self._swagger_data = swagger_data
         self._parameters = {}
         self._required = []
-        self._json_form = False
 
     def build_swagger_data(self, swagger_schema):
+        """ Prepare data when schema loaded
+
+        :param swagger_schema: loaded schema
+        """
         self._required = []
         self._parameters = {}
         if not self._swagger_data:
@@ -57,6 +68,11 @@ class SwaggerRoute(Route):
 
     @asyncio.coroutine
     def validate(self, request: web.Request):
+        """ Returns parameters extract from request and multidict errors
+
+        :param request: Request
+        :return: tuple of parameters and errors
+        """
         parameters = {}
         files = {}
         errors = multidict.MultiDict()

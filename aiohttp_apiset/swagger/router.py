@@ -12,6 +12,17 @@ from .route import route_factory, SwaggerRoute
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
+    """ SwaggerRouter is designed to load swagger specifications
+
+    :param path: path to specification
+    :param search_dirs: directory for search files of specification
+    :param swagger_ui: if True then swagger-ui will be available
+        at the url `basePath`/apidoc/index.html
+    :param encoding: default encoding of specification, if None apply UTF-8
+    :param route_factory: factory for select route class and create route
+    :param default_validate: if True and not specify in method then standart
+        route_factory selected SwaggerValidationRoute
+    """
     INCLUDE = '$include'
     VIEW = '$view'
     HANDLER = '$handler'
@@ -43,6 +54,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                             content_type='text/html')
 
     def include(self, spec, *, basePath=None):
+        """ Adds a new specification to a router
+
+        :param spec: path to specification
+        :param basePath: override base path specify in specification
+        """
         path = utils.find_file(spec, self._search_dirs)
         if not self._search_dirs:
             d = os.path.dirname(path)
@@ -67,12 +83,25 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                     route.build_swagger_data(data)
 
     def add_search_dir(self, path):
+        """Add directory for search specification files
+        """
         self._search_dirs.append(path)
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
                   swagger_data=None,
                   validate=None):
+        """ Returns route
+
+        :param method: as well as in aiohttp
+        :param path: as well as in aiohttp
+        :param handler: as well as in aiohttp and must be str `mymodule.handler`
+        :param name: as well as in aiohttp
+        :param expect_handler: as well as in aiohttp
+        :param swagger_data:
+        :param validate:
+        :return: route for handler
+        """
         if name in self._routes:
             name = ''
         route = super().add_route(
@@ -85,6 +114,10 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         return route
 
     def setup(self, app: web.Application):
+        """ Installation routes to app.router
+
+        :param app: instance of aiohttp.web.Application
+        """
         self.app = app
         routes = sorted(self._routes.items(), key=utils.sort_key)
         for name, (route, path) in routes:
