@@ -23,12 +23,11 @@ Features
 - Serialize data as response with middleware
 
 
--------
 Usecase
 -------
 
 $handler
-========
+^^^^^^^^
 
 Handler:
 
@@ -68,7 +67,7 @@ Equal:
 
 
 Setup to application
-====================
+--------------------
 
 Create router:
 

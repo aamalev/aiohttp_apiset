@@ -3,23 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to aiohttp_apiset's documentation!
-==========================================
+.. include:: ../README.rst
 
-Contents:
+======================
+Documentation contents
+======================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   readme
    swagger_classes
    history
 
-
+==================
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
