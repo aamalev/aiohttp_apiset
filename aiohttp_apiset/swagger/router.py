@@ -2,12 +2,13 @@ import importlib
 import os
 from urllib.parse import urljoin
 
+import multidict
 import yaml
-from aiohttp import web, multidict
+from aiohttp import web
 
-from . import utils, views, dispatcher
-from .swagger.route import route_factory, SwaggerRoute
-from .swagger import ui
+from .. import dispatcher, utils
+from . import ui
+from .route import route_factory, SwaggerRoute
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -197,17 +198,3 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 definitions, paths)
 
         return swagger_data
-
-
-class APIRouter(views.BaseApiSet):
-    def __init__(self, prefix_url=None):
-        self.views = []
-        self.prefix_url = prefix_url
-
-    def append_routes_from(self, view):
-        self.views.append(view)
-
-    def append_routes_to(self, app, prefix=None):
-        prefix = prefix or self.prefix_url
-        for view in self.views:
-            view.append_routes_to(app, prefix)

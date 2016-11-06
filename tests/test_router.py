@@ -2,7 +2,7 @@ import asyncio
 
 from aiohttp import web
 
-from aiohttp_apiset.routes import SwaggerRouter
+from aiohttp_apiset import SwaggerRouter
 
 
 def test_app(loop, swagger_router):

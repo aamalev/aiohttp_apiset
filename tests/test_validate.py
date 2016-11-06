@@ -6,7 +6,7 @@ from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
 
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
-from aiohttp_apiset.routes import SwaggerRouter
+from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
 
 
