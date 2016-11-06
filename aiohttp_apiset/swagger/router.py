@@ -95,11 +95,13 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         :param method: as well as in aiohttp
         :param path: as well as in aiohttp
-        :param handler: as well as in aiohttp and must be str `mymodule.handler`
+        :param handler: as well as in aiohttp
+            and also must be str `mymodule.handler`
         :param name: as well as in aiohttp
         :param expect_handler: as well as in aiohttp
-        :param swagger_data:
-        :param validate:
+        :param swagger_data: data
+            http://swagger.io/specification/#operationObject
+        :param validate: bool param for validate in SwaggerValidationRoute
         :return: route for handler
         """
         if name in self._routes:
