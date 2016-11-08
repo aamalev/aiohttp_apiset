@@ -124,6 +124,9 @@ class SwaggerRoute(Route):
                     and name in source \
                     and not isinstance(source, BaseException):
                 value = source.get(name)
+            elif 'default' in param:
+                parameters[name] = param['default']
+                continue
             elif name in self._required:
                 errors.add(name, 'Required')
                 if isinstance(source, BaseException):
