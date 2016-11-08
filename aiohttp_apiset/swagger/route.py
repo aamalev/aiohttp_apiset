@@ -110,20 +110,23 @@ class SwaggerRoute(Route):
             elif where == 'formData':
                 source = body
             elif where == 'body':
-                parameters[name] = body
+                if isinstance(body, BaseException):
+                    errors.add(name, str(body))
+                else:
+                    parameters[name] = body
                 continue
             else:
                 raise ValueError(where)
 
             if is_array and hasattr(source, 'getall'):
-                value = source.getall(name, ())
+                value = source.getall(name, [])
             elif hasattr(source, 'get') \
                     and name in source \
-                    and not isinstance(body, BaseException):
+                    and not isinstance(source, BaseException):
                 value = source.get(name)
             elif name in self._required:
                 errors.add(name, 'Required')
-                if isinstance(body, BaseException):
+                if isinstance(source, BaseException):
                     errors.add(name, str(body))
                 continue
             else:

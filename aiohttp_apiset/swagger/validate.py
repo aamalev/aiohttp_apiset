@@ -58,7 +58,7 @@ def validator(schema):
 
     def validate(value, errors):
         for error in validator.descend(value, schema):
-            param = '.'.join(error.path)
+            param = '.'.join(map(str, error.path))
             errors.add(param, error.message)
         return value
 
