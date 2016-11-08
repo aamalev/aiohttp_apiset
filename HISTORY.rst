@@ -2,6 +2,14 @@
 History
 =======
 
+0.2.5 (2016-11-08)
+------------------
+
+* Fixed verbosity errors
+* Set default value from swagger operationObject
+* Started docs on http://aiohttp-apiset.readthedocs.io
+* Swagger-ui index on `basePath`/apidoc/
+
 0.2.4 (2016-11-06)
 ------------------
 
