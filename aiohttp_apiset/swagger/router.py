@@ -191,8 +191,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             location_name = item.pop(self.NAME, None)
             base_url = utils.url_normolize(base_url)
             for method, body in item.items():
-                name = location_name
                 handler = body.pop(self.HANDLER, None)
+                name = location_name or handler
                 if not handler:
                     op_id = body.get('operationId')
                     if op_id and operationId_mapping:
