@@ -8,7 +8,7 @@ class OperationIdMapping(Mapping):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._operations = []
-        self.add_operations(*args, *kwargs)
+        self.add_operations(*args, **kwargs)
 
     def __getitem__(self, key):
         for om in self._operations:
