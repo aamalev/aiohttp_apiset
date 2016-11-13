@@ -53,7 +53,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         return web.Response(text=ui.rend_template(url),
                             content_type='text/html')
 
-    def include(self, spec, *, basePath=None):
+    def include(self, spec, *, basePath=None, operationId_mapping=None):
         """ Adds a new specification to a router
 
         :param spec: path to specification
@@ -63,7 +63,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         if not self._search_dirs:
             d = os.path.dirname(path)
             self._search_dirs.append(d)
-        data = self._include(file_path=path, override_basePath=basePath)
+        data = self._include(file_path=path, override_basePath=basePath,
+                             operationId_mapping=operationId_mapping)
         basePath = data.get('basePath', '')
         self._swagger_data[basePath] = data
 
@@ -148,7 +149,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
     def _include_item(self, item, base_dir, prefix, url,
                       swagger_prefix, swagger_data,
-                      definitions, paths):
+                      definitions, paths, operationId_mapping=None):
         base_url = prefix + url
 
         if isinstance(item, list):
@@ -187,21 +188,29 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         else:
             paths[utils.remove_patterns(swagger_prefix + url)] = item
-            name = item.pop(self.NAME, None)
+            location_name = item.pop(self.NAME, None)
             base_url = utils.url_normolize(base_url)
             for method, body in item.items():
-                handler_str = body.pop(self.HANDLER, None)
-                if handler_str:
+                name = location_name
+                handler = body.pop(self.HANDLER, None)
+                if not handler:
+                    op_id = body.get('operationId')
+                    if op_id and operationId_mapping:
+                        handler = operationId_mapping.get(op_id)
+                        if handler:
+                            name = location_name or op_id
+                if handler:
                     validate = body.pop(self.VALIDATE, self._default_validate)
                     self.add_route(
-                        method.upper(), base_url, handler=handler_str,
-                        name=name or handler_str,
+                        method.upper(), base_url, handler=handler,
+                        name=name,
                         swagger_data=body,
                         validate=validate,
                     )
 
     def _include(self, file_path, prefix=None, swagger_prefix=None,
-                 swagger_data=None, override_basePath=''):
+                 swagger_data=None, override_basePath='',
+                 operationId_mapping=None):
         base_dir = os.path.dirname(file_path)
 
         with open(file_path, encoding=self._encoding) as f:
@@ -231,6 +240,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             self._include_item(
                 item, base_dir, prefix, url,
                 swagger_prefix, swagger_data,
-                definitions, paths)
+                definitions, paths,
+                operationId_mapping=operationId_mapping)
 
         return swagger_data
