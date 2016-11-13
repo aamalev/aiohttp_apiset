@@ -33,5 +33,6 @@ Swagger routing
    ^^^^^^^^^^^^^^^^^^
 
    .. automodule:: aiohttp_apiset.swagger.operations
+
    .. autoclass:: OperationIdMapping
-      :members:
+    :members:
