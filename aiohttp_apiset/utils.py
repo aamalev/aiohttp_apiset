@@ -1,3 +1,4 @@
+import importlib
 import os
 import re
 from urllib import parse
@@ -68,3 +69,12 @@ def sort_key(x):
     """
     name, (r, u) = x
     return - len(u) + u.count('}') * 100
+
+
+def import_obj(p: str):
+    r = p.rsplit('.', 1)
+    if len(r) < 2:
+        raise ValueError(p)
+    p, c = r
+    package = importlib.import_module(p)
+    return getattr(package, c)
