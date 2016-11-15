@@ -234,7 +234,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         if swagger_data is None:
             if basePath in self._swagger_data:
-                swagger_data = self._swagger_data
+                swagger_data = self._swagger_data[basePath]
             else:
                 swagger_data = data.copy()
                 swagger_data['paths'] = {}
