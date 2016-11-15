@@ -54,3 +54,16 @@ def test_cbv_handler_post(client):
     url = client.app.router['file:simple:view'].url()
     res = yield from client.post(url)
     assert (yield from res.text()) == 'simple handler post'
+
+
+def test_override_basePath():
+    router = SwaggerRouter(search_dirs=['tests'])
+    prefix = '/override'
+    router.include('data/root.yaml', basePath=prefix)
+    paths = [
+        url
+        for route, url in router._routes.values()
+        if url.startswith(prefix)
+    ]
+    assert prefix in router._swagger_data
+    assert paths

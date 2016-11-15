@@ -209,7 +209,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                     )
 
     def _include(self, file_path, prefix=None, swagger_prefix=None,
-                 swagger_data=None, override_basePath='',
+                 swagger_data=None, override_basePath=None,
                  operationId_mapping=None):
         base_dir = os.path.dirname(file_path)
 
@@ -219,18 +219,27 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         if prefix is None:
             prefix = ''
 
+        if override_basePath is None:
+            basePath = data.get('basePath', '')
+        else:
+            basePath = override_basePath
+
         if swagger_prefix is None:
             swagger_prefix = ''
         else:
-            swagger_prefix += data.get('basePath', override_basePath)
+            swagger_prefix += basePath
 
-        prefix += data.get('basePath', override_basePath)
+        prefix += basePath
         base_paths = data['paths']
 
         if swagger_data is None:
-            swagger_data = data.copy()
-            swagger_data['paths'] = {}
-            swagger_data['definitions'] = {}
+            if basePath in self._swagger_data:
+                swagger_data = self._swagger_data
+            else:
+                swagger_data = data.copy()
+                swagger_data['paths'] = {}
+                swagger_data['basePath'] = basePath
+                swagger_data['definitions'] = {}
         paths = swagger_data['paths']
         definitions = swagger_data['definitions']
         definitions.update(data.get('definitions', {}))
