@@ -185,7 +185,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 f,
                 prefix=prefix + url,
                 swagger_prefix=swagger_prefix + url,
-                swagger_data=swagger_data)
+                swagger_data=swagger_data,
+                operationId_mapping=operationId_mapping,
+            )
 
         else:
             paths[utils.remove_patterns(swagger_prefix + url)] = item
