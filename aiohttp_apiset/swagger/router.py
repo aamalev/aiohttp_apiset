@@ -71,13 +71,14 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         if self._swagger_ui:
             base_ui = basePath + '/apidoc/'
             spec = base_ui + 'swagger.yaml'
-            index = base_ui + 'index.html'
+            if spec not in self._swagger_yaml:
+                index = base_ui + 'index.html'
+                self.add_route('GET', spec, self._handler_swagger_spec)
+                self.add_route('GET', index, self._handler_swagger_ui)
+                self.add_route('GET', base_ui, self._handler_swagger_ui)
+                self.add_static(base_ui, ui.STATIC_UI)
+                ui.get_template()  # warm up
             self._swagger_yaml[spec] = yaml.dump(data)
-            self.add_route('GET', spec, self._handler_swagger_spec)
-            self.add_route('GET', index, self._handler_swagger_ui)
-            self.add_route('GET', base_ui, self._handler_swagger_ui)
-            self.add_static(base_ui, ui.STATIC_UI)
-            ui.get_template()  # warm up
 
         for url in self._routes:
             for route, path in self._routes.getall(url):
