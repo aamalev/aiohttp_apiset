@@ -8,7 +8,7 @@ class OperationIdMapping(Mapping):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self._operations = []
-        self.add_operations(*args, **kwargs)
+        self.add(*args, **kwargs)
 
     def __getitem__(self, key):
         for om in self._operations:
@@ -42,11 +42,11 @@ class OperationIdMapping(Mapping):
 
         raise ImportError(name)
 
-    def add_operations(self, *args, **kwargs):
+    def add(self, *args, **kwargs):
         """ Add new mapping from args and kwargs
 
         >>> om = OperationIdMapping()
-        >>> om.add_operations(
+        >>> om.add(
         ...     OperationIdMapping(),
         ...     'aiohttp_apiset.swagger.operations',  # any module
         ...     getPets='mymod.handler',
