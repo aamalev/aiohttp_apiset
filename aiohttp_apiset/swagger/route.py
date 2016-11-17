@@ -152,6 +152,7 @@ class SwaggerRoute(Route):
                 parameters[name] = value
 
         parameters = self._validate(parameters, errors)
+        parameters.update(files)
         return parameters, errors
 
 
