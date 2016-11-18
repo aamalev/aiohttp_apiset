@@ -1,6 +1,8 @@
 import asyncio
 import collections
+import datetime
 import json
+import uuid
 
 from aiohttp import web, multidict
 
@@ -9,8 +11,16 @@ class JsonEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, multidict.MultiDict):
             return {k: o.getall(k) for k in o}
-        elif isinstance(o, collections.MutableMapping):
+        elif isinstance(o, collections.Mapping):
             return dict(o)
+        elif isinstance(o, uuid.UUID):
+            return str(o)
+        elif isinstance(o, (map, set, frozenset)):
+            return list(o)
+        elif isinstance(o, datetime.datetime):
+            return o.isoformat(' ')
+        elif isinstance(o, datetime.date):
+            return o.isoformat()
         return super().default(o)
 
     @classmethod
