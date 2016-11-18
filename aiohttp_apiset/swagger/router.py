@@ -2,9 +2,8 @@ import importlib
 import os
 from urllib.parse import urljoin
 
-import multidict
 import yaml
-from aiohttp import web
+from aiohttp import web, multidict
 
 from .. import dispatcher, utils
 from . import ui
