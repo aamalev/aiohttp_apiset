@@ -1,5 +1,8 @@
+import importlib
 from collections.abc import Mapping
 from importlib import import_module
+
+import yaml
 
 from ..utils import import_obj
 
@@ -65,3 +68,30 @@ class OperationIdMapping(Mapping):
                 self._operations.append(arg)
         if kwargs:
             self._operations.append(kwargs)
+
+
+def get_docstring_swagger(handler):
+    if isinstance(handler, str):
+        h = handler
+        p = []
+        while isinstance(h, str):
+            try:
+                h = importlib.import_module(h)
+                break
+            except ImportError:
+                if '.' not in h:
+                    raise ImportError(handler)
+                h, t = h.rsplit('.', 1)
+                p.append(t)
+                continue
+        for i in reversed(p):
+            h = getattr(h, i)
+        docstr = h.__doc__
+    else:
+        docstr = handler.__doc__
+
+    if docstr:
+        swagger_yaml = docstr.rsplit('    ---', maxsplit=1)[-1]
+        operation = yaml.load(swagger_yaml)
+        if isinstance(operation, dict):
+            return operation

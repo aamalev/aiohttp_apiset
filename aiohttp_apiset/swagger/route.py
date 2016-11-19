@@ -5,6 +5,7 @@ from aiohttp import web, multidict
 from ..dispatcher import Route
 from .validate import convert, validator
 from .loader import deref
+from .operations import get_docstring_swagger
 
 
 class SwaggerRoute(Route):
@@ -21,8 +22,8 @@ class SwaggerRoute(Route):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource, location=location)
-
-        self._swagger_data = swagger_data
+        swagger_op = get_docstring_swagger(handler)
+        self._swagger_data = swagger_op or swagger_data
         self._parameters = {}
         self._required = []
 

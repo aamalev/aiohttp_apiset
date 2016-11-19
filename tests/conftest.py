@@ -26,6 +26,10 @@ def client(loop, test_client, swagger_router):
 
 @asyncio.coroutine
 def handler(request):
+    """
+    ---
+    description: swagger operation
+    """
     raise web.HTTPOk()
 
 

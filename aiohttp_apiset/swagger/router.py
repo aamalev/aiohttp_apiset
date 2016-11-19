@@ -7,6 +7,7 @@ from aiohttp import web, multidict
 
 from .. import dispatcher, utils
 from . import ui
+from .operations import get_docstring_swagger
 from .route import route_factory, SwaggerRoute
 
 
@@ -192,6 +193,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             paths[utils.remove_patterns(swagger_prefix + url)] = item
             location_name = item.pop(self.NAME, None)
             base_url = utils.url_normolize(base_url)
+            replace = {}
             for method, body in item.items():
                 handler = body.pop(self.HANDLER, None)
                 name = location_name or handler
@@ -203,12 +205,15 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                             name = location_name or op_id
                 if handler:
                     validate = body.pop(self.VALIDATE, self._default_validate)
-                    self.add_route(
+                    route = self.add_route(
                         method.upper(), base_url, handler=handler,
                         name=name,
                         swagger_data=body,
                         validate=validate,
                     )
+                    if isinstance(route, SwaggerRoute):
+                        replace[method] = route._swagger_data
+            item.update(replace)
 
     def _include(self, file_path, prefix=None, swagger_prefix=None,
                  swagger_data=None, override_basePath=None,
