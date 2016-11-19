@@ -61,4 +61,8 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     include_package_data=True,
+    extras_require={
+        'docs': [
+            'sphinx >= 1.4.8',
+            'sphinx_rtd_theme']},
 )
