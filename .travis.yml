@@ -6,5 +6,6 @@ python:
 install:
   - pip install -U pip setuptools
   - pip install -U pytest-runner pytest-aiohttp pytest-pep8 pytest-mock pytest-cov
+  - pip install -U aiohttp_jinja2
   - python setup.py install
 script: py.test
