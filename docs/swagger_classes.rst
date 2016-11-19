@@ -1,5 +1,5 @@
-Swagger routing
-===============
+``Swagger routing``
+===================
 
 .. automodule:: aiohttp_apiset.swagger.router
 
@@ -27,11 +27,3 @@ Swagger routing
 
    .. autoclass:: SwaggerValidationRoute
     :members:
-
-
-   OperationIdMapping
-   ^^^^^^^^^^^^^^^^^^
-
-   .. automodule:: aiohttp_apiset.swagger.operations
-   .. autoclass:: OperationIdMapping
-      :members:
