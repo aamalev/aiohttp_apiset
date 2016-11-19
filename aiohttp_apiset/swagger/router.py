@@ -82,7 +82,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         for url in self._routes:
             for route, path in self._routes.getall(url):
-                if isinstance(route, SwaggerRoute):
+                if isinstance(route, SwaggerRoute) and not route.is_built:
                     route.build_swagger_data(data)
 
     def add_search_dir(self, path):

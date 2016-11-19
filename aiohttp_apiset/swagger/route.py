@@ -22,16 +22,23 @@ class SwaggerRoute(Route):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource, location=location)
-        swagger_op = get_docstring_swagger(handler)
-        self._swagger_data = swagger_op or swagger_data
         self._parameters = {}
         self._required = []
+        swagger_op = get_docstring_swagger(handler)
+        if swagger_op:
+            self._swagger_data = swagger_op
+            self.is_built = True
+            self.build_swagger_data({})
+        else:
+            self._swagger_data = swagger_data
+            self.is_built = False
 
     def build_swagger_data(self, swagger_schema):
         """ Prepare data when schema loaded
 
         :param swagger_schema: loaded schema
         """
+        self.is_built = True
         self._required = []
         self._parameters = {}
         if not self._swagger_data:
