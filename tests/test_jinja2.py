@@ -21,7 +21,7 @@ def handler2(request):
     handler, handler2
 ])
 @asyncio.coroutine
-def test_simple(swagger_router, handler, mocker):
+def test_with_req(swagger_router, handler, mocker):
     route = swagger_router.add_route(
         'GET', '/jinja2/handler{}'.format(random.randrange(0, 999)), handler)
     m = mocker.patch('aiohttp_apiset.jinja2.render_template')
@@ -35,7 +35,7 @@ def handler_():
 
 
 @asyncio.coroutine
-def test_simple(swagger_router, mocker):
+def test_without_req(swagger_router, mocker):
     route = swagger_router.add_route(
         'GET', '/jinja2/handler{}'.format(random.randrange(0, 999)), handler_)
     m = mocker.patch('aiohttp_apiset.jinja2.render_template')
