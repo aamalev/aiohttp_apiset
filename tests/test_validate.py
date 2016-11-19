@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 import yaml
-from aiohttp import hdrs, web
+from aiohttp import hdrs, web, multidict
 from aiohttp.test_utils import make_mocked_request
 
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
@@ -75,9 +75,9 @@ def test_json():
     r.build_swagger_data({})
     request = make_mocked_request(
         'POST', '/',
-        headers={
+        headers=multidict.CIMultiDict({
             hdrs.CONTENT_TYPE: 'application/json'
-        },
+        }),
     )
     request.json = asyncio.coroutine(lambda: {'f': ''})
     request._match_info = {}
