@@ -5,6 +5,9 @@ aiohttp_apiset
 .. image:: https://travis-ci.org/aamalev/aiohttp_apiset.svg?branch=master
     :target: https://travis-ci.org/aamalev/aiohttp_apiset
 
+.. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/aamalev/aiohttp_apiset
+
 .. image:: https://badge.fury.io/py/aiohttp_apiset.svg
     :target: https://badge.fury.io/py/aiohttp_apiset
 
