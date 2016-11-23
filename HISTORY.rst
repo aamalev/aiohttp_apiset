@@ -2,6 +2,17 @@
 History
 =======
 
+0.3.0 (2016-11-24)
+------------------
+
+* Added class OperationIdMapping and param operationId_mapping in SwaggerRouter.include
+  for load authentic specification with specify operationId (#2)
+* Fixed validation form with file
+* Fixed overriding basePath
+* Added jinja2 decorator for working with aiohttp_jinja2
+* Loading operation body from docstring
+* Blank string param for number and integer treated as a missed
+
 0.2.5 (2016-11-08)
 ------------------
 

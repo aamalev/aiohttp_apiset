@@ -26,7 +26,7 @@ def read(f):
 
 
 install_requires = [
-    'aiohttp>=0.21',
+    'aiohttp>=0.22',
     'pyyaml',
     'jsonschema',
 ]
