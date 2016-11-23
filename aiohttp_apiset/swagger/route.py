@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Mapping
 
 from aiohttp import web, multidict
 
@@ -128,10 +129,9 @@ class SwaggerRoute(Route):
 
             if is_array and hasattr(source, 'getall'):
                 value = source.getall(name, [])
-            elif hasattr(source, 'get') \
-                    and name in source \
-                    and not isinstance(source, BaseException):
-                value = source.get(name)
+            elif isinstance(source, Mapping) and name in source \
+                    and (vtype not in ('number', 'integer') or source[name]):
+                value = source[name]
             elif 'default' in param:
                 parameters[name] = param['default']
                 continue

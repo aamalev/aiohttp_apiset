@@ -19,6 +19,17 @@ paths:
           type: array
           items:
             type: integer
+        - name: int
+          in: query
+          required: true
+          default: 1
+          type: integer
+        - name: int2
+          in: query
+          type: integer
+        - name: int3
+          in: header
+          type: integer
         - name: gt
           in: path
           required: false
