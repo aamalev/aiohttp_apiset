@@ -130,7 +130,8 @@ class SwaggerRoute(Route):
             if is_array and hasattr(source, 'getall'):
                 value = source.getall(name, [])
             elif isinstance(source, Mapping) and name in source \
-                    and (vtype not in ('number', 'integer') or source[name]):
+                    and (vtype not in ('number', 'integer') or
+                         source[name] != ''):
                 value = source[name]
             elif 'default' in param:
                 parameters[name] = param['default']
