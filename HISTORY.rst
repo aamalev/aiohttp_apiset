@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.1 (2016-11-25)
+------------------
+
+* fix zero for number parameter
+* transfer validation errors into client handler if specified argument errors
+
 0.3.0 (2016-11-24)
 ------------------
 
