@@ -38,8 +38,7 @@ def convert(name, value, sw_type, sw_format, errors):
             try:
                 result.append(conv(v))
             except (ValueError, TypeError):
-                errors.add(
-                    '{}.{}'.format(name, i),
+                errors['{}.{}'.format(name, i)].add(
                     ERROR_TYPE.format(v, sw_type, sw_format)
                 )
         return result
@@ -47,8 +46,7 @@ def convert(name, value, sw_type, sw_format, errors):
         try:
             return conv(value)
         except (ValueError, TypeError):
-            errors.add(
-                name,
+            errors[name].add(
                 ERROR_TYPE.format(value, sw_type, sw_format)
             )
 
@@ -59,7 +57,7 @@ def validator(schema):
     def validate(value, errors):
         for error in validator.descend(value, schema):
             param = '.'.join(map(str, error.path))
-            errors.add(param, error.message)
+            errors[param].add(error.message)
         return value
 
     return validate

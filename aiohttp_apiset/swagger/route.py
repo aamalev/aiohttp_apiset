@@ -1,7 +1,8 @@
 import asyncio
+from collections import defaultdict
 from collections.abc import Mapping
 
-from aiohttp import web, multidict
+from aiohttp import web
 
 from ..dispatcher import Route
 from .validate import convert, validator
@@ -84,7 +85,7 @@ class SwaggerRoute(Route):
         """
         parameters = {}
         files = {}
-        errors = multidict.MultiDict()
+        errors = defaultdict(set)
 
         if request.method not in request.POST_METHODS:
             body = None
@@ -120,7 +121,7 @@ class SwaggerRoute(Route):
                 source = body
             elif where == 'body':
                 if isinstance(body, BaseException):
-                    errors.add(name, str(body))
+                    errors[name].add(str(body))
                 else:
                     parameters[name] = body
                 continue
@@ -137,9 +138,9 @@ class SwaggerRoute(Route):
                 parameters[name] = param['default']
                 continue
             elif name in self._required:
-                errors.add(name, 'Required')
+                errors[name].add('Required')
                 if isinstance(source, BaseException):
-                    errors.add(name, str(body))
+                    errors[name].add(str(body))
                 continue
             else:
                 continue
