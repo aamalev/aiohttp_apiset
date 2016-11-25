@@ -59,12 +59,13 @@ class SwaggerRoute(Route):
     def handler(self, request):
         parameters, errors = yield from self.validate(request)
 
-        if errors:
+        if errors and 'errors' not in self._handler_args:
             raise web.HTTPBadRequest(reason=errors)
 
         request.update(parameters)
 
         parameters['request'] = request
+        parameters['errors'] = errors
         kwargs = {
             k: parameters.get(k)
             for k in self._handler_args
