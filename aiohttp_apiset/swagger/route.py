@@ -4,29 +4,10 @@ from collections.abc import Mapping
 
 from aiohttp import web
 
-from ..dispatcher import Route
-from .validate import convert, validator
 from .loader import deref
 from .operations import get_docstring_swagger
-
-
-COLLECTION_SEP = {'csv': ',', 'ssv': ' ', 'tsv': '\t', 'pipes': '|'}
-
-
-def get_collection(source, name, collection_format):
-    """get collection named `name` from the given `source` that
-    formatted accordingly to `collection_format`.
-    """
-    if collection_format in COLLECTION_SEP:
-        separator = COLLECTION_SEP[collection_format]
-        value = source.get(name, None)
-        if value is None:
-            return []
-        return value.split(separator)
-    if collection_format == 'brackets':
-        return source.getall(name + '[]', [])
-    else:                       # format: multi
-        return source.getall(name, [])
+from .validate import convert, validator, get_collection
+from ..dispatcher import Route
 
 
 class SwaggerRoute(Route):
