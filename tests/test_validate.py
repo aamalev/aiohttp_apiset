@@ -24,6 +24,13 @@ parameters = yaml.load("""
   collectionFormat: csv
   items:
     type: integer
+- name: road_id_ssv
+  in: query
+  required: true
+  type: array
+  collectionFormat: ssv
+  items:
+    type: integer
 - name: road_id_brackets
   in: query
   required: true
@@ -69,14 +76,16 @@ def test_route():
     r.build_swagger_data({})
     query = ('/?road_id=1&road_id=2'
              '&road_id_csv=1,2'
+             '&road_id_ssv=1%202'
              '&road_id_brackets[]=1&road_id_brackets[]=2')
     request = make_mocked_request('GET', query)
     request._match_info = {}
     resp = yield from r.handler(request)
     assert isinstance(resp, dict), resp
     assert 'road_id' in resp, resp
-    assert 'road_id_csv' in resp, resp
-    assert 'road_id_brackets' in resp, resp
+    assert resp.get('road_id_csv') == [1, 2], resp
+    assert resp.get('road_id_ssv') == [1, 2], resp
+    assert resp.get('road_id_brackets') == [1, 2], resp
 
 
 @asyncio.coroutine
