@@ -17,6 +17,20 @@ parameters = yaml.load("""
   type: array
   items:
     type: integer
+- name: road_id_csv
+  in: query
+  required: true
+  type: array
+  collectionFormat: csv
+  items:
+    type: integer
+- name: road_id_brackets
+  in: query
+  required: true
+  type: array
+  collectionFormat: brackets
+  items:
+    type: integer
 - name: gt
   in: path
   required: false
@@ -53,11 +67,16 @@ def test_route():
         'GET', handler=handler, resource=None,
         swagger_data=sd)
     r.build_swagger_data({})
-    request = make_mocked_request('GET', '/?road_id=1&road_id=2')
+    query = ('/?road_id=1&road_id=2'
+             '&road_id_csv=1,2'
+             '&road_id_brackets[]=1&road_id_brackets[]=2')
+    request = make_mocked_request('GET', query)
     request._match_info = {}
     resp = yield from r.handler(request)
     assert isinstance(resp, dict), resp
     assert 'road_id' in resp, resp
+    assert 'road_id_csv' in resp, resp
+    assert 'road_id_brackets' in resp, resp
 
 
 @asyncio.coroutine
@@ -111,10 +130,13 @@ def test_router(test_client):
         return app
 
     cli = yield from test_client(factory)
-    resp = yield from cli.post('/?road_id=1')
+    query = '/?road_id=1&road_id_csv=1&road_id_brackets[]=1'
+    resp = yield from cli.post(query)
     assert resp.status == 200, resp
     txt = yield from resp.text()
     assert 'road_id' in txt, txt
+    assert 'road_id_csv' in txt, txt
+    assert 'road_id_brackets' in txt, txt
 
 
 @asyncio.coroutine

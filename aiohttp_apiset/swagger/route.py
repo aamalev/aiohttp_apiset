@@ -10,6 +10,25 @@ from .loader import deref
 from .operations import get_docstring_swagger
 
 
+COLLECTION_SEP = {'csv': ',', 'ssv': ' ', 'tsv': '\t', 'pipes': '|'}
+
+
+def get_collection(source, name, collection_format):
+    """get collection named `name` from the given `source` that
+    formatted accordingly to `collection_format`.
+    """
+    if collection_format in COLLECTION_SEP:
+        separator = COLLECTION_SEP[collection_format]
+        value = source.get(name, None)
+        if value is None:
+            return []
+        return value.split(separator)
+    if collection_format == 'brackets':
+        return source.getall(name + '[]', [])
+    else:                       # format: multi
+        return source.getall(name, [])
+
+
 class SwaggerRoute(Route):
     """
     :param method: as well as in aiohttp
@@ -130,7 +149,8 @@ class SwaggerRoute(Route):
                 raise ValueError(where)
 
             if is_array and hasattr(source, 'getall'):
-                value = source.getall(name, [])
+                collection_format = param.get('collectionFormat')
+                value = get_collection(source, name, collection_format)
             elif isinstance(source, Mapping) and name in source \
                     and (vtype not in ('number', 'integer') or
                          source[name] != ''):
