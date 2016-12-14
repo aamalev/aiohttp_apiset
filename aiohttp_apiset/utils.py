@@ -1,6 +1,7 @@
 import importlib
 import os
 import re
+from pathlib import PurePath, Path
 from urllib import parse
 
 
@@ -13,7 +14,11 @@ def to_name(name):
 
 def find_file(file_path: str, search_dirs: list, *,
               base_file: str=None, base_dir: str=None) -> str:
-    if file_path.startswith('/'):
+    if isinstance(file_path, PurePath):
+        if file_path.is_absolute():
+            return str(file_path)
+
+    elif file_path.startswith('/'):
         return file_path
 
     elif file_path.startswith('.'):
@@ -23,12 +28,16 @@ def find_file(file_path: str, search_dirs: list, *,
             f = os.path.join(base_dir, file_path)
             return os.path.normpath(f)
 
+    if not isinstance(file_path, PurePath):
+        file_path = PurePath(file_path)
+
     for base_dir in search_dirs:
-        f = os.path.join(base_dir, file_path)
-        f = os.path.normpath(f)
-        if os.path.exists(f):
-            return f
-    raise FileNotFoundError(file_path)
+        if not isinstance(base_dir, Path):
+            base_dir = Path(base_dir)
+        f = base_dir / file_path
+        if f.exists():
+            return str(f)
+    raise FileNotFoundError(str(file_path))
 
 
 def url_normolize(url: str):

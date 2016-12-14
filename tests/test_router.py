@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 
 from aiohttp import web
 
@@ -67,3 +68,11 @@ def test_override_basePath():
     ]
     assert prefix in router._swagger_data
     assert paths
+
+
+def test_Path():
+    base = Path(__file__).parent
+    router = SwaggerRouter(search_dirs=[base])
+    spec = base / 'data/root.yaml'
+    router.include(spec)
+    assert router._swagger_data
