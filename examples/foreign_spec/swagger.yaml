@@ -1,0 +1,23 @@
+swagger: '2.0'
+
+
+paths:
+  /doc/{id}:
+    post:
+      tags: [documents]
+      operationId: setDocument
+      description: Set document
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          maximum: 0
+        - name: body
+          in: body
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              a:
+                type: integer
+                minimum: 0
