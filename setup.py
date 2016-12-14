@@ -57,7 +57,7 @@ setup(
     author_email='malev@somedev.ru',
     url='https://github.com/aamalev/aiohttp_apiset/',
     license='Apache 2',
-    packages=find_packages(include=('aiohttp_apiset*',)),
+    packages=[i for i in find_packages() if i.startswith('aiohttp_apiset')],
     install_requires=install_requires,
     tests_require=tests_require,
     include_package_data=True,
