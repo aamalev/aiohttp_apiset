@@ -1,5 +1,8 @@
+import pytest
 
 from aiohttp_apiset.swagger.loader import deref
+from aiohttp_apiset.swagger.operations import OperationIdMapping
+
 
 data = {
     'a': {
@@ -29,3 +32,18 @@ def test_deref():
             ]
         }
     }
+
+
+def test_operation_id1():
+    opmap = OperationIdMapping('math.sin')
+    assert opmap
+
+
+def test_operation_id2():
+    with pytest.raises(ImportError):
+        OperationIdMapping('math.sin.3')
+
+
+def test_operation_id3():
+    with pytest.raises(ValueError):
+        OperationIdMapping('3')

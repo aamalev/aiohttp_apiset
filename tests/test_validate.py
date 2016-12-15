@@ -1,4 +1,5 @@
 import asyncio
+from unittest import mock
 
 import pytest
 import yaml
@@ -6,6 +7,7 @@ from aiohttp import hdrs, web, multidict
 from aiohttp.test_utils import make_mocked_request
 
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
+from aiohttp_apiset.swagger.validate import convert
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
 
@@ -166,3 +168,15 @@ def test_router_files(test_client):
 
     resp = yield from cli.post(url + '?road_id=g')
     assert resp.status == 200, resp
+
+
+@pytest.mark.parametrize('args,result', [
+    (('name', 'true', 'boolean', None, None), True),
+    (('name', 'false', 'boolean', None, None), False),
+    (('name', '2s', 'string', None, mock.MagicMock()), '2s'),
+    (('name', '2s', 'integer', None, mock.MagicMock()), None),
+    (('name', ['2s'], 'number', None, mock.MagicMock()), []),
+])
+def test_conv(args, result):
+    r = convert(*args)
+    assert r == result

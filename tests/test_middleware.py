@@ -5,7 +5,7 @@ import pytest
 from aiohttp import web
 
 from aiohttp_apiset import SwaggerRouter
-from aiohttp_apiset.middlewares import jsonify
+from aiohttp_apiset.middlewares import jsonify, JsonEncoder
 
 
 @pytest.mark.parametrize('middlewares', [
@@ -56,3 +56,17 @@ def test_json(test_client):
 
     resp = yield from cli.put(url)
     assert resp.status == 200, resp
+
+
+def test_dumper():
+    from datetime import datetime
+    from uuid import uuid4
+    from aiohttp import multidict
+    JsonEncoder.dumps({
+        'since': datetime.now(),
+        'date': datetime.now().date(),
+        'uuid': uuid4(),
+        'set': set(),
+        'dict': dict(),
+        'md': multidict.MultiDict(),
+    })
