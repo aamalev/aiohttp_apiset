@@ -1,5 +1,5 @@
-Swagger routing
-===============
+Swagger router
+==============
 
 .. automodule:: aiohttp_apiset.swagger.router
 

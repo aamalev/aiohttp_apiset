@@ -6,18 +6,16 @@ aiohttp_apiset
     :target: https://travis-ci.org/aamalev/aiohttp_apiset
 
 .. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/aamalev/aiohttp_apiset
+    :target: https://codecov.io/gh/aamalev/aiohttp_apiset
 
 .. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
-        :target: https://pypi.python.org/pypi/aiohttp_apiset
+    :target: https://pypi.python.org/pypi/aiohttp_apiset
 
 .. image:: https://readthedocs.org/projects/aiohttp-apiset/badge/?version=latest
     :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-Package to build routes using swagger specification.
-
-Extends specification with directives $include, $view and $handler.
+Package to build routes and validate request using swagger specification.
 
 Features
 --------
@@ -29,74 +27,16 @@ Features
 - Extract specify parameters from request and validate with jsonschema
 - Serialize data as response with middleware
 
-
 Usecase
 -------
 
-$handler
-^^^^^^^^
+Package aiohttp_apiset allows supports several strategies:
 
-Handler:
+- The foreign specification. When the specification
+  is made and maintained by another team.
+- The specification in the code. When the fragments of specification
+  are placed in the docstrings.
+- Mixed strategy. When routing are located in the specification files
+  and operations are described in the docstrings.
 
-.. code-block:: python
-
-  from aiohttp import web
-
-  async def handler(request):
-      return web.json_response(
-          {'test': 'Hello'}
-      )
-
-Swagger spec:
-
-.. code-block:: yaml
-
-    swagger: '2.0'
-
-    basePath: /api/1
-
-    paths:
-
-      /hello:
-        get:
-          $handler: mymodule.handler
-          summary: and other not required for working route
-
-Equal:
-
-.. code-block:: python
-
-  app.router.add_route(
-      'GET',
-      '/api/1/hello',
-      handler,
-      name='mymodule.handler')
-
-
-Setup to application
---------------------
-
-Create router:
-
-.. code-block:: python
-
-  from aiohttp_apiset import SwaggerRouter
-
-  router = SwaggerRouter(
-      'data/root.yaml',
-      search_dirs=['routes'])
-
-Setup to application:
-
-.. code-block:: python
-
-  router.setup(app)
-
-or use as router:
-
-.. code-block:: python
-
-  Application(router=router)
-
-
-More examples: `examples <examples>`_
+Examples: `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_

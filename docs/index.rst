@@ -12,7 +12,11 @@ Documentation contents
 .. toctree::
    :maxdepth: 3
 
+   installation
+   using
+   directives
    swagger_classes
+   operation_id_mapping
    history
 
 ==================
