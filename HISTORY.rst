@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.3 (2016-12-16)
+------------------
+
+* Added support pathlib
+* Drop deprecated methods in views
+
 0.3.2 (2016-12-14)
 ------------------
 
