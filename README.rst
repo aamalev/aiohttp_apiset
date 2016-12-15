@@ -8,8 +8,8 @@ aiohttp_apiset
 .. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/aamalev/aiohttp_apiset
 
-.. image:: https://badge.fury.io/py/aiohttp_apiset.svg
-    :target: https://badge.fury.io/py/aiohttp_apiset
+.. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
+        :target: https://pypi.python.org/pypi/aiohttp_apiset
 
 .. image:: https://readthedocs.org/projects/aiohttp-apiset/badge/?version=latest
     :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
