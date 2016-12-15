@@ -97,3 +97,6 @@ or use as router:
 .. code-block:: python
 
   Application(router=router)
+
+
+More examples: `examples <examples>`_
