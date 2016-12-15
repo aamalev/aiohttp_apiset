@@ -74,3 +74,20 @@ Nested spec in file swagger/user.yaml:
       /{id:\d+}:
         get:
           $handler: mymodule.handler2
+
+
+$validate
+^^^^^^^^^
+
+Regardless of the value of the parameter default_validate
+this directive controls the need to validate the input data for the handler
+
+.. code-block:: yaml
+
+    swagger: '2.0'
+
+    paths:
+      /profile:
+        get:
+          $validate: true
+          $handler: mymodule.handler
