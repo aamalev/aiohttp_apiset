@@ -67,7 +67,7 @@ you must add a parameter errors:
 
 .. code-block:: python
 
-    async def get_status_coro(request, road_id, user_id, errors):
+    async def get_status_coro(request, road_id, user_id, errors: defaultdict(set)):
         return web.Responce(body=b'')
 
 if the docstring contains the body of the operation is considered to validate the priority:
