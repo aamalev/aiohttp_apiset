@@ -41,6 +41,11 @@ def main():
         search_dirs=[BASE],
     )
 
+    app = web.Application(
+        router=router,
+        middlewares=[jsonify],
+    )
+
     # Include our specifications in a router,
     # is now available in the swagger-ui to the address /apidoc/
     router.include(
@@ -48,10 +53,6 @@ def main():
         operationId_mapping=opmap,
     )
 
-    app = web.Application(
-        router=router,
-        middlewares=[jsonify],
-    )
     web.run_app(app)
 
 
