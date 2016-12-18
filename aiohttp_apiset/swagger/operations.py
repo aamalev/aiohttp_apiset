@@ -91,7 +91,10 @@ def get_docstring_swagger(handler):
         docstr = handler.__doc__
 
     if docstr:
-        swagger_yaml = docstr.rsplit('    ---', maxsplit=1)[-1]
+        ds = docstr.rsplit('    ---', maxsplit=1)
+        if len(ds) == 1:
+            return
+        swagger_yaml = ds[-1]
         operation = yaml.load(swagger_yaml)
         if isinstance(operation, dict):
             return operation
