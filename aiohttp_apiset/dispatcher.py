@@ -298,7 +298,7 @@ class TreeUrlDispatcher(BaseUrlDispatcher):
     def __init__(self, app=None, *,
                  resource_factory=TreeResource,
                  route_factory=Route):
-        if aiohttp.__version__ >= '1.1':
+        if aiohttp.__version__.startswith('1.1'):
             super().__init__(app)
         else:
             super().__init__()
