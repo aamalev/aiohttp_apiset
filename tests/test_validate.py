@@ -152,7 +152,11 @@ def test_router(test_client):
 
 @asyncio.coroutine
 def test_router_files(test_client):
-    router = SwaggerRouter(search_dirs=['tests'], default_validate=True)
+    router = SwaggerRouter(
+        search_dirs=['tests'],
+        default_validate=True,
+        swagger_ui=False,
+    )
     router.include('data/root.yaml')
 
     def factory(loop, *args, **kwargs):

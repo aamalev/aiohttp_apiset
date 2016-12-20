@@ -68,6 +68,9 @@ def view():
 
 @pytest.fixture
 def swagger_router():
-    router = SwaggerRouter(search_dirs=['tests'])
+    router = SwaggerRouter(
+        search_dirs=['tests'],
+        swagger_ui=False,
+    )
     router.include('data/root.yaml')
     return router

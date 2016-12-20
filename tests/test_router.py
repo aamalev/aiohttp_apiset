@@ -44,21 +44,22 @@ def test_definitions(swagger_router: SwaggerRouter):
 
 
 @asyncio.coroutine
-def test_cbv_handler_get(client):
-    url = client.app.router['file:simple:view'].url()
+def test_cbv_handler_get(client, swagger_router):
+    url = swagger_router['file:simple:view'].url()
     res = yield from client.get(url)
     assert (yield from res.text()) == 'simple handler get'
 
 
 @asyncio.coroutine
-def test_cbv_handler_post(client):
-    url = client.app.router['file:simple:view'].url()
+def test_cbv_handler_post(client, swagger_router):
+    url = swagger_router['file:simple:view'].url()
     res = yield from client.post(url)
     assert (yield from res.text()) == 'simple handler post'
 
 
-def test_override_basePath():
+def test_override_basePath(loop):
     router = SwaggerRouter(search_dirs=['tests'])
+    web.Application(router=router, loop=loop)
     prefix = '/override'
     router.include('data/root.yaml', basePath=prefix)
     paths = [
@@ -72,7 +73,10 @@ def test_override_basePath():
 
 def test_Path():
     base = Path(__file__).parent
-    router = SwaggerRouter(search_dirs=[base])
+    router = SwaggerRouter(
+        search_dirs=[base],
+        swagger_ui=False,
+    )
     spec = base / 'data/root.yaml'
     router.include(spec)
     assert router._swagger_data

@@ -13,18 +13,20 @@ from aiohttp_apiset.middlewares import jsonify, JsonEncoder
     [jsonify],
 ])
 @asyncio.coroutine
-def test_spec(test_client, middlewares):
+def test_spec(loop, test_client, middlewares):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
     )
-    router.include('data/root.yaml')
+
+    app = web.Application(
+        router=router, loop=loop,
+        middlewares=middlewares)
 
     def factory(loop, *args, **kwargs):
-        app = web.Application(
-            router=router, loop=loop,
-            middlewares=middlewares)
         return app
+
+    router.include('data/root.yaml')
 
     cli = yield from test_client(factory)
     spec_url = list(router._swagger_yaml.keys())[0]
@@ -42,6 +44,7 @@ def test_json(test_client):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
+        swagger_ui=False,
     )
     router.include('data/root.yaml')
 
@@ -52,7 +55,7 @@ def test_json(test_client):
         return app
 
     cli = yield from test_client(factory)
-    url = cli.app.router['file:simple:view'].url()
+    url = router['file:simple:view'].url()
 
     resp = yield from cli.put(url)
     assert resp.status == 200, resp
