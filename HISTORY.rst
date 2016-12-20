@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.4 (2016-12-20)
+------------------
+
+* fixed swagger extractor from docstring
+* support aiohttp 1.2
+
 0.3.3 (2016-12-16)
 ------------------
 
