@@ -29,6 +29,7 @@ install_requires = [
     'aiohttp>=0.22',
     'pyyaml',
     'jsonschema',
+    'yarl',
 ]
 
 tests_require = [
