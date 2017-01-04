@@ -4,6 +4,7 @@ import pytest
 from aiohttp import web
 from aiohttp.web_urldispatcher import MatchInfoError
 from aiohttp.test_utils import make_mocked_request as make_request
+from yarl import URL
 
 from aiohttp_apiset.dispatcher import TreeUrlDispatcher, Route
 
@@ -57,13 +58,29 @@ def test_multisubs(dispatcher: TreeUrlDispatcher):
 
 
 def test_url(dispatcher: TreeUrlDispatcher):
-    assert dispatcher['pet'].url(parts={'id': 1}) == '/api/1/pet/1'
+    location = dispatcher['pet']
+    assert location.url(parts={'id': 1}) == '/api/1/pet/1'
+    assert location.url_for(id=1) == URL('/api/1/pet/1')
+    assert repr(location)
+
+    route = location._routes['GET']
+    assert route.url(parts={'id': 1}) == '/api/1/pet/1'
+    assert route.url_for(id=1) == URL('/api/1/pet/1')
+    assert repr(route)
+    assert route.name
+    assert route.get_info() is not None
+
+    assert dispatcher.tree_resource.url_for() == URL('/')
+    assert dispatcher.tree_resource.url(query={'q': 1}) == '/?q=1'
+    assert repr(dispatcher.tree_resource)
+    assert dispatcher.tree_resource.get_info() is not None
 
 
 @pytest.mark.parametrize('hstr', [
     'tests.conftest.View.retrieve',
     'tests.conftest.SimpleView.get',
     'tests.conftest.SimpleView.post',
+    'asyncio.wait',  # cover one dot str handler
 ])
 def test_import_handler(hstr):
     handler, parameters = Route._import_handler(hstr)
