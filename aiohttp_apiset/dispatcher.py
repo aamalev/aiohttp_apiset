@@ -6,6 +6,7 @@ import re
 from urllib import parse
 
 import aiohttp
+import yarl
 from aiohttp import hdrs
 from aiohttp import web_urldispatcher as wu
 from aiohttp.abc import AbstractView
@@ -32,11 +33,22 @@ class SubLocation:
         while parent is not None:
             formatters.append(parent._formatter)
             parent = parent._parent
-        url = '/'.join(reversed(formatters))
+        if len(formatters) == 1:
+            url = self._formatter or '/'
+        else:
+            url = '/'.join(reversed(formatters))
         if parts:
             url = url.format_map(parts)
-        # TODO use query
+        if query:
+            url += "?" + parse.urlencode(query)
         return url
+
+    def url_for(self, *args, **kwargs):
+        """Construct url for route with additional params."""
+        return yarl.URL(self.url(parts=kwargs))
+
+    def get_info(self):
+        return {}
 
     def __repr__(self):
         return '<SubLocation {name}, url={url}>' \
@@ -123,7 +135,7 @@ class SubLocation:
         return location.register_route(path, route)
 
 
-class Route(wu.ResourceRoute):
+class Route(wu.AbstractRoute):
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None, **kwargs):
         handler, self._handler_args = self._wrap_handler(handler)
@@ -134,6 +146,21 @@ class Route(wu.ResourceRoute):
 
     def __repr__(self):
         return type(self).__name__
+
+    @property
+    def name(self):
+        return self._location.name
+
+    def url_for(self, *args, **kwargs):
+        """Construct url for route with additional params."""
+        return self._location.url_for(*args, **kwargs)
+
+    def url(self, **kwargs):
+        """Construct url for route with additional params."""
+        return self._location.url(**kwargs)
+
+    def get_info(self):
+        return self._location.get_info()
 
     @property
     def location(self):
@@ -193,11 +220,12 @@ class Route(wu.ResourceRoute):
         return wrap_handler, {'request'}.union(handler_kwargs)
 
 
-class TreeResource(wu.Resource):
+class TreeResource(wu.AbstractResource):
     def __init__(self, *, name=None,
                  route_factory=None,
                  sublocation_factory=None):
         super().__init__(name=name)
+        self._routes = []
         self._route_factory = route_factory or Route
         self._sublocation_factory = sublocation_factory or SubLocation
         self._location = self._sublocation_factory('')
@@ -224,19 +252,25 @@ class TreeResource(wu.Resource):
     def get_info(self):
         return {}
 
-    def url_for(self, **kwargs):
-        return '/'
+    def url_for(self, *args, **kwargs):
+        """Construct url for route with additional params."""
+        return self._location.url_for(*args, **kwargs)
 
-    def url(self, *, parts, query=None):
-        # TODO use query
-        return self.url_for()
+    def url(self, *, parts=None, query=None):
+        return self._location.url(parts=parts, query=query)
 
     def add_prefix(self, prefix):
         pass  # TODO
 
     def __repr__(self):
         name = "'" + self.name + "' " if self.name is not None else ""
-        return "<TreeResource {name}".format(name=name)
+        return "<TreeResource {name}>".format(name=name)
+
+    def __len__(self):
+        return len(self._routes)
+
+    def __iter__(self):
+        return iter(self._routes)
 
 
 class BaseUrlDispatcher(wu.UrlDispatcher):
