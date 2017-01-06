@@ -14,6 +14,7 @@ def get_template():
         return f.read()
 
 
-def rend_template(url):
+def rend_template(url, prefix=''):
     template = get_template()
-    return template.replace('{{url}}', url)
+    template = template.replace('{{url}}', url)
+    return template.replace('{{static_prefix}}', prefix)
