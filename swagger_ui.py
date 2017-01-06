@@ -1,15 +1,31 @@
+#!/usr/bin/env python
+""" Installer swagger-ui
+
+Author: Alexander Malev
+"""
+
 import urllib.request
 import tempfile
 import zipfile
 import shutil
 import os
 
-VERSION = '2.2.6'
+VERSION = os.environ.get('SWAGGER_UI_VERSION', '2.2.6')
+PACKAGE = os.environ.get('PACKAGE', 'aiohttp_apiset')
 
 URL = 'https://github.com/swagger-api/swagger-ui/archive/v{}.zip'
-d = os.path.dirname(__file__)
-static = os.path.join(d, 'aiohttp_apiset', 'static', 'swagger-ui')
-templates = os.path.join(d, 'aiohttp_apiset', 'templates', 'swagger-ui')
+DIR = os.path.dirname(__file__)
+STATIC_DIR = os.path.join(DIR, PACKAGE, 'static', 'swagger-ui')
+TEMPLATES_DIR = os.path.join(DIR, PACKAGE, 'templates', 'swagger-ui')
+
+PREFIX = '{{static_prefix}}'
+REPLACE_STRINGS = [
+    ('http://petstore.swagger.io/v2/swagger.json', '{{url}}'),
+    ('href="images', 'href="' + PREFIX + 'images'),
+    ("href='css", "href='" + PREFIX + 'css'),
+    ("src='lib", "src='" + PREFIX + 'lib'),
+    ("src='swagger-ui.js", "src='" + PREFIX + 'swagger-ui.js'),
+]
 
 
 def setup_ui():
@@ -22,15 +38,16 @@ def setup_ui():
             for member in z.namelist():
                 if member.startswith(mask):
                     z.extract(member, path=d)
-            shutil.move(os.path.join(d, mask), static)
+            shutil.move(os.path.join(d, mask), STATIC_DIR)
 
-    if not os.path.exists(templates):
-        os.makedirs(templates)
+    if not os.path.exists(TEMPLATES_DIR):
+        os.makedirs(TEMPLATES_DIR)
 
-    with open(os.path.join(static, 'index.html'), 'rt') as source:
+    with open(os.path.join(STATIC_DIR, 'index.html'), 'rt') as source:
         s = source.read()
-    s = s.replace('http://petstore.swagger.io/v2/swagger.json', '{{url}}')
-    with open(os.path.join(templates, 'index.html'), 'wt') as f:
+    for target, source in REPLACE_STRINGS:
+        s = s.replace(target, source)
+    with open(os.path.join(TEMPLATES_DIR, 'index.html'), 'wt') as f:
         f.write(s)
 
 
