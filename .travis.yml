@@ -3,6 +3,7 @@ sudo: false
 python:
   - 3.4
   - 3.5
+  - 3.6
 install:
   - pip install -U pip setuptools
   - pip install -U pytest-runner pytest-aiohttp pytest-pep8 pytest-mock pytest-cov
