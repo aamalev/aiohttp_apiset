@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 else:
-    if not os.path.exists(swagger_ui.static):
+    if not os.path.exists(swagger_ui.STATIC_DIR):
         swagger_ui.setup_ui()
 
 
