@@ -65,7 +65,8 @@ class SubLocation:
             locations[-1] = ''
         return locations
 
-    def resolve(self, method: str, path: str, match_dict: dict):
+    def resolve(self, request, path: str, match_dict: dict):
+        method = request.method
         allowed_methods = set()
 
         if path is None:
@@ -90,7 +91,7 @@ class SubLocation:
 
         if location in self._subs:
             return self._subs[location].resolve(
-                method=method,
+                request=request,
                 path=tail,
                 match_dict=match_dict)
 
@@ -109,7 +110,7 @@ class SubLocation:
                     tail = None
 
                 return sublocation.resolve(
-                    method=method, path=tail, match_dict=match_dict)
+                    request=request, path=tail, match_dict=match_dict)
         return None, allowed_methods
 
     def register_route(self, path: list, route):
@@ -249,8 +250,7 @@ class TreeResource:
 
     @asyncio.coroutine
     def resolve(self, request):
-        method, path = request.method, request.raw_path
-        return self._location.resolve(method, path[1:], {})
+        return self._location.resolve(request, request.raw_path[1:], {})
 
     def get_info(self):
         return {}
