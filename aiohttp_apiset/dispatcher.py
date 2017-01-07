@@ -4,12 +4,16 @@ import inspect
 import keyword
 import re
 from urllib import parse
+from collections.abc import Mapping
 
-import aiohttp
 import yarl
 from aiohttp import hdrs
-from aiohttp import web_urldispatcher as wu
-from aiohttp.abc import AbstractView
+from aiohttp.abc import AbstractView, AbstractRouter
+from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
+from aiohttp.web_reqrep import StreamResponse
+from aiohttp.web_urldispatcher import \
+    AbstractRoute, \
+    UrlMappingMatchInfo, MatchInfoError
 
 
 class SubLocation:
@@ -72,7 +76,7 @@ class SubLocation:
                 route = self._routes[hdrs.METH_ANY]
             else:
                 return None, allowed_methods
-            return wu.UrlMappingMatchInfo(match_dict, route), allowed_methods
+            return UrlMappingMatchInfo(match_dict, route), allowed_methods
         elif not path:
             location = path
             tail = None
@@ -108,7 +112,7 @@ class SubLocation:
                     method=method, path=tail, match_dict=match_dict)
         return None, allowed_methods
 
-    def register_route(self, path: list, route: wu.AbstractRoute):
+    def register_route(self, path: list, route):
         if not path:
             assert route.method not in self._routes, self
             self._routes[route.method] = route
@@ -135,7 +139,7 @@ class SubLocation:
         return location.register_route(path, route)
 
 
-class Route(wu.AbstractRoute):
+class Route(AbstractRoute):
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None, **kwargs):
         handler, self._handler_args = self._wrap_handler(handler)
@@ -220,15 +224,19 @@ class Route(wu.AbstractRoute):
         return wrap_handler, {'request'}.union(handler_kwargs)
 
 
-class TreeResource(wu.AbstractResource):
+class TreeResource:
     def __init__(self, *, name=None,
                  route_factory=None,
                  sublocation_factory=None):
-        super().__init__(name=name)
         self._routes = []
         self._route_factory = route_factory or Route
         self._sublocation_factory = sublocation_factory or SubLocation
         self._location = self._sublocation_factory('')
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     def add_route(self, method, handler, *,
                   path='/', expect_handler=None, **kwargs):
@@ -240,14 +248,9 @@ class TreeResource(wu.AbstractResource):
         return route
 
     @asyncio.coroutine
-    def _resolve(self, method, path):
+    def resolve(self, request):
+        method, path = request.method, request.raw_path
         return self._location.resolve(method, path[1:], {})
-
-    if aiohttp.__version__ >= '1.1':
-        def resolve(self, request):
-            return self._resolve(request.method, request.raw_path)
-    else:
-        resolve = _resolve
 
     def get_info(self):
         return {}
@@ -273,7 +276,22 @@ class TreeResource(wu.AbstractResource):
         return iter(self._routes)
 
 
-class BaseUrlDispatcher(wu.UrlDispatcher):
+class BaseUrlDispatcher(AbstractRouter):
+    DYN = re.compile(r'\{(?P<var>[_a-zA-Z][_a-zA-Z0-9]*)\}')
+    DYN_WITH_RE = re.compile(
+        r'\{(?P<var>[_a-zA-Z][_a-zA-Z0-9]*):(?P<re>.+)\}')
+    GOOD = r'[^{}/]+'
+    ROUTE_RE = re.compile(r'(\{[_a-zA-Z][^{}]*(?:\{[^{}]*\}[^{}]*)*\})')
+    NAME_SPLIT_RE = re.compile(r'[.:-]')
+
+    def __init__(self):
+        super().__init__()
+        self._app = None
+        self._named_resources = {}
+
+    def post_init(self, app):
+        assert app is not None
+        self._app = app
 
     def validate_name(self, name: str):
         """
@@ -328,20 +346,37 @@ class BaseUrlDispatcher(wu.UrlDispatcher):
         return pattern, formatter
 
 
-class TreeUrlDispatcher(BaseUrlDispatcher):
-    def __init__(self, app=None, *,
+class TreeUrlDispatcher(BaseUrlDispatcher, Mapping):
+    def __init__(self, *,
                  resource_factory=TreeResource,
                  route_factory=Route):
-        if aiohttp.__version__.startswith('1.1'):
-            super().__init__(app)
+        super().__init__()
+        self._resource = resource_factory(route_factory=route_factory)
+
+    @asyncio.coroutine
+    def resolve(self, request):
+        match, allowed = yield from self._resource.resolve(request)
+
+        if match is not None:
+            return match
+        elif allowed:
+            return MatchInfoError(
+                HTTPMethodNotAllowed(request.method, allowed))
         else:
-            super().__init__()
-        assert not self._resources
-        self._resources.append(resource_factory(route_factory=route_factory))
+            return MatchInfoError(HTTPNotFound())
+
+    def __len__(self):
+        pass
+
+    def __iter__(self):
+        pass
+
+    def __getitem__(self, key):
+        return self._named_resources[key]
 
     @property
     def tree_resource(self) -> TreeResource:
-        return self._resources[0]
+        return self._resource
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None, **kwargs):
@@ -356,3 +391,9 @@ class TreeUrlDispatcher(BaseUrlDispatcher):
         if name:
             self._named_resources[name] = route.location
         return route
+
+    def add_static(self, prefix, path, *, name=None, expect_handler=None,
+                   chunk_size=256*1024, response_factory=StreamResponse,
+                   show_index=False, follow_symlinks=False):
+        # TODO
+        pass
