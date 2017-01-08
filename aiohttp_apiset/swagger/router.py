@@ -7,7 +7,6 @@ from aiohttp import web, multidict
 
 from .. import dispatcher, utils
 from . import ui
-from .operations import get_docstring_swagger
 from .route import route_factory, SwaggerRoute
 
 
@@ -130,18 +129,6 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             app.router.add_route(
                 route.method, path,
                 route.handler, name=name)
-
-        if self._swagger_ui:
-            def generator(data):
-                def view(request):
-                    return web.Response(text=data)
-                return view
-
-            for url, body in self._swagger_yaml.items():
-                app.router.add_route(
-                    'GET',
-                    utils.url_normolize(url),
-                    generator(body))
 
     def import_view(self, p: str):
         p, c = p.rsplit('.', 1)
