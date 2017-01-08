@@ -11,7 +11,7 @@ import yarl
 from aiohttp import hdrs
 from aiohttp.abc import AbstractView
 from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
-from aiohttp.web_reqrep import StreamResponse, Response
+from aiohttp.web_reqrep import Response
 
 from .compat import (
     CompatRouter, AbstractRoute, UrlMappingMatchInfo, MatchInfoError,
@@ -325,9 +325,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             self._named_resources[name] = route.location
         return route
 
-    def add_static(self, prefix, path, *, name=None, expect_handler=None,
-                   chunk_size=256*1024, response_factory=StreamResponse,
-                   show_index=False, follow_symlinks=False):
+    def add_static(self, prefix, path, *, name=None):
         from concurrent.futures import ThreadPoolExecutor
 
         if self._executor is None:
@@ -347,4 +345,4 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                 self._executor, f.read_bytes)
             return Response(body=body, content_type=ct)
 
-        self.add_route('GET', prefix + '{filename:.*}', content)
+        self.add_route('GET', prefix + '{filename:.*}', content, name=name)
