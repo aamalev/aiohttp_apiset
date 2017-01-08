@@ -2,11 +2,11 @@ import asyncio
 
 import pytest
 from aiohttp import web
-from aiohttp.web_urldispatcher import MatchInfoError
 from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
 from aiohttp_apiset.dispatcher import TreeUrlDispatcher, Route
+from aiohttp_apiset.compat import MatchInfoError
 
 
 def handler(request):
