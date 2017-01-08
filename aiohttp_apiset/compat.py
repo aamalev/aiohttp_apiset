@@ -1,9 +1,204 @@
+import abc
+import asyncio
+import inspect
 import keyword
 import re
+import warnings
 
-from aiohttp.abc import AbstractRouter
-from aiohttp.web_urldispatcher import \
-    AbstractRoute, UrlMappingMatchInfo, MatchInfoError
+from aiohttp import hdrs, HttpVersion11
+from aiohttp.abc import AbstractRouter, AbstractMatchInfo, AbstractView
+from aiohttp.web_exceptions import HTTPExpectationFailed
+
+HTTP_METHOD_RE = re.compile(r"^[0-9A-Za-z!#\$%&'\*\+\-\.\^_`\|~]+$")
+
+
+class AbstractRoute(abc.ABC):  # pragma: no cover
+
+    def __init__(self, method, handler, *,
+                 expect_handler=None,
+                 resource=None):
+
+        if expect_handler is None:
+            expect_handler = _defaultExpectHandler
+
+        assert asyncio.iscoroutinefunction(expect_handler), \
+            'Coroutine is expected, got {!r}'.format(expect_handler)
+
+        method = method.upper()
+        if not HTTP_METHOD_RE.match(method):
+            raise ValueError("{} is not allowed HTTP method".format(method))
+
+        assert callable(handler), handler
+        if asyncio.iscoroutinefunction(handler):
+            pass
+        elif inspect.isgeneratorfunction(handler):
+            warnings.warn("Bare generators are deprecated, "
+                          "use @coroutine wrapper", DeprecationWarning)
+        elif (isinstance(handler, type) and
+              issubclass(handler, AbstractView)):
+            pass
+        else:
+            @asyncio.coroutine
+            def handler_wrapper(*args, **kwargs):
+                result = old_handler(*args, **kwargs)
+                if asyncio.iscoroutine(result):
+                    result = yield from result
+                return result
+            old_handler = handler
+            handler = handler_wrapper
+
+        self._method = method
+        self._handler = handler
+        self._expect_handler = expect_handler
+        self._resource = resource
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
+    def handler(self):
+        return self._handler
+
+    @property
+    @abc.abstractmethod
+    def name(self):
+        """Optional route's name, always equals to resource's name."""
+
+    @property
+    def resource(self):
+        return self._resource
+
+    @abc.abstractmethod
+    def get_info(self):
+        """Return a dict with additional info useful for introspection"""
+
+    @abc.abstractmethod  # pragma: no branch
+    def url_for(self, *args, **kwargs):
+        """Construct url for route with additional params."""
+
+    @abc.abstractmethod  # pragma: no branch
+    def url(self, **kwargs):
+        """Construct url for resource with additional params.
+
+        Deprecated, use url_for() instead.
+
+        """
+        warnings.warn(".url(...) is deprecated, use .url_for instead",
+                      DeprecationWarning,
+                      stacklevel=3)
+
+    @asyncio.coroutine
+    def handle_expect_header(self, request):
+        return (yield from self._expect_handler(request))
+
+
+class UrlMappingMatchInfo(dict, AbstractMatchInfo):  # pragma: no cover
+
+    def __init__(self, match_dict, route):
+        super().__init__(match_dict)
+        self._route = route
+        self._apps = []
+        self._frozen = False
+
+    @property
+    def handler(self):
+        return self._route.handler
+
+    @property
+    def route(self):
+        return self._route
+
+    @property
+    def expect_handler(self):
+        return self._route.handle_expect_header
+
+    @property
+    def http_exception(self):
+        return None
+
+    def get_info(self):
+        return self._route.get_info()
+
+    @property
+    def apps(self):
+        return tuple(self._apps)
+
+    def add_app(self, app):
+        if self._frozen:
+            raise RuntimeError("Cannot change apps stack after .freeze() call")
+        self._apps.insert(0, app)
+
+    def freeze(self):
+        self._frozen = True
+
+    def __repr__(self):
+        return "<MatchInfo {}: {}>".format(super().__repr__(), self._route)
+
+
+class SystemRoute(AbstractRoute):  # pragma: no cover
+
+    def __init__(self, http_exception):
+        super().__init__(hdrs.METH_ANY, self._handler)
+        self._http_exception = http_exception
+
+    def url_for(self, *args, **kwargs):
+        raise RuntimeError(".url_for() is not allowed for SystemRoute")
+
+    def url(self, *args, **kwargs):
+        raise RuntimeError(".url() is not allowed for SystemRoute")
+
+    @property
+    def name(self):
+        return None
+
+    def get_info(self):
+        return {'http_exception': self._http_exception}
+
+    @asyncio.coroutine
+    def _handler(self, request):
+        raise self._http_exception
+
+    @property
+    def status(self):
+        return self._http_exception.status
+
+    @property
+    def reason(self):
+        return self._http_exception.reason
+
+    def __repr__(self):
+        return "<SystemRoute {self.status}: {self.reason}>".format(self=self)
+
+
+class MatchInfoError(UrlMappingMatchInfo):  # pragma: no cover
+
+    def __init__(self, http_exception):
+        self._exception = http_exception
+        super().__init__({}, SystemRoute(self._exception))
+
+    @property
+    def http_exception(self):
+        return self._exception
+
+    def __repr__(self):
+        return "<MatchInfoError {}: {}>".format(self._exception.status,
+                                                self._exception.reason)
+
+
+@asyncio.coroutine
+def _defaultExpectHandler(request):  # pragma: no cover
+    """Default handler for Expect header.
+
+    Just send "100 Continue" to client.
+    raise HTTPExpectationFailed if value of header is not "100-continue"
+    """
+    expect = request.headers.get(hdrs.EXPECT)
+    if request.version == HttpVersion11:
+        if expect.lower() == "100-continue":
+            request.transport.write(b"HTTP/1.1 100 Continue\r\n\r\n")
+        else:
+            raise HTTPExpectationFailed(text="Unknown Expect: %s" % expect)
 
 
 class CompatRouter(AbstractRouter):
