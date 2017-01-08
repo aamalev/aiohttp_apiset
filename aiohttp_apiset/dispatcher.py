@@ -1,15 +1,17 @@
 import asyncio
 import importlib
 import inspect
+import mimetypes
 import re
-from urllib import parse
 from collections.abc import Mapping
+from urllib import parse
+from pathlib import Path
 
 import yarl
 from aiohttp import hdrs
 from aiohttp.abc import AbstractView
 from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
-from aiohttp.web_reqrep import StreamResponse
+from aiohttp.web_reqrep import StreamResponse, Response
 
 from .compat import (
     CompatRouter, AbstractRoute, UrlMappingMatchInfo, MatchInfoError,
@@ -282,6 +284,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                  route_factory=Route):
         super().__init__()
         self._resource = resource_factory(route_factory=route_factory)
+        self._executor = None
 
     @asyncio.coroutine
     def resolve(self, request):
@@ -325,5 +328,23 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
     def add_static(self, prefix, path, *, name=None, expect_handler=None,
                    chunk_size=256*1024, response_factory=StreamResponse,
                    show_index=False, follow_symlinks=False):
-        # TODO
-        pass
+        from concurrent.futures import ThreadPoolExecutor
+
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=1)
+
+        if isinstance(path, str):
+            path = Path(path)
+
+        @asyncio.coroutine
+        def content(request):
+            filename = request.match_info['filename']
+            ct, encoding = mimetypes.guess_type(filename)
+            if not ct:
+                ct = 'application/octet-stream'
+            f = path / filename
+            body = yield from request.app.loop.run_in_executor(
+                self._executor, f.read_bytes)
+            return Response(body=body, content_type=ct)
+
+        self.add_route('GET', prefix + '{filename:.*}', content)
