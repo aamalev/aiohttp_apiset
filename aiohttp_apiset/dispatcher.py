@@ -10,7 +10,8 @@ from pathlib import Path
 import yarl
 from aiohttp import hdrs
 from aiohttp.abc import AbstractView
-from aiohttp.web_exceptions import HTTPMethodNotAllowed, HTTPNotFound
+from aiohttp.web_exceptions import \
+    HTTPMethodNotAllowed, HTTPNotFound, HTTPForbidden
 from aiohttp.web_reqrep import Response
 
 from .compat import (
@@ -328,6 +329,9 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
     def add_static(self, prefix, path, *, name=None):
         from concurrent.futures import ThreadPoolExecutor
 
+        if not prefix.endswith('/'):
+            prefix += '/'
+
         if self._executor is None:
             self._executor = ThreadPoolExecutor(max_workers=1)
 
@@ -337,6 +341,8 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         @asyncio.coroutine
         def content(request):
             filename = request.match_info['filename']
+            if '..' in filename:
+                raise HTTPForbidden()
             ct, encoding = mimetypes.guess_type(filename)
             if not ct:
                 ct = 'application/octet-stream'
