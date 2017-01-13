@@ -40,6 +40,14 @@ parameters = yaml.load("""
   collectionFormat: brackets
   items:
     type: integer
+- name: road_id_default
+  in: query
+  required: true
+  type: array
+  collectionFormat: csv
+  default: [42]
+  items:
+    type: integer
 - name: gt
   in: path
   required: false
@@ -88,6 +96,7 @@ def test_route():
     assert resp.get('road_id_csv') == [1, 2], resp
     assert resp.get('road_id_ssv') == [1, 2], resp
     assert resp.get('road_id_brackets') == [1, 2], resp
+    assert resp.get('road_id_default') == [42], resp
 
 
 @asyncio.coroutine
