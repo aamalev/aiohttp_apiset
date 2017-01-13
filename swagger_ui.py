@@ -10,7 +10,7 @@ import zipfile
 import shutil
 import os
 
-VERSION = os.environ.get('SWAGGER_UI_VERSION', '2.2.6')
+VERSION = os.environ.get('SWAGGER_UI_VERSION', '2.2.8')
 PACKAGE = os.environ.get('PACKAGE', 'aiohttp_apiset')
 
 URL = 'https://github.com/swagger-api/swagger-ui/archive/v{}.zip'
