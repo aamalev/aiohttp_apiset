@@ -131,7 +131,9 @@ class SwaggerRoute(Route):
 
             if is_array and hasattr(source, 'getall'):
                 collection_format = param.get('collectionFormat')
-                value = get_collection(source, name, collection_format)
+                default = param.get('default', [])
+                value = get_collection(source, name,
+                                       collection_format, default)
             elif isinstance(source, Mapping) and name in source \
                     and (vtype not in ('number', 'integer') or
                          source[name] != ''):
