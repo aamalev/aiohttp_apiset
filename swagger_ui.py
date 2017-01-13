@@ -17,6 +17,7 @@ URL = 'https://github.com/swagger-api/swagger-ui/archive/v{}.zip'
 DIR = os.path.dirname(__file__)
 STATIC_DIR = os.path.join(DIR, PACKAGE, 'static', 'swagger-ui')
 TEMPLATES_DIR = os.path.join(DIR, PACKAGE, 'templates', 'swagger-ui')
+TEMPLATE_UI = os.path.join(TEMPLATES_DIR, 'index.html')
 
 PREFIX = '{{static_prefix}}'
 REPLACE_STRINGS = [
@@ -47,7 +48,7 @@ def setup_ui():
         s = source.read()
     for target, source in REPLACE_STRINGS:
         s = s.replace(target, source)
-    with open(os.path.join(TEMPLATES_DIR, 'index.html'), 'wt') as f:
+    with open(TEMPLATE_UI, 'wt') as f:
         f.write(s)
 
 
