@@ -108,6 +108,10 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         """
         if name in self._routes:
             name = ''
+
+        if validate is None:
+            validate = self._default_validate
+
         route = super().add_route(
             method, path, handler, name=name,
             expect_handler=expect_handler,
