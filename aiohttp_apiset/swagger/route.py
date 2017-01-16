@@ -26,20 +26,16 @@ class SwaggerRoute(Route):
                          resource=resource, location=location)
         self._parameters = {}
         self._required = []
-        swagger_op = get_docstring_swagger(handler)
-        if swagger_op:
-            self._swagger_data = swagger_op
-            self.is_built = True
-            self.build_swagger_data({})
-        else:
-            self._swagger_data = swagger_data
-            self.is_built = False
+        self._swagger_data = swagger_data
+        self.is_built = False
 
     def build_swagger_data(self, swagger_schema):
         """ Prepare data when schema loaded
 
         :param swagger_schema: loaded schema
         """
+        if self.is_built:
+            return
         self.is_built = True
         self._required = []
         self._parameters = {}
@@ -182,7 +178,14 @@ class SwaggerValidationRoute(SwaggerRoute):
 
 def route_factory(method, handler, resource, *,
                   expect_handler=None, **kwargs):
-    if kwargs.get('swagger_data') is None:
+
+    ds_swagger_op = get_docstring_swagger(handler)
+    if ds_swagger_op:
+        swagger_data = ds_swagger_op
+    else:
+        swagger_data = kwargs.get('swagger_data')
+
+    if swagger_data is None:
         return Route(method, handler, resource=resource,
                      expect_handler=expect_handler)
 
@@ -193,5 +196,7 @@ def route_factory(method, handler, resource, *,
 
     route = route_class(method, handler, resource=resource,
                         expect_handler=expect_handler,
-                        swagger_data=kwargs['swagger_data'])
+                        swagger_data=swagger_data)
+    if ds_swagger_op:
+        route.build_swagger_data({})
     return route
