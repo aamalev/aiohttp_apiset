@@ -29,6 +29,11 @@ def test_create(dispatcher: TreeUrlDispatcher):
     assert dispatcher.tree_resource._location._subs
 
 
+def test_add_resource(dispatcher: TreeUrlDispatcher):
+    location = dispatcher.add_resource('/api/1/dogs', name='dogs')
+    assert str(location.url_for()) == '/api/1/dogs'
+
+
 @asyncio.coroutine
 def test_simple(dispatcher: TreeUrlDispatcher, request: web.Request):
     request = make_request('GET', '/api/1/pet/1')

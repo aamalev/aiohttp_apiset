@@ -116,10 +116,18 @@ class SubLocation:
                     request=request, path=tail, match_dict=match_dict)
         return None, allowed_methods
 
-    def register_route(self, path: list, route):
+    def register_route(self, path, route):
         if not path:
             assert route.method not in self._routes, self
             self._routes[route.method] = route
+            return self
+        location = self.add_location(path)
+        return location.register_route(None, route)
+
+    def add_location(self, path):
+        if isinstance(path, str):
+            path = self.split(path)
+        if not path:
             return self
 
         location_name, *path = path
@@ -140,7 +148,7 @@ class SubLocation:
             location = type(self)(location_name, parent=self)
             self._subs[location_name] = location
 
-        return location.register_route(path, route)
+        return location.add_location(path)
 
 
 class Route(AbstractRoute):
@@ -314,6 +322,8 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None, **kwargs):
+        if path and not path.startswith('/'):
+            raise ValueError("path should be started with / or be empty")
         if name:
             self.validate_name(name)
 
@@ -325,6 +335,19 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         if name:
             self._named_resources[name] = route.location
         return route
+
+    def add_resource(self, path, *, name=None):
+        if path and not path.startswith('/'):
+            raise ValueError("path should be started with / or be empty")
+        if name:
+            self.validate_name(name)
+
+        location = self._resource._location.add_location(path)
+
+        if name:
+            self._named_resources[name] = location
+
+        return location
 
     def add_static(self, prefix, path, *, name=None):
         from concurrent.futures import ThreadPoolExecutor
