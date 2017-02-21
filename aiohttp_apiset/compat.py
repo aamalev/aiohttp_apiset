@@ -269,3 +269,39 @@ class CompatRouter(AbstractRouter):
             raise ValueError(
                 "Bad pattern '{}': {}".format(pattern, exc)) from None
         return pattern, formatter
+
+    def add_head(self, *args, **kwargs):
+        """
+        Shortcut for add_route with method HEAD
+        """
+        return self.add_route(hdrs.METH_HEAD, *args, **kwargs)
+
+    def add_get(self, *args, **kwargs):
+        """
+        Shortcut for add_route with method GET
+        """
+        return self.add_route(hdrs.METH_GET, *args, **kwargs)
+
+    def add_post(self, *args, **kwargs):
+        """
+        Shortcut for add_route with method POST
+        """
+        return self.add_route(hdrs.METH_POST, *args, **kwargs)
+
+    def add_put(self, *args, **kwargs):
+        """
+        Shortcut for add_route with method PUT
+        """
+        return self.add_route(hdrs.METH_PUT, *args, **kwargs)
+
+    def add_patch(self, *args, **kwargs):
+        """
+        Shortcut for add_route with method PATCH
+        """
+        return self.add_route(hdrs.METH_PATCH, *args, **kwargs)
+
+    def add_delete(self, *args, **kwargs):
+        """
+        Shortcut for add_route with method DELETE
+        """
+        return self.add_route(hdrs.METH_DELETE, *args, **kwargs)
