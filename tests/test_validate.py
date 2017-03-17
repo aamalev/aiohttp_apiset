@@ -2,8 +2,9 @@ import asyncio
 from unittest import mock
 
 import pytest
+import multidict
 import yaml
-from aiohttp import hdrs, web, multidict
+from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
 
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute

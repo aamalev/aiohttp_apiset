@@ -4,7 +4,8 @@ import datetime
 import json
 import uuid
 
-from aiohttp import web, multidict
+import multidict
+from aiohttp import web
 
 
 class JsonEncoder(json.JSONEncoder):

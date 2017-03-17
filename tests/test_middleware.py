@@ -64,7 +64,7 @@ def test_json(test_client):
 def test_dumper():
     from datetime import datetime
     from uuid import uuid4
-    from aiohttp import multidict
+    import multidict
     JsonEncoder.dumps({
         'since': datetime.now(),
         'date': datetime.now().date(),
