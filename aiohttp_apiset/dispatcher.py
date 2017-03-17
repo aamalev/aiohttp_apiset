@@ -12,7 +12,7 @@ from aiohttp import hdrs
 from aiohttp.abc import AbstractView
 from aiohttp.web_exceptions import \
     HTTPMethodNotAllowed, HTTPNotFound, HTTPForbidden
-from aiohttp.web_reqrep import Response
+from aiohttp.web import Response
 
 from .compat import (
     CompatRouter, AbstractRoute, UrlMappingMatchInfo, MatchInfoError,
