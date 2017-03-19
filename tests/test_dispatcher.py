@@ -102,19 +102,20 @@ def test_view_locations(dispatcher: TreeUrlDispatcher):
     assert len(routes)
 
 
-async def test_static(loop, test_client, mocker):
+@asyncio.coroutine
+def test_static(loop, test_client, mocker):
     m = mocker.patch('aiohttp_apiset.dispatcher.mimetypes')
     m.guess_type.return_value = None, None
     f = Path(__file__)
     dispatcher = TreeUrlDispatcher()
     dispatcher.add_static('/static', f.parent, name='static')
     app = web.Application(router=dispatcher, loop=loop)
-    client = await test_client(app)
+    client = yield from test_client(app)
 
     url = dispatcher['static'].url_for(filename=f.name)
-    responce = await client.get(url)
+    responce = yield from client.get(url)
     assert responce.status == 200
 
     url = dispatcher['static'].url_for(filename='..' + f.name)
-    responce = await client.get(url)
+    responce = yield from client.get(url)
     assert responce.status == 403
