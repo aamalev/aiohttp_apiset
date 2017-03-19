@@ -1,19 +1,18 @@
-==============
 aiohttp_apiset
 ==============
 
 .. image:: https://travis-ci.org/aamalev/aiohttp_apiset.svg?branch=master
-    :target: https://travis-ci.org/aamalev/aiohttp_apiset
+  :target: https://travis-ci.org/aamalev/aiohttp_apiset
 
 .. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/aamalev/aiohttp_apiset
+  :target: https://codecov.io/gh/aamalev/aiohttp_apiset
 
 .. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
-    :target: https://pypi.python.org/pypi/aiohttp_apiset
+  :target: https://pypi.python.org/pypi/aiohttp_apiset
 
 .. image:: https://readthedocs.org/projects/aiohttp-apiset/badge/?version=latest
-    :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+  :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
+  :alt: Documentation Status
 
 Package to build routes and validate request using swagger specification.
 
