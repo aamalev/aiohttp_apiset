@@ -261,7 +261,8 @@ class TreeResource:
 
     @asyncio.coroutine
     def resolve(self, request):
-        return self._location.resolve(request, request.raw_path[1:], {})
+        path = getattr(request, 'rel_url', request).raw_path
+        return self._location.resolve(request, path[1:], {})
 
     def get_info(self):
         return {}
