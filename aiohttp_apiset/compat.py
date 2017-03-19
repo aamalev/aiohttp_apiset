@@ -4,6 +4,7 @@ import inspect
 import keyword
 import re
 import warnings
+from types import MappingProxyType
 
 from aiohttp import hdrs, HttpVersion11
 from aiohttp.abc import AbstractRouter, AbstractMatchInfo, AbstractView
@@ -213,6 +214,21 @@ class CompatRouter(AbstractRouter):
         super().__init__()
         self._app = None
         self._named_resources = {}
+
+    def __iter__(self):
+        return iter(self._named_resources)
+
+    def __len__(self):
+        return len(self._named_resources)
+
+    def __contains__(self, name):
+        return name in self._named_resources
+
+    def __getitem__(self, name):
+        return self._named_resources[name]
+
+    def named_resources(self):
+        return MappingProxyType(self._named_resources)
 
     def post_init(self, app):
         assert app is not None
