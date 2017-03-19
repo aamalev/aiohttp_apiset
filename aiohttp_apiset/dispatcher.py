@@ -3,7 +3,8 @@ import importlib
 import inspect
 import mimetypes
 import re
-from collections.abc import Mapping
+from collections.abc import Container, Iterable, Mapping, Sized
+from itertools import chain
 from urllib import parse
 from pathlib import Path
 
@@ -288,6 +289,52 @@ class TreeResource:
         return iter(self._routes)
 
 
+class ResourcesView(Sized, Iterable, Container):
+
+    def __init__(self, resource: TreeResource):
+        location = resource._location
+        self._resources = self._append(location, [location])
+
+    def _append(self, location: SubLocation, acc):
+        ptrns = (l for p, l in location._patterns)
+        for i in chain(location._subs.values(), ptrns):
+            acc.append(i)
+            self._append(i, acc)
+        return acc
+
+    def __len__(self):
+        return len(self._resources)
+
+    def __iter__(self):
+        yield from self._resources
+
+    def __contains__(self, resource):
+        return resource in self._resources
+
+
+class RoutesView(Sized, Iterable, Container):
+
+    def __init__(self, resource: TreeResource):
+        location = resource._location
+        self._routes = self._append(location, [])
+
+    def _append(self, location: SubLocation, acc):
+        ptrns = (l for p, l in location._patterns)
+        for i in chain(location._subs.values(), ptrns):
+            acc.extend(i._routes.values())
+            self._append(i, acc)
+        return acc
+
+    def __len__(self):
+        return len(self._routes)
+
+    def __iter__(self):
+        yield from self._routes
+
+    def __contains__(self, route):
+        return route in self._routes
+
+
 class TreeUrlDispatcher(CompatRouter, Mapping):
     def __init__(self, *,
                  resource_factory=TreeResource,
@@ -308,14 +355,11 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         else:
             return MatchInfoError(HTTPNotFound())
 
-    def __len__(self):
-        pass
+    def resources(self):
+        return ResourcesView(self._resource)
 
-    def __iter__(self):
-        pass
-
-    def __getitem__(self, key):
-        return self._named_resources[key]
+    def routes(self):
+        return RoutesView(self._resource)
 
     @property
     def tree_resource(self) -> TreeResource:

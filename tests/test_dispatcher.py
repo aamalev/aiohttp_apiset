@@ -90,3 +90,12 @@ def test_url(dispatcher: TreeUrlDispatcher):
 def test_import_handler(hstr):
     handler, parameters = Route._import_handler(hstr)
     handler(**{k: None for k in parameters})
+
+
+def test_view_locations(dispatcher: TreeUrlDispatcher):
+    resources = dispatcher.resources()
+    assert list(resources)[0] in resources
+    assert len(resources)
+    routes = dispatcher.routes()
+    assert list(routes)[0] in routes
+    assert len(routes)
