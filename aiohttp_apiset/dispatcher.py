@@ -407,7 +407,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             path = Path(path)
 
         def read_bytes(path):
-            with path.open() as f:
+            with path.open('br') as f:
                 return f.read()
 
         @asyncio.coroutine
