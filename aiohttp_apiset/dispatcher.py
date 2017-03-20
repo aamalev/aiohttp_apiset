@@ -406,6 +406,10 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         if isinstance(path, str):
             path = Path(path)
 
+        def read_bytes(path):
+            with path.open() as f:
+                return f.read()
+
         @asyncio.coroutine
         def content(request):
             filename = request.match_info['filename']
@@ -416,7 +420,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                 ct = 'application/octet-stream'
             f = path / filename
             body = yield from request.app.loop.run_in_executor(
-                self._executor, f.read_bytes)
+                self._executor, read_bytes, f)
             return Response(body=body, content_type=ct)
 
         self.add_route('GET', prefix + '{filename:.*}', content, name=name)
