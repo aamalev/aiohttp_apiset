@@ -394,7 +394,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
         return location
 
-    def add_static(self, prefix, path, *, name=None):
+    def add_static(self, prefix, path, *, name=None, default=None):
         from concurrent.futures import ThreadPoolExecutor
 
         if not prefix.endswith('/'):
@@ -406,19 +406,44 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         if isinstance(path, str):
             path = Path(path)
 
-        def read_bytes(path):
-            with path.open('br') as f:
+        def search(filename, default):
+            p = path / filename
+            if p.exists():
+                return p
+            elif not default:
+                return
+            d = p
+            while True:
+                d = d.parent
+                p = d / default
+                if p.exists():
+                    return p
+                if d == path:
+                    return
+
+        def read_bytes(p):
+            with p.open('br') as f:
                 return f.read()
 
         @asyncio.coroutine
         def content(request):
             filename = request.match_info['filename']
-            if '..' in filename:
-                raise HTTPForbidden()
+
+            if filename:
+                if '..' in filename:
+                    raise HTTPForbidden()
+            elif not isinstance(default, str):
+                raise HTTPNotFound()
+
+            f = yield from request.app.loop.run_in_executor(
+                self._executor, search, filename, default)
+
+            if not f:
+                raise HTTPNotFound()
+
             ct, encoding = mimetypes.guess_type(filename)
             if not ct:
                 ct = 'application/octet-stream'
-            f = path / filename
             body = yield from request.app.loop.run_in_executor(
                 self._executor, read_bytes, f)
             return Response(body=body, content_type=ct)

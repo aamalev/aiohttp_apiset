@@ -122,3 +122,29 @@ def test_static(loop, test_client, mocker):
     url = dispatcher['static'].url_for(filename='..' + f.name)
     responce = yield from client.get(url)
     assert responce.status == 403
+
+    url = dispatcher['static'].url_for(filename='1/2/3')
+    responce = yield from client.get(url)
+    assert responce.status == 404
+
+    url = dispatcher['static'].url_for(filename='')
+    responce = yield from client.get(url)
+    assert responce.status == 404
+
+
+@asyncio.coroutine
+def test_static_with_default(loop, test_client):
+    f = Path(__file__)
+    dispatcher = TreeUrlDispatcher()
+    dispatcher.add_static('/static', f.parent, name='static', default=f.name)
+    dispatcher.add_static('/static2', f.parent, name='static2', default='1234')
+    app = web.Application(router=dispatcher, loop=loop)
+    client = yield from test_client(app)
+
+    url = dispatcher['static'].url_for(filename='1/2/3')
+    responce = yield from client.get(url)
+    assert responce.status == 200
+
+    url = dispatcher['static2'].url_for(filename='1/2/3')
+    responce = yield from client.get(url)
+    assert responce.status == 404
