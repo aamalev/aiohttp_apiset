@@ -408,9 +408,11 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
         def search(filename, default):
             p = path / filename
-            if p.exists():
+            if filename and p.exists():
                 return p
-            elif not default:
+            elif default:
+                pass
+            else:
                 return
             d = p
             while True:
@@ -418,7 +420,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                 p = d / default
                 if p.exists():
                     return p
-                if d == path:
+                if d <= path:
                     return
 
         def read_bytes(p):
@@ -434,14 +436,13 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                     raise HTTPForbidden()
             elif not isinstance(default, str):
                 raise HTTPNotFound()
-
             f = yield from request.app.loop.run_in_executor(
                 self._executor, search, filename, default)
 
             if not f:
                 raise HTTPNotFound()
 
-            ct, encoding = mimetypes.guess_type(filename)
+            ct, encoding = mimetypes.guess_type(f.name)
             if not ct:
                 ct = 'application/octet-stream'
             body = yield from request.app.loop.run_in_executor(
