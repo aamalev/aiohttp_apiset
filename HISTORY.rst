@@ -2,6 +2,16 @@
 History
 =======
 
+0.4.0 (2017-03-22)
+------------------
+
+* TreeUrlDispatcher is stand-alone router
+* swagger_ui param now str url location for swagger-ui
+* spec query param for swagger-ui location to point to basePath
+* Take into account the default value for array parameters (Alain Leufroy #6)
+* Extract docstring swagger data in route_factory
+* Compatibility with py36 and aiohttp2.0
+
 0.3.4 (2016-12-20)
 ------------------
 

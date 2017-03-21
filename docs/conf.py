@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'aiohttp_apiset'
-copyright = '2016, Alexander Malev'
+copyright = '2017, Alexander Malev'
 author = 'Alexander Malev'
 
 # The version info for the project you're documenting, acts as replacement for
