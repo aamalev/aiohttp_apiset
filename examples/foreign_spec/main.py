@@ -37,7 +37,7 @@ def main():
     router = SwaggerRouter(
         encoding='utf-8',
         default_validate=True,
-        swagger_ui=True,
+        swagger_ui='/',
         search_dirs=[BASE],
     )
 
