@@ -29,6 +29,10 @@ class SwaggerRoute(Route):
         self._swagger_data = swagger_data
         self.is_built = False
 
+    @property
+    def swagger_operation(self):
+        return self._swagger_data
+
     def build_swagger_data(self, swagger_schema):
         """ Prepare data when schema loaded
 
