@@ -17,25 +17,29 @@ def test_spec(loop, test_client, middlewares):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
+        swagger_ui='apidoc',
     )
 
     app = web.Application(
         router=router, loop=loop,
         middlewares=middlewares)
 
-    def factory(loop, *args, **kwargs):
-        return app
-
     router.include('data/root.yaml')
 
-    cli = yield from test_client(factory)
-    spec_url = list(router._swagger_yaml.keys())[0]
-    ui_url = urljoin(spec_url, 'index.html')
+    cli = yield from test_client(app)
+    spec_url = router['swagger:spec'].url_for()
+    ui_url = router['swagger:ui'].url_for()
 
     resp = yield from cli.get(ui_url)
     assert resp.status == 200, resp
 
+    resp = yield from cli.get(ui_url.with_query(spec='/api/1'))
+    assert resp.status == 200, resp
+
     resp = yield from cli.get(spec_url)
+    assert resp.status == 200, resp
+
+    resp = yield from cli.get(spec_url.with_query(spec='/api/1'))
     assert resp.status == 200, resp
 
 

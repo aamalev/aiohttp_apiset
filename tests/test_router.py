@@ -11,6 +11,18 @@ def test_app(loop, swagger_router):
     swagger_router.setup(app)
 
 
+def test_search_dirs():
+    d = Path(__file__).parent
+    r = SwaggerRouter(d / 'data/include.yaml')
+    r.add_search_dir(d)
+
+
+def test_merge_spec():
+    d = Path(__file__).parent
+    r = SwaggerRouter(d / 'data/include.yaml')
+    r.include('file.yaml', basePath='/inc')
+
+
 def test_routes(swagger_router: SwaggerRouter):
     paths = [url for route, url in swagger_router._routes.values()]
     assert '/api/1/file/image' in paths
