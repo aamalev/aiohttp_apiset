@@ -286,9 +286,6 @@ class TreeResource:
     def url(self, *, parts=None, query=None):
         return self._location.url(parts=parts, query=query)
 
-    def add_prefix(self, prefix):
-        pass  # TODO
-
     def __repr__(self):
         name = "'" + self.name + "' " if self.name is not None else ""
         return "<TreeResource {name}>".format(name=name)
