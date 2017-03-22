@@ -23,9 +23,10 @@ from .compat import (
 class SubLocation:
     SPLIT = re.compile(r'/((?:(?:\{.+?\})|(?:[^/{}]+))+)')
 
-    def __init__(self, name, formatter=None, parent=None):
+    def __init__(self, name, formatter=None, canon=None, parent=None):
         self._name = name
         self._formatter = formatter or name
+        self._canon = canon if canon is not None else name
         self._parent = parent
         self._subs = {}
         self._patterns = []
@@ -34,6 +35,10 @@ class SubLocation:
     @property
     def name(self):
         return self._name
+
+    @property
+    def canon(self):
+        return self._canon
 
     def url(self, *, parts=None, query=None):
         formatters = [self._formatter]
@@ -134,15 +139,21 @@ class SubLocation:
         location_name, *path = path
 
         if '{' in location_name:
-            for pattern, loc in self._patterns:
-                if loc.name == location_name:
+            pattern, formatter, canon = \
+                TreeUrlDispatcher.get_pattern_formatter(location_name)
+            for ptrn, loc in self._patterns:
+                if loc.canon == canon:
+                    if loc.name != location_name:
+                        raise ValueError(
+                            'Similar patterns "{}" and "{}" for location {}'
+                            ''.format(loc.name, location_name,
+                                      loc.url_for().human_repr()))
                     location = loc
                     break
             else:
-                pattern, formatter = \
-                    TreeUrlDispatcher.get_pattern_formatter(location_name)
-                location = type(self)(location_name, formatter, parent=self)
-                self._patterns.append((re.compile(pattern), location))
+                cls = type(self)
+                location = cls(location_name, formatter, canon, parent=self)
+                self._patterns.append((pattern, location))
         elif location_name in self._subs:
             location = self._subs[location_name]
         else:

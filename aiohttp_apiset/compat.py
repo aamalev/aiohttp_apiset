@@ -259,6 +259,7 @@ class CompatRouter(AbstractRouter):
         """
         pattern = ''
         formatter = ''
+        canon = ''
         for part in cls.ROUTE_RE.split(location):
             match = cls.DYN.match(part)
             if match:
@@ -270,6 +271,7 @@ class CompatRouter(AbstractRouter):
             if match:
                 pattern += '(?P<{var}>{re})'.format(**match.groupdict())
                 formatter += '{' + match.group('var') + '}'
+                canon += match.group('re')
                 continue
 
             if '{' in part or '}' in part:
@@ -278,13 +280,13 @@ class CompatRouter(AbstractRouter):
 
             formatter += part
             pattern += re.escape(part)
+            canon += part
 
         try:
-            re.compile(pattern)
+            return re.compile(pattern), formatter, canon
         except re.error as exc:
             raise ValueError(
                 "Bad pattern '{}': {}".format(pattern, exc)) from None
-        return pattern, formatter
 
     def add_head(self, *args, **kwargs):
         """

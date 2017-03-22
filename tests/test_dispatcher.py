@@ -6,7 +6,8 @@ from aiohttp import web
 from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
-from aiohttp_apiset.dispatcher import TreeUrlDispatcher, Route
+from aiohttp_apiset.dispatcher import \
+    TreeUrlDispatcher, Route
 from aiohttp_apiset.compat import MatchInfoError
 
 
@@ -148,3 +149,10 @@ def test_static_with_default(loop, test_client):
     url = dispatcher['static2'].url_for(filename='1/2/3')
     responce = yield from client.get(url)
     assert responce.status == 404
+
+
+def test_similar_patterns():
+    dispatcher = TreeUrlDispatcher()
+    dispatcher.add_get('/{a}', handler)
+    with pytest.raises(ValueError):
+        dispatcher.add_get('/{b}', handler)
