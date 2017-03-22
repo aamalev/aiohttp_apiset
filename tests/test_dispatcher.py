@@ -7,7 +7,7 @@ from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
 from aiohttp_apiset.dispatcher import \
-    TreeUrlDispatcher, Route
+    TreeUrlDispatcher, Route, TreeResource, SubLocation
 from aiohttp_apiset.compat import MatchInfoError
 
 
@@ -94,6 +94,12 @@ def test_import_handler(hstr):
     handler(**{k: None for k in parameters})
 
 
+def test_import_handler_():
+    with pytest.raises(ValueError):
+        Route._import_handler('a')
+    assert Route._import_handler('aiohttp.web.View.get')
+
+
 def test_view_locations(dispatcher: TreeUrlDispatcher):
     resources = dispatcher.resources()
     assert list(resources)[0] in resources
@@ -156,3 +162,33 @@ def test_similar_patterns():
     dispatcher.add_get('/{a}', handler)
     with pytest.raises(ValueError):
         dispatcher.add_get('/{b}', handler)
+
+
+def test_treeresource():
+    a = TreeResource()
+    assert not len(a)
+    assert not list(a)
+
+
+def test_sublocation_notresolved(mocker):
+    l = SubLocation('')
+    m, allow = l.resolve(mocker.Mock(), '/not', {})
+    assert not m
+    assert not allow
+
+
+def test_novalid_path():
+    r = TreeUrlDispatcher()
+    with pytest.raises(ValueError):
+        r.add_resource('dfsdf')
+    with pytest.raises(ValueError):
+        r.add_get('dfsdf', None)
+
+
+@asyncio.coroutine
+def test_dispatcher_not_resolve():
+    r = TreeUrlDispatcher()
+    r.add_put('/', handler)
+    req = make_request('GET', '/')
+    a = yield from r.resolve(req)
+    assert isinstance(a.http_exception, web.HTTPMethodNotAllowed)
