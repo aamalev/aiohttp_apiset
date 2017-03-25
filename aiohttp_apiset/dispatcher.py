@@ -419,17 +419,19 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             if filename and p.exists():
                 return p
             elif default:
-                pass
+                if filename:
+                    d = p.parent
+                else:
+                    d = p
             else:
                 return
-            d = p
             while True:
-                d = d.parent
                 p = d / default
                 if p.exists():
                     return p
                 if d <= path:
                     return
+                d = d.parent
 
         def read_bytes(p):
             with p.open('br') as f:

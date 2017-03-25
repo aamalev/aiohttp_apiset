@@ -156,6 +156,10 @@ def test_static_with_default(loop, test_client):
     responce = yield from client.get(url)
     assert responce.status == 404
 
+    url = dispatcher['static'].url_for(filename='')
+    responce = yield from client.get(url)
+    assert responce.status == 200
+
 
 def test_similar_patterns():
     dispatcher = TreeUrlDispatcher()
