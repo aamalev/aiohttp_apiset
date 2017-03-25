@@ -2,6 +2,12 @@
 History
 =======
 
+0.4.1 (2017-03-26)
+------------------
+
+* Added check for similar patterns on one location
+* Fix static return default if filename empty
+
 0.4.0 (2017-03-22)
 ------------------
 
