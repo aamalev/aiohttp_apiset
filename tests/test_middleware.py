@@ -69,6 +69,7 @@ def test_dumper():
     from datetime import datetime
     from uuid import uuid4
     import multidict
+    from decimal import Decimal
     JsonEncoder.dumps({
         'since': datetime.now(),
         'date': datetime.now().date(),
@@ -76,4 +77,5 @@ def test_dumper():
         'set': set(),
         'dict': dict(),
         'md': multidict.MultiDict(),
+        'decimal': Decimal('1.1'),
     })
