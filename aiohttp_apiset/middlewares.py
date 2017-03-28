@@ -3,6 +3,7 @@ import collections
 import datetime
 import json
 import uuid
+from decimal import Decimal
 
 import multidict
 from aiohttp import web
@@ -22,6 +23,8 @@ class JsonEncoder(json.JSONEncoder):
             return o.isoformat(' ')
         elif isinstance(o, datetime.date):
             return o.isoformat()
+        elif isinstance(o, Decimal):
+            return str(o)
         return super().default(o)
 
     @classmethod
