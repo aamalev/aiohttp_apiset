@@ -18,7 +18,7 @@ Create router
 
   router = SwaggerRouter(
       search_dirs=[base],
-      swagger_ui=True,
+      swagger_ui='/api/',
       default_validate=True,
   )
 
@@ -99,9 +99,9 @@ Swagger-ui
 ^^^^^^^^^^
 
 If in spec1.yaml basePath specify as /api/1
-then swagger-ui for spec1 located on `/api/1/apidoc/`.
-If basePath in spec2 specify as /api/1 then on location `/api/1/apidoc/` will be mixed spec.
-Otherwise swagger-ui located on `basePath`/apidoc/.
+then swagger-ui for spec1 located on `/api/?spec=/api/1`.
+If basePath in spec2 specify as /api/1 then on location `/api/?spec=/api/1` will be mixed spec.
+Otherwise swagger-ui located on `basePath`/api/.
 
 
 More `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_
