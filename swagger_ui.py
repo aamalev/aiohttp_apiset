@@ -9,8 +9,9 @@ import tempfile
 import zipfile
 import shutil
 import os
+import sys
 
-VERSION = os.environ.get('SWAGGER_UI_VERSION', '2.2.8')
+VERSION = os.environ.get('SWAGGER_UI_VERSION', '3.0.7')
 PACKAGE = os.environ.get('PACKAGE', 'aiohttp_apiset')
 
 URL = 'https://github.com/swagger-api/swagger-ui/archive/v{}.zip'
@@ -22,10 +23,8 @@ TEMPLATE_UI = os.path.join(TEMPLATES_DIR, 'index.html')
 PREFIX = '{{static_prefix}}'
 REPLACE_STRINGS = [
     ('http://petstore.swagger.io/v2/swagger.json', '{{url}}'),
-    ('href="images', 'href="' + PREFIX + 'images'),
-    ("href='css", "href='" + PREFIX + 'css'),
-    ("src='lib", "src='" + PREFIX + 'lib'),
-    ("src='swagger-ui.js", "src='" + PREFIX + 'swagger-ui.js'),
+    ('href="./', 'href="' + PREFIX + '/'),
+    ('src="./', 'src="' + PREFIX + '/'),
 ]
 
 
@@ -52,5 +51,13 @@ def setup_ui():
         f.write(s)
 
 
+def delete():
+    shutil.rmtree(TEMPLATES_DIR)
+    shutil.rmtree(STATIC_DIR)
+
+
 if __name__ == '__main__':
-    setup_ui()
+    if 'delete' in sys.argv:
+        delete()
+    else:
+        setup_ui()
