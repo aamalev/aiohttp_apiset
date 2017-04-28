@@ -2,6 +2,12 @@
 History
 =======
 
+0.4.2 (2017-04-28)
+------------------
+
+* Up swagger-ui and fix prefix static url
+* Support for decimal in JsonEncoder
+
 0.4.1 (2017-03-26)
 ------------------
 
