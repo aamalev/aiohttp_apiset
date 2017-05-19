@@ -77,6 +77,6 @@ def get_collection(source, name, collection_format, default):
             return default
         return value.split(separator)
     if collection_format == 'brackets':
-        return source.getall(name + '[]', [])
+        return source.getall(name + '[]', default)
     else:                       # format: multi
-        return source.getall(name, [])
+        return source.getall(name, default)

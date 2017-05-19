@@ -2,15 +2,15 @@ import asyncio
 from unittest import mock
 
 import pytest
-import multidict
 import yaml
+
+import multidict
 from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
-
-from aiohttp_apiset.swagger.route import SwaggerValidationRoute
-from aiohttp_apiset.swagger.validate import convert
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
+from aiohttp_apiset.swagger.route import SwaggerValidationRoute
+from aiohttp_apiset.swagger.validate import convert
 
 
 parameters = yaml.load("""
@@ -41,12 +41,28 @@ parameters = yaml.load("""
   collectionFormat: brackets
   items:
     type: integer
-- name: road_id_default
+- name: road_id_default_csv
   in: query
   required: true
   type: array
   collectionFormat: csv
   default: [42]
+  items:
+    type: integer
+- name: road_id_default_brackets
+  in: query
+  required: true
+  type: array
+  collectionFormat: csv
+  default: [12]
+  items:
+    type: integer
+- name: road_id_default_multi
+  in: query
+  required: true
+  type: array
+  collectionFormat: csv
+  default: [24]
   items:
     type: integer
 - name: gt
@@ -97,7 +113,9 @@ def test_route():
     assert resp.get('road_id_csv') == [1, 2], resp
     assert resp.get('road_id_ssv') == [1, 2], resp
     assert resp.get('road_id_brackets') == [1, 2], resp
-    assert resp.get('road_id_default') == [42], resp
+    assert resp.get('road_id_default_csv') == [42], resp
+    assert resp.get('road_id_default_brackets') == [12], resp
+    assert resp.get('road_id_default_multi') == [24], resp
 
 
 @asyncio.coroutine
