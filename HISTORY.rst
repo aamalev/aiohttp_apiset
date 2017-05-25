@@ -2,6 +2,12 @@
 History
 =======
 
+0.4.3 (2017-05-26)
+------------------
+
+* Use default value for array when collectionFormat is brackets or multi (#9)
+* Back swagger-ui to 2.x
+
 0.4.2 (2017-04-28)
 ------------------
 
