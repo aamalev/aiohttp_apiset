@@ -82,9 +82,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         spec = request.GET.get('spec')
         if isinstance(spec, str):
             spec_url = spec_url.with_query(spec=spec)
-        prefix = self._swagger_ui.rstrip('/')
         return web.Response(text=ui.rend_template(spec_url.human_repr(),
-                                                  prefix=prefix),
+                                                  prefix=self._swagger_ui),
                             content_type='text/html')
 
     def include(self, spec, *, basePath=None, operationId_mapping=None):
