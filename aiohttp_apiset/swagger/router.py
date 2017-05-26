@@ -71,11 +71,15 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             else:
                 d = {'tags': ['without swagger']}
             paths.setdefault(url, {})[r.method.lower()] = d
-        return web.json_response(dict(
+        spec = dict(
             swagger='2.0',
             basePath='/',
             paths=paths,
-        ))
+        )
+        if len(self._swagger_data) == 1:
+            s = next(iter(self._swagger_data.values()))
+            spec['info'] = s['info']
+        return web.json_response(spec)
 
     def _handler_swagger_ui(self, request):
         spec_url = self['swagger:spec'].url_for()
