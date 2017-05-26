@@ -2,6 +2,12 @@
 History
 =======
 
+0.4.5 (2017-05-27)
+------------------
+
+* Default show single spec in ui
+* URL filtering for generated specifications by spec param
+
 0.4.4 (2017-05-26)
 ------------------
 
