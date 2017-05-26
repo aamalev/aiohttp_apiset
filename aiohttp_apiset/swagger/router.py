@@ -66,7 +66,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         paths = {}
         for r in self.routes():
             url = r.url_for().human_repr()
-            if isinstance(r, SwaggerRoute):
+            if not url.startswith(key):
+                continue
+            elif isinstance(r, SwaggerRoute):
                 d = r.swagger_operation or {}
             else:
                 d = {'tags': ['without swagger']}
@@ -77,8 +79,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             paths=paths,
         )
         if len(self._swagger_data) == 1:
-            s = next(iter(self._swagger_data.values()))
-            spec['info'] = s['info']
+            for data in self._swagger_data.values():
+                if 'info' in data:
+                    spec['info'] = data['info']
         return web.json_response(spec)
 
     def _handler_swagger_ui(self, request):
@@ -86,6 +89,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         spec = request.GET.get('spec')
         if isinstance(spec, str):
             spec_url = spec_url.with_query(spec=spec)
+        elif len(self._swagger_data) == 1:
+            for basePath in self._swagger_data:
+                spec_url = spec_url.with_query(spec=basePath)
+        else:
+            spec_url = spec_url.with_query(spec='/')
         return web.Response(text=ui.rend_template(spec_url.human_repr(),
                                                   prefix=self._swagger_ui),
                             content_type='text/html')
