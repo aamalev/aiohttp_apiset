@@ -66,7 +66,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         paths = {}
         for r in self.routes():
             url = r.url_for().human_repr()
-            if not url.startswith(key):
+            if key and not url.startswith(key):
                 continue
             elif isinstance(r, SwaggerRoute):
                 d = r.swagger_operation or {}
