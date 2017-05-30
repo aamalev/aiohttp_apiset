@@ -26,7 +26,7 @@ REPLACE_STRINGS = [
     ('href="images', 'href="' + PREFIX + 'images'),
     ("href='css", "href='" + PREFIX + 'css'),
     ("src='lib", "src='" + PREFIX + 'lib'),
-    ("src='swagger-ui.js", "src='" + PREFIX + 'swagger-ui.js'),
+    ("src='swagger-ui.js", "src='" + PREFIX + 'swagger-ui.min.js'),
     ('href="./', 'href="' + PREFIX + '/'),
     ('src="./', 'src="' + PREFIX + '/'),
 ]
