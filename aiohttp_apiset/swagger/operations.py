@@ -85,7 +85,9 @@ def get_docstring_swagger(handler):
                 p.append(t)
                 continue
         for i in reversed(p):
-            h = getattr(h, i)
+            h = getattr(h, i, None)
+            if h is None:
+                raise ImportError(handler)
         docstr = h.__doc__
     else:
         docstr = handler.__doc__
