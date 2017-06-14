@@ -42,9 +42,10 @@ class SubLocation:
     def canon(self):
         return self._canon
 
-    def url(self, *, parts=None, query=None):
+    def url(self, *, parts=None, query=None, **kwargs):
         formatters = [self._formatter]
         parent = self._parent
+        parts = parts or kwargs
         while parent is not None:
             formatters.append(parent._formatter)
             parent = parent._parent
