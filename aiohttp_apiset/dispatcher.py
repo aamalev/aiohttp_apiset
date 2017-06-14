@@ -23,11 +23,11 @@ from .compat import (
 class SubLocation:
     SPLIT = re.compile(r'/((?:(?:\{.+?\})|(?:[^/{}]+))+)')
 
-    def __init__(self, name, formatter=None, canon=None, parent=None,
+    def __init__(self, *, formatter, name='', canon=None, parent=None,
                  resource=None):
         self._name = name
-        self._formatter = formatter or name
-        self._canon = canon if canon is not None else name
+        self._formatter = formatter
+        self._canon = canon
         self._parent = parent
         self._subs = {}
         self._patterns = []
@@ -134,21 +134,23 @@ class SubLocation:
                     request=request, path=tail, match_dict=match_dict)
         return None, allowed_methods
 
-    def register_route(self, path, route, resource=None):
+    def register_route(self, path, route, resource=None, name=None):
         if not path:
             assert route.method not in self._routes, self
             self._routes[route.method] = route
             return self
-        location = self.add_location(path, resource)
+        location = self.add_location(path, resource, name)
         return location.register_route(None, route)
 
-    def add_location(self, path, resource=None):
+    def add_location(self, path, resource=None, name=None):
         if resource is None:
             resource = self._resource
 
         if isinstance(path, str):
             path = self.split(path)
         if not path:
+            if name:
+                self._name = name
             return self
 
         location_name, *path = path
@@ -158,7 +160,7 @@ class SubLocation:
                 TreeUrlDispatcher.get_pattern_formatter(location_name)
             for ptrn, loc in self._patterns:
                 if loc.canon == canon:
-                    if loc.name != location_name:
+                    if loc._formatter != formatter:
                         raise ValueError(
                             'Similar patterns "{}" and "{}" for location {}'
                             ''.format(loc.name, location_name,
@@ -167,17 +169,18 @@ class SubLocation:
                     break
             else:
                 cls = type(self)
-                location = cls(location_name, formatter, canon,
-                               parent=self, resource=resource)
+                location = cls(
+                    formatter=formatter, canon=canon,
+                    parent=self, resource=resource)
                 self._patterns.append((pattern, location))
         elif location_name in self._subs:
             location = self._subs[location_name]
         else:
             location = type(self)(
-                location_name, parent=self, resource=resource)
+                formatter=location_name, parent=self, resource=resource)
             self._subs[location_name] = location
 
-        return location.add_location(path, resource)
+        return location.add_location(path, resource=resource, name=name)
 
     def add_route(self, method, handler, *,
                   expect_handler=None, **kwargs):
@@ -286,7 +289,7 @@ class TreeResource:
         self._routes = []
         self._route_factory = route_factory or Route
         self._sublocation_factory = sublocation_factory or SubLocation
-        self._location = self._sublocation_factory('', resource=self)
+        self._location = self._sublocation_factory(formatter='', resource=self)
         self._name = name
 
     @property
@@ -294,11 +297,12 @@ class TreeResource:
         return self._name
 
     def add_route(self, method, handler, *,
-                  path='/', expect_handler=None, **kwargs):
+                  path='/', expect_handler=None, name=None, **kwargs):
         path = self._location.split(path)
         route = self._route_factory(method, handler, self,
                                     expect_handler=expect_handler, **kwargs)
-        location = self._location.register_route(path, route)
+        location = self._location.register_route(
+            path, route, resource=self, name=name)
         route.location = location
         return route
 
@@ -414,7 +418,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         route = self.tree_resource.add_route(
             method=method, handler=handler,
             path=path, expect_handler=expect_handler,
-            **kwargs)
+            name=name, **kwargs)
 
         if name:
             self._named_resources[name] = route.location
@@ -426,7 +430,8 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         if name:
             self.validate_name(name)
 
-        location = self._resource._location.add_location(path)
+        location = self._resource._location.add_location(
+            path, resource=self._resource, name=name)
 
         if name:
             self._named_resources[name] = location
