@@ -42,10 +42,10 @@ class SubLocation:
     def canon(self):
         return self._canon
 
-    def url(self, *, parts=None, query=None, **kwargs):
+    @property
+    def formatter(self):
         formatters = [self._formatter]
         parent = self._parent
-        parts = parts or kwargs
         while parent is not None:
             formatters.append(parent._formatter)
             parent = parent._parent
@@ -53,6 +53,11 @@ class SubLocation:
             url = self._formatter or '/'
         else:
             url = '/'.join(reversed(formatters))
+        return url
+
+    def url(self, *, parts=None, query=None, **kwargs):
+        url = self.formatter
+        parts = parts or kwargs
         if parts:
             url = url.format_map(parts)
         if query:
@@ -64,7 +69,11 @@ class SubLocation:
         return yarl.URL(self.url(parts=kwargs))
 
     def get_info(self):
-        return {}
+        url = self.formatter
+        if '{' in url:
+            return {'formatter': url}
+        else:
+            return {'path': url}
 
     def __repr__(self):
         return '<SubLocation {name}, url={url}>' \
@@ -187,6 +196,7 @@ class Route(AbstractRoute):
                          expect_handler=expect_handler,
                          resource=resource)
         self._location = location
+        self._extra_info = {}
 
     def __repr__(self):
         return type(self).__name__
@@ -204,7 +214,12 @@ class Route(AbstractRoute):
         return self._location.url(**kwargs)
 
     def get_info(self):
-        return self._location.get_info()
+        result = self._location.get_info()
+        result.update(self._extra_info)
+        return result
+
+    def set_info(self, **kwargs):
+        self._extra_info.update(kwargs)
 
     @property
     def location(self):
@@ -475,4 +490,6 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                 self._executor, read_bytes, f)
             return Response(body=body, content_type=ct)
 
-        self.add_route('GET', prefix + '{filename:.*}', content, name=name)
+        route = self.add_route('GET', prefix + '{filename:.*}',
+                               content, name=name)
+        route.set_info(prefix=prefix)

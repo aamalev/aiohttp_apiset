@@ -18,7 +18,7 @@ def handler(request):
 @pytest.fixture
 def dispatcher():
     d = TreeUrlDispatcher()
-    location = d.add_resource('/')
+    location = d.add_resource('/', name='root')
     location.add_route('GET', handler)
     d.add_route('GET', '/api/', handler)
     d.add_route('GET', '/api', handler)
@@ -66,6 +66,12 @@ def test_multisubs(dispatcher: TreeUrlDispatcher):
 
 
 def test_url(dispatcher: TreeUrlDispatcher):
+    location = dispatcher['root']
+    assert 'path' in location.get_info()
+    route = location._routes['GET']
+    route.set_info(l=1)
+    assert route.get_info().get('l') == 1
+
     location = dispatcher['pet']
     assert location.url(parts={'id': 1}) == '/api/1/pet/1'
     assert location.url_for(id=1) == URL('/api/1/pet/1')
@@ -76,7 +82,7 @@ def test_url(dispatcher: TreeUrlDispatcher):
     assert route.url_for(id=1) == URL('/api/1/pet/1')
     assert repr(route)
     assert route.name
-    assert route.get_info() is not None
+    assert 'formatter' in route.get_info()
 
     assert dispatcher.tree_resource.url_for() == URL('/')
     assert dispatcher.tree_resource.url(query={'q': 1}) == '/?q=1'
