@@ -23,7 +23,8 @@ from .compat import (
 class SubLocation:
     SPLIT = re.compile(r'/((?:(?:\{.+?\})|(?:[^/{}]+))+)')
 
-    def __init__(self, name, formatter=None, canon=None, parent=None):
+    def __init__(self, name, formatter=None, canon=None, parent=None,
+                 resource=None):
         self._name = name
         self._formatter = formatter or name
         self._canon = canon if canon is not None else name
@@ -31,6 +32,7 @@ class SubLocation:
         self._subs = {}
         self._patterns = []
         self._routes = {}
+        self._resource = resource
 
     @property
     def name(self):
@@ -122,15 +124,18 @@ class SubLocation:
                     request=request, path=tail, match_dict=match_dict)
         return None, allowed_methods
 
-    def register_route(self, path, route):
+    def register_route(self, path, route, resource=None):
         if not path:
             assert route.method not in self._routes, self
             self._routes[route.method] = route
             return self
-        location = self.add_location(path)
+        location = self.add_location(path, resource)
         return location.register_route(None, route)
 
-    def add_location(self, path):
+    def add_location(self, path, resource=None):
+        if resource is None:
+            resource = self._resource
+
         if isinstance(path, str):
             path = self.split(path)
         if not path:
@@ -152,15 +157,25 @@ class SubLocation:
                     break
             else:
                 cls = type(self)
-                location = cls(location_name, formatter, canon, parent=self)
+                location = cls(location_name, formatter, canon,
+                               parent=self, resource=resource)
                 self._patterns.append((pattern, location))
         elif location_name in self._subs:
             location = self._subs[location_name]
         else:
-            location = type(self)(location_name, parent=self)
+            location = type(self)(
+                location_name, parent=self, resource=resource)
             self._subs[location_name] = location
 
-        return location.add_location(path)
+        return location.add_location(path, resource)
+
+    def add_route(self, method, handler, *,
+                  expect_handler=None, **kwargs):
+        route = self._resource._route_factory(
+            method, handler, self._resource,
+            expect_handler=expect_handler, **kwargs)
+        route.location = self.register_route(None, route)
+        return route
 
 
 class Route(AbstractRoute):
@@ -255,7 +270,7 @@ class TreeResource:
         self._routes = []
         self._route_factory = route_factory or Route
         self._sublocation_factory = sublocation_factory or SubLocation
-        self._location = self._sublocation_factory('')
+        self._location = self._sublocation_factory('', resource=self)
         self._name = name
 
     @property

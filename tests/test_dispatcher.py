@@ -18,7 +18,8 @@ def handler(request):
 @pytest.fixture
 def dispatcher():
     d = TreeUrlDispatcher()
-    d.add_route('GET', '/', handler)
+    location = d.add_resource('/')
+    location.add_route('GET', handler)
     d.add_route('GET', '/api/', handler)
     d.add_route('GET', '/api', handler)
     d.add_route('*', '/api/1/pets', handler)
