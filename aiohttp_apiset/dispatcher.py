@@ -492,4 +492,4 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
         route = self.add_route('GET', prefix + '{filename:.*}',
                                content, name=name)
-        route.set_info(prefix=prefix)
+        route.set_info(prefix=prefix, directory=str(path), default=default)
