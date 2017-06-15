@@ -163,6 +163,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         :param app: instance of aiohttp.web.Application
         """
+        if self.app is app:
+            raise ValueError('The router is already configured '
+                             'for this application')
         self.app = app
         routes = sorted(self._routes.items(), key=utils.sort_key)
         for name, (route, path) in routes:
