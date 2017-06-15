@@ -71,7 +71,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             elif isinstance(r, SwaggerRoute):
                 d = r.swagger_operation or {}
             else:
-                d = {'tags': ['without swagger']}
+                d = {'tags': ['default']}
             paths.setdefault(url, {})[r.method.lower()] = d
         spec = dict(
             swagger='2.0',
