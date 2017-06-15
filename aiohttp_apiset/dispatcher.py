@@ -44,15 +44,17 @@ class SubLocation:
 
     @property
     def formatter(self):
-        formatters = [self._formatter]
+        parts = []
         parent = self._parent
         while parent is not None:
-            formatters.append(parent._formatter)
+            parts.append(parent._formatter)
             parent = parent._parent
-        if len(formatters) == 1:
-            url = self._formatter or '/'
+        if parts:
+            parts.reverse()
+            parts.append(self._formatter)
+            url = '/'.join(parts)
         else:
-            url = '/'.join(reversed(formatters))
+            url = '/'
         return url
 
     def url(self, *, parts=None, query=None, **kwargs):
@@ -159,7 +161,7 @@ class SubLocation:
             pattern, formatter, canon = \
                 TreeUrlDispatcher.get_pattern_formatter(location_name)
             for ptrn, loc in self._patterns:
-                if loc.canon == canon:
+                if loc._canon == canon:
                     if loc._formatter != formatter:
                         raise ValueError(
                             'Similar patterns "{}" and "{}" for location {}'
