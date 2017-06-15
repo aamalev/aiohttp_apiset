@@ -2,6 +2,16 @@
 History
 =======
 
+0.5.0 (2017-06-16)
+------------------
+
+* fix naming SubLocation
+* add to Sublocation add_route
+* swagger-ui.min.js as default instead swagger-ui.js
+* default tag 'default' instead 'without swagger'
+* kwargs as parts in sublocation.url
+
+
 0.4.5 (2017-05-27)
 ------------------
 
