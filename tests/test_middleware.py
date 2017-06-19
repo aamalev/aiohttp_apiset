@@ -1,11 +1,10 @@
 import asyncio
-from urllib.parse import urljoin
 
 import pytest
 from aiohttp import web
 
 from aiohttp_apiset import SwaggerRouter
-from aiohttp_apiset.middlewares import jsonify, JsonEncoder
+from aiohttp_apiset.middlewares import jsonify, Jsonify
 
 
 @pytest.mark.parametrize('middlewares', [
@@ -70,7 +69,7 @@ def test_dumper():
     from uuid import uuid4
     import multidict
     from decimal import Decimal
-    JsonEncoder.dumps({
+    Jsonify().dumps({
         'since': datetime.now(),
         'date': datetime.now().date(),
         'uuid': uuid4(),
