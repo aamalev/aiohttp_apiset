@@ -30,9 +30,13 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
     def __init__(self, path: str=None, *,
                  search_dirs=None, swagger_ui='/apidoc/',
-                 encoding=None, route_factory=route_factory,
-                 default_validate=False):
-        super().__init__(route_factory=route_factory)
+                 route_factory=route_factory,
+                 default_options_handler=None,
+                 encoding=None, default_validate=False):
+        super().__init__(
+            route_factory=route_factory,
+            default_options_handler=default_options_handler,
+        )
         self.app = None
         self._routes = multidict.MultiDict()
         self._encoding = encoding

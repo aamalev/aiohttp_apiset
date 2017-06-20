@@ -203,3 +203,20 @@ def test_dispatcher_not_resolve():
     req = make_request('GET', '/')
     a = yield from r.resolve(req)
     assert isinstance(a.http_exception, web.HTTPMethodNotAllowed)
+
+
+@asyncio.coroutine
+def test_default_options(test_client):
+    request = make_request('OPTIONS', '/')
+    router = TreeUrlDispatcher(default_options_handler=True)
+    router.add_get('/', lambda request: web.Response())
+    mi = yield from router.resolve(request)
+    assert not isinstance(mi, MatchInfoError)
+    app = web.Application(router=router)
+    client = yield from test_client(app)
+    response = yield from client.options('/')
+    assert response.status == 200
+
+    router = TreeUrlDispatcher(default_options_handler=None)
+    mi = yield from router.resolve(request)
+    assert isinstance(mi, MatchInfoError)

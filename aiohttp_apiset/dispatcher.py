@@ -383,10 +383,19 @@ class RoutesView(Sized, Iterable, Container):
 class TreeUrlDispatcher(CompatRouter, Mapping):
     def __init__(self, *,
                  resource_factory=TreeResource,
+                 default_options_handler=None,
                  route_factory=Route):
         super().__init__()
         self._resource = resource_factory(route_factory=route_factory)
         self._executor = None
+        self._default_options_route = None
+        if default_options_handler is True:
+            def h(request):
+                return Response()
+            default_options_handler = h
+        if default_options_handler is not None:
+            self._default_options_route = route_factory(
+                'OPTIONS', default_options_handler, self._resource)
 
     @asyncio.coroutine
     def resolve(self, request):
@@ -394,11 +403,15 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
         if match is not None:
             return match
-        elif allowed:
+        elif not allowed:
+            return MatchInfoError(HTTPNotFound())
+        elif self._default_options_route is not None:
+            request['allowed_methods'] = allowed
+            return UrlMappingMatchInfo(
+                {}, self._default_options_route)
+        else:
             return MatchInfoError(
                 HTTPMethodNotAllowed(request.method, allowed))
-        else:
-            return MatchInfoError(HTTPNotFound())
 
     def resources(self):
         return ResourcesView(self._resource)
