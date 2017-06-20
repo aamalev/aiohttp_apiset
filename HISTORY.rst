@@ -2,6 +2,14 @@
 History
 =======
 
+0.5.1 (2017-06-20)
+------------------
+
+* Param default_options_handler
+* Refactoring middleware jsonify
+* Now require aiohttp>=1.2
+
+
 0.5.0 (2017-06-16)
 ------------------
 
