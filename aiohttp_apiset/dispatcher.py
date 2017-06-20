@@ -39,10 +39,6 @@ class SubLocation:
         return self._name
 
     @property
-    def canon(self):
-        return self._canon
-
-    @property
     def formatter(self):
         parts = []
         parent = self._parent
@@ -298,6 +294,9 @@ class TreeResource:
     def name(self):
         return self._name
 
+    def add_location(self, path, name):
+        return self._location.add_location(path, name=name)
+
     def add_route(self, method, handler, *,
                   path='/', expect_handler=None, name=None, **kwargs):
         path = self._location.split(path)
@@ -445,8 +444,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         if name:
             self.validate_name(name)
 
-        location = self._resource._location.add_location(
-            path, resource=self._resource, name=name)
+        location = self.tree_resource.add_location(path, name=name)
 
         if name:
             self._named_resources[name] = location
