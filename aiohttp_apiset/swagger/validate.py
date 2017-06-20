@@ -1,4 +1,6 @@
-from jsonschema import Draft4Validator
+from functools import partial
+
+from jsonschema import Draft4Validator, draft4_format_checker
 
 ERROR_TYPE = "Not valid value '{}' for type {}:{}"
 
@@ -51,16 +53,20 @@ def convert(name, value, sw_type, sw_format, errors):
             )
 
 
-def validator(schema):
-    validator = Draft4Validator(schema)
+class Validator:
+    factory = partial(
+        Draft4Validator,
+        format_checker=draft4_format_checker)
 
-    def validate(value, errors):
-        for error in validator.descend(value, schema):
+    def __init__(self, schema):
+        self.schema = schema
+        self.validator = self.factory(schema)
+
+    def validate(self, value, errors):
+        for error in self.validator.descend(value, self.schema):
             param = '.'.join(map(str, error.path))
             errors[param].add(error.message)
         return value
-
-    return validate
 
 
 COLLECTION_SEP = {'csv': ',', 'ssv': ' ', 'tsv': '\t', 'pipes': '|'}

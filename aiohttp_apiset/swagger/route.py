@@ -6,7 +6,7 @@ from aiohttp import web
 
 from .loader import deref
 from .operations import get_docstring_swagger
-from .validate import convert, validator, get_collection
+from .validate import convert, Validator, get_collection
 from ..dispatcher import Route
 
 
@@ -177,7 +177,10 @@ class SwaggerValidationRoute(SwaggerRoute):
             'type': 'object',
             'properties': self._parameters,
         }
-        self._validate = validator(schema)
+        self._validator = Validator(schema)
+
+    def _validate(self, data, errors):
+        return self._validator.validate(data, errors)
 
 
 def route_factory(method, handler, resource, *,
