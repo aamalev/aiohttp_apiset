@@ -75,31 +75,36 @@ class Jsonify:
     def dumps(self, *args, **kwargs):
         return self.encoder.dumps(*args, **kwargs)
 
+    def response(self, *args, status=200, **kwargs):
+        if args:
+            data = args[0]
+        else:
+            data = kwargs
+        return web.json_response(data, status=status, dumps=self.dumps)
+
+    def resolve_exception(self, ex):
+        if not isinstance(ex.reason, str):
+            return self.response(errors=ex.reason, status=ex.status)
+        elif ex.status > 399:
+            return self.response(error=ex.reason, status=ex.status)
+        raise ex
+
     @asyncio.coroutine
     def __call__(self, app, handler):
-        dumps = app.get('dumps', self.dumps)
-
         @asyncio.coroutine
         def process(request):
             try:
                 response = yield from handler(request)
             except web.HTTPException as ex:
-                if not isinstance(ex.reason, str):
-                    return web.json_response(
-                        {'errors': ex.reason}, status=ex.status, dumps=dumps)
-                elif ex.status > 399:
-                    return web.json_response(
-                        {'error': ex.reason}, status=ex.status, dumps=dumps)
-                raise
+                return self.resolve_exception(ex)
             else:
                 if isinstance(response, dict):
                     status = response.get('status', 200)
                     if not isinstance(status, int):
                         status = 200
-                    return web.json_response(
-                        response, status=status, dumps=dumps)
+                    return self.response(response, status=status)
                 elif not isinstance(response, web.StreamResponse):
-                    return web.json_response(response, dumps=dumps)
+                    return self.response(response)
                 return response
         return process
 
