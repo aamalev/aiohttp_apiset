@@ -2,6 +2,13 @@
 History
 =======
 
+0.5.2 (2017-06-21)
+------------------
+
+* Add method Jsonify.resolve_exception
+* Add class Validator with method factory
+
+
 0.5.1 (2017-06-20)
 ------------------
 
