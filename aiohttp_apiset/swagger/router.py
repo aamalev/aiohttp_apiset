@@ -147,7 +147,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         :param validate: bool param for validate in SwaggerValidationRoute
         :return: route for handler
         """
-        if name in self._routes:
+        if name is None or name in self._routes:
             name = ''
 
         if validate is None:
