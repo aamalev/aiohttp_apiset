@@ -111,7 +111,7 @@ class SwaggerRoute(Route):
             is_array = vtype == 'array'
 
             if where == 'query':
-                source = request.GET
+                source = request.query
             elif where == 'header':
                 source = request.headers
             elif where == 'path':
