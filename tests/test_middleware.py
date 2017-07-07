@@ -78,3 +78,13 @@ def test_dumper():
         'md': multidict.MultiDict(),
         'decimal': Decimal('1.1'),
     })
+
+
+def test_repr():
+    with pytest.raises(TypeError):
+        Jsonify(default_repr=False).dumps({
+            'x': object,
+        })
+    Jsonify(default_repr=True).dumps({
+        'x': object,
+    })

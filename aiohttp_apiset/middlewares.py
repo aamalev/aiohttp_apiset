@@ -30,7 +30,7 @@ class JsonEncoder(json.JSONEncoder):
             return super().default(o)
         try:
             return super().default(o)
-        except ValueError:
+        except (ValueError, TypeError):
             return repr(o)
 
     @classmethod
