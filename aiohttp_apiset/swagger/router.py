@@ -1,13 +1,19 @@
-import importlib
-import os
+from collections import Mapping
 
-import yaml
 from aiohttp import web
-import multidict
 
 from .. import dispatcher, utils
 from . import ui
+from .loader import FileLoader
+from .operations import get_docstring_swagger
 from .route import route_factory, SwaggerRoute
+from ..middlewares import JsonEncoder
+
+
+class SchemaSerializer(JsonEncoder):
+    converters = [
+        (0, Mapping, dict),
+    ]
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -32,18 +38,21 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                  search_dirs=None, swagger_ui='/apidoc/',
                  route_factory=route_factory,
                  default_options_handler=None,
-                 encoding=None, default_validate=False):
+                 encoding=None, default_validate=False, file_loader=None):
         super().__init__(
             route_factory=route_factory,
             default_options_handler=default_options_handler,
         )
         self.app = None
-        self._routes = multidict.MultiDict()
         self._encoding = encoding
-        self._search_dirs = search_dirs or []
         self._swagger_data = {}
-        self._swagger_yaml = {}
         self._default_validate = default_validate
+
+        if file_loader is None:
+            file_loader = FileLoader()
+        for sd in search_dirs or ():
+            file_loader.add_search_dir(sd)
+        self._file_loader = file_loader
 
         if isinstance(swagger_ui, str):
             if not swagger_ui.startswith('/'):
@@ -65,28 +74,39 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
     def _handler_swagger_spec(self, request):
         key = request.GET.get('spec')
-        if key in self._swagger_yaml:
-            return web.Response(text=self._swagger_yaml[key])
-        paths = {}
+        if key is None and self._swagger_data:
+            key = next(iter(self._swagger_data), '')
+        for k in sorted(self._swagger_data, reverse=True):
+            if key.startswith(k):
+                spec = self._swagger_data[k].copy()
+                break
+        else:
+            spec = dict(
+                swagger='2.0',
+            )
+
+        paths = spec.setdefault('paths', {})
+        basePath = spec.get('basePath')
         for r in self.routes():
             url = r.url_for().human_repr()
+
             if key and not url.startswith(key):
                 continue
             elif isinstance(r, SwaggerRoute):
                 d = r.swagger_operation or {}
             else:
+                d = None
+
+            if not d:
+                d = get_docstring_swagger(r.handler)
+
+            if not d:
                 d = {'tags': ['default']}
+
+            if basePath:
+                url = url[len(basePath):]
             paths.setdefault(url, {})[r.method.lower()] = d
-        spec = dict(
-            swagger='2.0',
-            basePath='/',
-            paths=paths,
-        )
-        if len(self._swagger_data) == 1:
-            for data in self._swagger_data.values():
-                if 'info' in data:
-                    spec['info'] = data['info']
-        return web.json_response(spec)
+        return web.json_response(spec, dumps=SchemaSerializer.dumps)
 
     def _handler_swagger_ui(self, request):
         spec_url = self['swagger:spec'].url_for()
@@ -108,27 +128,52 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         :param spec: path to specification
         :param basePath: override base path specify in specification
         """
-        path = utils.find_file(spec, self._search_dirs)
-        if not self._search_dirs:
-            d = os.path.dirname(path)
-            self._search_dirs.append(d)
-        data = self._include(file_path=path, override_basePath=basePath,
-                             operationId_mapping=operationId_mapping)
-        basePath = data.get('basePath', '')
-        self._swagger_data[basePath] = data
 
-        if isinstance(self._swagger_ui, str):
-            self._swagger_yaml[basePath] = yaml.dump(data)
+        data = self._file_loader.load(spec)
 
-        for url in self._routes:
-            for route, path in self._routes.getall(url):
-                if isinstance(route, SwaggerRoute) and not route.is_built:
-                    route.build_swagger_data(data)
+        if basePath is None:
+            basePath = data.get('basePath', '')
+
+        swagger_data = {k: v for k, v in data.items() if k != 'paths'}
+        swagger_data['basePath'] = basePath
+
+        for url, methods in data['paths'].items():
+            url = basePath + url
+            methods = methods.copy()
+            location_name = methods.pop(self.NAME, None)
+            for method, body in methods.items():
+                if method == self.VIEW:
+                    view = utils.import_obj(body)
+                    view.add_routes(self, prefix=url, encoding=self._encoding)
+                    continue
+                body = body.copy()
+                handler = body.pop(self.HANDLER, None)
+                name = location_name or handler
+                if not handler:
+                    op_id = body.get('operationId')
+                    if op_id and operationId_mapping:
+                        handler = operationId_mapping.get(op_id)
+                        if handler:
+                            name = location_name or op_id
+                if handler:
+                    validate = body.pop(self.VALIDATE, self._default_validate)
+                    self.add_route(
+                        method.upper(), utils.url_normolize(url),
+                        handler=handler,
+                        name=name,
+                        swagger_data=body,
+                        validate=validate,
+                    )
+        self._swagger_data[basePath] = swagger_data
+
+        for route in self.routes():
+            if isinstance(route, SwaggerRoute) and not route.is_built:
+                route.build_swagger_data(swagger_data)
 
     def add_search_dir(self, path):
         """Add directory for search specification files
         """
-        self._search_dirs.append(path)
+        self._file_loader.add_search_dir(path)
 
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
@@ -147,7 +192,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         :param validate: bool param for validate in SwaggerValidationRoute
         :return: route for handler
         """
-        if name is None or name in self._routes:
+        if name is None or name in self._named_resources:
             name = ''
 
         if validate is None:
@@ -159,7 +204,6 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             swagger_data=swagger_data,
             validate=validate,
         )
-        self._routes.add(name, (route, path))
         return route
 
     def setup(self, app: web.Application):
@@ -171,127 +215,15 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             raise ValueError('The router is already configured '
                              'for this application')
         self.app = app
-        routes = sorted(self._routes.items(), key=utils.sort_key)
+        routes = sorted(
+            ((r.name, (r, r.url_for().human_repr())) for r in self.routes()),
+            key=utils.sort_key)
+        exists = set()
         for name, (route, path) in routes:
-            name = name or None
+            if name and name not in exists:
+                exists.add(name)
+            else:
+                name = None
             app.router.add_route(
                 route.method, path,
                 route.handler, name=name)
-
-    def import_view(self, p: str):
-        p, c = p.rsplit('.', 1)
-        package = importlib.import_module(p)
-        return getattr(package, c)
-
-    def _include_item(self, item, base_dir, prefix, url,
-                      swagger_prefix, swagger_data,
-                      definitions, paths, operationId_mapping=None):
-        base_url = prefix + url
-
-        if isinstance(item, list):
-            for i in item:
-                self._include_item(
-                    i, base_dir, prefix, url,
-                    swagger_prefix, swagger_data,
-                    definitions, paths)
-
-        elif isinstance(item, str):
-            raise NotImplementedError()
-
-        elif self.VIEW in item:
-            view = self.import_view(item.pop(self.VIEW))
-            view.add_routes(
-                self, prefix=base_url, encoding=self._encoding)
-            s = view.get_sub_swagger(['paths'], default={})
-            b = view.get_sub_swagger('basePath', default='')
-            for u, i in s.items():
-                u = swagger_prefix + url + b + u
-                u = utils.remove_patterns(u)
-                paths[u] = i
-            definitions.update(
-                view.get_sub_swagger(['definitions'], default={}))
-
-        elif self.INCLUDE in item:
-            f = utils.find_file(
-                file_path=item[self.INCLUDE],
-                search_dirs=self._search_dirs,
-                base_dir=base_dir)
-            self._include(
-                f,
-                prefix=prefix + url,
-                swagger_prefix=swagger_prefix + url,
-                swagger_data=swagger_data,
-                operationId_mapping=operationId_mapping,
-            )
-
-        else:
-            paths[utils.remove_patterns(swagger_prefix + url)] = item
-            location_name = item.pop(self.NAME, None)
-            base_url = utils.url_normolize(base_url)
-            replace = {}
-            for method, body in item.items():
-                handler = body.pop(self.HANDLER, None)
-                name = location_name or handler
-                if not handler:
-                    op_id = body.get('operationId')
-                    if op_id and operationId_mapping:
-                        handler = operationId_mapping.get(op_id)
-                        if handler:
-                            name = location_name or op_id
-                if handler:
-                    validate = body.pop(self.VALIDATE, self._default_validate)
-                    route = self.add_route(
-                        method.upper(), base_url, handler=handler,
-                        name=name,
-                        swagger_data=body,
-                        validate=validate,
-                    )
-                    if isinstance(route, SwaggerRoute):
-                        replace[method] = route._swagger_data
-            item.update(replace)
-
-    def _include(self, file_path, prefix=None, swagger_prefix=None,
-                 swagger_data=None, override_basePath=None,
-                 operationId_mapping=None):
-        base_dir = os.path.dirname(file_path)
-
-        with open(file_path, encoding=self._encoding) as f:
-            data = yaml.load(f)
-
-        if prefix is None:
-            prefix = ''
-
-        if override_basePath is None:
-            basePath = data.get('basePath', '')
-        else:
-            basePath = override_basePath
-
-        if swagger_prefix is None:
-            swagger_prefix = ''
-        else:
-            swagger_prefix += basePath
-
-        prefix += basePath
-        base_paths = data['paths']
-
-        if swagger_data is None:
-            if basePath in self._swagger_data:
-                swagger_data = self._swagger_data[basePath]
-            else:
-                swagger_data = data.copy()
-                swagger_data['paths'] = {}
-                swagger_data['basePath'] = basePath
-                swagger_data['definitions'] = {}
-        paths = swagger_data['paths']
-        definitions = swagger_data['definitions']
-        definitions.update(data.get('definitions', {}))
-
-        for url in base_paths:
-            item = base_paths[url]
-            self._include_item(
-                item, base_dir, prefix, url,
-                swagger_prefix, swagger_data,
-                definitions, paths,
-                operationId_mapping=operationId_mapping)
-
-        return swagger_data

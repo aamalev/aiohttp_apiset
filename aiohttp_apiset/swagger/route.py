@@ -4,7 +4,6 @@ from collections.abc import Mapping
 
 from aiohttp import web
 
-from .loader import deref
 from .operations import get_docstring_swagger
 from .validate import convert, Validator, get_collection
 from ..dispatcher import Route
@@ -45,7 +44,6 @@ class SwaggerRoute(Route):
         self._parameters = {}
         if not self._swagger_data:
             return
-        self._swagger_data = deref(self._swagger_data, swagger_schema)
         for param in self._swagger_data.get('parameters', ()):
             p = param.copy()
             name = p.pop('name')

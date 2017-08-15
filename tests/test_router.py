@@ -19,40 +19,26 @@ def test_search_dirs():
 
 def test_merge_spec():
     d = Path(__file__).parent
-    r = SwaggerRouter(d / 'data/include.yaml')
-    r.include('file.yaml', basePath='/inc')
+    r = SwaggerRouter(d / 'data/include.yaml', search_dirs=[d])
+    r.include('data/file.yaml', basePath='/inc')
 
 
 def test_routes(swagger_router: SwaggerRouter):
-    paths = [url for route, url in swagger_router._routes.values()]
+    paths = [route.url_for().human_repr()
+             for route in swagger_router.routes()]
     assert '/api/1/file/image' in paths
 
 
 def test_route_include(swagger_router: SwaggerRouter):
-    paths = [url for route, url in swagger_router._routes.values()]
-    assert '/api/1/include2/inc/image' in paths
-
-
-def test_route_swagger_include(swagger_router: SwaggerRouter):
-    paths = next(iter(swagger_router._swagger_data.values()))['paths']
-    assert '/include/image' in paths
-
-
-def test_route_swagger_view(swagger_router: SwaggerRouter):
-    paths = next(iter(swagger_router._swagger_data.values()))['paths']
-    assert '/file/image' in paths
+    paths = [route.url_for().human_repr()
+             for route in swagger_router.routes()]
+    assert '/api/1/include2/inc/image' in paths, paths
 
 
 def test_handler(swagger_router: SwaggerRouter):
-    paths = [(route.method, path)
-             for route, path in swagger_router._routes.values()]
+    paths = [(route.method, route.url_for().human_repr())
+             for route in swagger_router.routes()]
     assert ('GET', '/api/1/include/image') in paths
-
-
-def test_definitions(swagger_router: SwaggerRouter):
-    d = next(iter(swagger_router._swagger_data.values()))['definitions']
-    assert 'File' in d
-    assert 'Defi' in d
 
 
 @asyncio.coroutine
@@ -74,11 +60,10 @@ def test_override_basePath(loop):
     web.Application(router=router, loop=loop)
     prefix = '/override'
     router.include('data/root.yaml', basePath=prefix)
-    paths = [
-        url
-        for route, url in router._routes.values()
-        if url.startswith(prefix)
-    ]
+    paths = [url for url in [
+        route.url_for().human_repr()
+        for route in router.routes()
+    ] if url.startswith(prefix)]
     assert prefix in router._swagger_data
     assert paths
 
