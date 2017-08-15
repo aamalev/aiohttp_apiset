@@ -1,0 +1,19 @@
+swagger: '2.0'
+
+basePath: /api/1
+
+paths:
+  /pet:
+    $ref: '#/pet_actions'
+  /file:
+    $include: file.yaml
+
+pet_actions:
+  get:
+    parameters: {}
+
+definitions:
+  g:
+    allOf:
+      - f: 1
+      - d: 2
