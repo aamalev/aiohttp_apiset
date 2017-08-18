@@ -1,4 +1,6 @@
 import asyncio
+from collections import defaultdict
+from datetime import datetime
 from unittest import mock
 
 import pytest
@@ -10,7 +12,7 @@ from aiohttp.test_utils import make_mocked_request
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
-from aiohttp_apiset.swagger.validate import convert
+from aiohttp_apiset.swagger.validate import convert, Validator
 
 
 parameters = yaml.load("""
@@ -212,3 +214,78 @@ def test_router_files(test_client):
 def test_conv(args, result):
     r = convert(*args)
     assert r == result
+
+
+@Validator.converts_format('test_date', raises=ValueError)
+def conv_1(value):
+    if isinstance(value, str):
+        return datetime.strptime(value, '%Y-%m-%d')
+    yield 'only string'
+
+
+@Validator.checks_format('test_errors')
+def conv_1(value):
+    yield '123'
+    return False
+
+
+@pytest.mark.parametrize('schema,value,check', [
+    (
+        {'type': 'string',
+         'format': 'test_date'},
+        '2017-01-01',
+        lambda v: isinstance(v, datetime)
+    ), (
+        {'type': 'object',
+         'properties': {
+             'a': {'type': 'string',
+                   'format': 'test_date'}}},
+        {'a': '2017-01-01'},
+        lambda v: isinstance(v['a'], datetime)
+    ), (
+        {'type': 'object',
+         'properties': {
+             'a': {'type': 'object',
+                   'properties': {
+                       'b': {'type': 'string',
+                             'format': 'test_date'}}}}},
+        {'a': {'b': '2017-01-01'}},
+        lambda v: isinstance(v['a']['b'], datetime)
+    ),
+])
+def test_validator_convert(schema, value, check):
+    v = Validator(schema)
+    errors = defaultdict(set)
+    v = v.validate(value, errors=errors)
+    assert not errors, errors
+    assert check(v)
+
+
+@pytest.mark.parametrize('schema,value,errs', [
+    (
+        {'type': 'string',
+         'format': 'test_errors'},
+        '', {'123'}
+    ),
+    (
+        {'type': 'integer',
+         'format': 'test_errors'},
+        0, {'123'}
+    ),
+    (
+        {'type': 'integer',
+         'format': 'test_date'},
+        1, {'only string'}
+    ),
+    (
+        {'type': 'boolean',
+         'format': 'test_date'},
+        True, {'only string'}
+    ),
+])
+def test_validator_check_errors(schema, value, errs):
+    v = Validator(schema)
+    errors = defaultdict(set)
+    v.validate(value, errors=errors)
+    assert '' in errors, errors
+    assert errors[''] == errs

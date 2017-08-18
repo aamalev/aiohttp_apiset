@@ -1,3 +1,4 @@
+import types
 from functools import partial
 
 from jsonschema import Draft4Validator, draft4_format_checker
@@ -53,10 +54,65 @@ def convert(name, value, sw_type, sw_format, errors):
             )
 
 
+class ConvertTo(BaseException):
+    def __init__(self, new_value):
+        self.new_value = new_value
+
+
+class WithMessages(BaseException):
+    def __init__(self, *messages):
+        self.messages = messages
+
+
 class Validator:
+    format_checker = draft4_format_checker
+
     factory = partial(
         Draft4Validator,
-        format_checker=draft4_format_checker)
+        format_checker=format_checker)
+
+    @staticmethod
+    def _raises(raises):
+        r = [ConvertTo, WithMessages]
+        if isinstance(raises, (list, tuple)):
+            r.extend(raises)
+        else:
+            r.append(raises)
+        return tuple(r)
+
+    @staticmethod
+    def _try_messages(v):
+        if isinstance(v, types.GeneratorType):
+            messages = []
+            try:
+                while True:
+                    messages.append(next(v))
+            except StopIteration as e:
+                v = e.value
+            if messages:
+                raise WithMessages(*messages)
+        return v
+
+    @classmethod
+    def converts_format(cls, name, raises=()):
+        raises = cls._raises(raises)
+
+        def wraper(f):
+            @cls.format_checker.checks(name, raises)
+            def conv(value):
+                v = cls._try_messages(f(value))
+                raise ConvertTo(v)
+        return wraper
+
+    @classmethod
+    def checks_format(cls, name, raises=()):
+        raises = cls._raises(raises)
+
+        def wraper(f):
+            @cls.format_checker.checks(name, raises)
+            def conv(value):
+                return cls._try_messages(f(value))
+        return wraper
 
     def __init__(self, schema):
         self.schema = schema
@@ -64,9 +120,24 @@ class Validator:
 
     def validate(self, value, errors):
         for error in self.validator.descend(value, self.schema):
-            param = '.'.join(map(str, error.path))
-            errors[param].add(error.message)
+            if isinstance(error.cause, ConvertTo):
+                if not error.path:
+                    return error.cause.new_value
+                base = value
+                *path, tail = error.path
+                for i in path:
+                    base = base[i]
+                base[tail] = error.cause.new_value
+                continue
+            elif isinstance(error.cause, WithMessages):
+                messages = error.cause.messages
+            else:
+                messages = error.message,
+            self.set_errors(errors, error.path, messages)
         return value
+
+    def set_errors(self, errors, path, messages):
+        errors['.'.join(map(str, path))].update(messages)
 
 
 COLLECTION_SEP = {'csv': ',', 'ssv': ' ', 'tsv': '\t', 'pipes': '|'}
