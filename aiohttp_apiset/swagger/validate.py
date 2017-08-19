@@ -111,7 +111,8 @@ class Validator:
         def wraper(f):
             @cls.format_checker.checks(name, raises)
             def conv(value):
-                return cls._try_messages(f(value))
+                v = cls._try_messages(f(value))
+                return v is not False
         return wraper
 
     def __init__(self, schema):
