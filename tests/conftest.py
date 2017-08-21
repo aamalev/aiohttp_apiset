@@ -74,3 +74,12 @@ def swagger_router():
     )
     router.include('data/root.yaml')
     return router
+
+
+class ViewWithInit:
+    @asyncio.coroutine
+    def init(self, request):
+        self.request = request
+
+    def get(self, **kwargs):
+        return self.request

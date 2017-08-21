@@ -220,3 +220,13 @@ def test_default_options(test_client):
     router = TreeUrlDispatcher(default_options_handler=None)
     mi = yield from router.resolve(request)
     assert isinstance(mi, MatchInfoError)
+
+
+@asyncio.coroutine
+def test_init():
+    r = TreeUrlDispatcher()
+    r.add_get('/', 'tests.conftest.ViewWithInit.get')
+    req = make_request('GET', '/')
+    mi = yield from r.resolve(req)
+    result = yield from mi.handler(req)
+    assert result is req, result

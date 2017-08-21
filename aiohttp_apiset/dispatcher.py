@@ -273,16 +273,30 @@ class Route(AbstractRoute):
         handler = getattr(View, h)
         signature = inspect.signature(getattr(View(), h))
         handler_kwargs = dict(signature.parameters)
-        if 'request' in handler_kwargs:
-            def wrap_handler(request, *args, **kwargs):
+        if hasattr(View, 'init'):
+            @asyncio.coroutine
+            def init(request):
                 vi = View()
-                vi.request = request
-                return handler(vi, request, *args, **kwargs)
+                yield from vi.init(request)
+                return vi
         else:
-            def wrap_handler(request, *args, **kwargs):
+            @asyncio.coroutine
+            def init(request):
                 vi = View()
                 vi.request = request
-                return handler(vi, *args, **kwargs)
+                return vi
+        if not asyncio.iscoroutinefunction(handler):
+            handler = asyncio.coroutine(handler)
+        if 'request' in handler_kwargs:
+            @asyncio.coroutine
+            def wrap_handler(request, *args, **kwargs):
+                vi = yield from init(request)
+                return (yield from handler(vi, request, *args, **kwargs))
+        else:
+            @asyncio.coroutine
+            def wrap_handler(request, *args, **kwargs):
+                vi = yield from init(request)
+                return (yield from handler(vi, *args, **kwargs))
             handler_kwargs['request'] = None
 
         wrap_handler.__signature__ = signature
