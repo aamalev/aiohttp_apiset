@@ -44,32 +44,49 @@ class SwaggerRoute(Route):
         self._parameters = {}
         if not self._swagger_data:
             return
+
+        def allOf(d):
+            for i in d.pop('allOf', ()):
+                d.update(i)
+            return d
+
         for param in self._swagger_data.get('parameters', ()):
-            p = param.copy()
+            p = allOf(param.copy())
             name = p.pop('name')
             self._parameters[name] = p
             if p.pop('required', False):
                 self._required.append(name)
             if 'schema' in p:
-                p.update(p.pop('schema'))
+                p.update(allOf(p.pop('schema')))
 
     @asyncio.coroutine
     def handler(self, request):
         parameters, errors = yield from self.validate(request)
+        ha = self._handler_args
+        kw = self._handler_kwargs
 
-        if errors and 'errors' not in self._handler_args:
+        if errors and 'errors' not in ha:
             raise web.HTTPBadRequest(reason=errors)
 
         request.update(parameters)
+        if 'errors' in ha:
+            parameters['errors'] = errors
+        if 'request' in ha:
+            parameters['request'] = request
 
-        parameters['request'] = request
-        parameters['errors'] = errors
-        kwargs = {
-            k: parameters.get(k)
-            for k in self._handler_args
-        }
+        if kw:
+            parameters, ps = parameters, parameters
+        else:
+            parameters, ps = {}, parameters
+        for k, p in ha.items():
+            if k in parameters:
+                continue
+            elif k in ps:
+                parameters[k] = ps[k]
+            elif p and p.default == p.empty:
+                parameters[k] = None
 
-        response = yield from self._handler(**kwargs)
+        response = yield from self._handler(**parameters)
         return response
 
     def _validate(self, data, errors):
@@ -132,6 +149,9 @@ class SwaggerRoute(Route):
                 default = param.get('default', [])
                 value = get_collection(source, name,
                                        collection_format, default)
+                if param.get('minItems') and not value \
+                        and name not in self._required:
+                    continue
             elif isinstance(source, Mapping) and name in source \
                     and (vtype not in ('number', 'integer') or
                          source[name] != ''):

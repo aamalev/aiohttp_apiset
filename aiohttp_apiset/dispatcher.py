@@ -192,7 +192,16 @@ class SubLocation:
 class Route(AbstractRoute):
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None, **kwargs):
-        handler, self._handler_args = self._wrap_handler(handler)
+        handler, handler_args = self._wrap_handler(handler)
+        for k in tuple(handler_args):
+            p = handler_args[k]
+            if p and p.kind == p.VAR_KEYWORD:
+                del handler_args[k]
+                self._handler_kwargs = True
+                break
+        else:
+            self._handler_kwargs = False
+        self._handler_args = handler_args
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource)
@@ -235,8 +244,7 @@ class Route(AbstractRoute):
         if isinstance(handler, str):
             return cls._import_handler(handler)
         signature = inspect.signature(handler)
-        handler_kwargs = frozenset(signature.parameters.keys())
-        return handler, handler_kwargs
+        return handler, dict(signature.parameters)
 
     @classmethod
     def _import_handler(cls, path: str):
@@ -264,7 +272,7 @@ class Route(AbstractRoute):
 
         handler = getattr(View, h)
         signature = inspect.signature(getattr(View(), h))
-        handler_kwargs = frozenset(signature.parameters.keys())
+        handler_kwargs = dict(signature.parameters)
         if 'request' in handler_kwargs:
             def wrap_handler(request, *args, **kwargs):
                 vi = View()
@@ -275,9 +283,10 @@ class Route(AbstractRoute):
                 vi = View()
                 vi.request = request
                 return handler(vi, *args, **kwargs)
+            handler_kwargs['request'] = None
 
         wrap_handler.__signature__ = signature
-        return wrap_handler, {'request'}.union(handler_kwargs)
+        return wrap_handler, handler_kwargs
 
 
 class TreeResource:
