@@ -303,6 +303,12 @@ class ExtendedSchemaFile(SchemaFile):
     include = IncludeSwaggerPaths
     files = {}
 
+    @classmethod
+    def class_factory(cls, *, include):
+        inc = type(cls.include.__name__,
+                   (cls.include,), {'INCLUDE': include})
+        return type(cls.__name__, (cls,), {'include': inc})
+
     def __init__(self, path: Path, dirs: list=()):
         self._dirs = dirs
         self._cache = {}
@@ -452,6 +458,11 @@ class BaseLoader:
 
 class FileLoader(BaseLoader):
     file_factory = ExtendedSchemaFile
+
+    @classmethod
+    def class_factory(cls, *, include):
+        file = cls.file_factory.class_factory(include=include)
+        return type(cls.__name__, (cls,), {'file_factory': file})
 
     def load(self, path):
         f = self.file_factory(path, dirs=self._search_dirs)

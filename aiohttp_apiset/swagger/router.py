@@ -49,7 +49,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         self._default_validate = default_validate
 
         if file_loader is None:
-            file_loader = FileLoader()
+            cls = FileLoader.class_factory(include=self.INCLUDE)
+            file_loader = cls()
         for sd in search_dirs or ():
             file_loader.add_search_dir(sd)
         self._file_loader = file_loader
