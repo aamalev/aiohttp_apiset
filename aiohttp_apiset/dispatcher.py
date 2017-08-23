@@ -110,10 +110,14 @@ class SubLocation:
                 tail = None
 
         if location in self._subs:
-            return self._subs[location].resolve(
+            match, methods = self._subs[location].resolve(
                 request=request,
                 path=tail,
                 match_dict=match_dict)
+            if match is None:
+                allowed_methods.update(methods)
+            else:
+                return match, methods
 
         for pattern, sublocation in self._patterns:
             m = pattern.match(path)
@@ -129,8 +133,12 @@ class SubLocation:
                 else:
                     tail = None
 
-                return sublocation.resolve(
+                match, methods = sublocation.resolve(
                     request=request, path=tail, match_dict=match_dict)
+                if match is None:
+                    allowed_methods.update(methods)
+                else:
+                    return match, methods
         return None, allowed_methods
 
     def register_route(self, path, route, resource=None, name=None):

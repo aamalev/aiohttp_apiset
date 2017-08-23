@@ -230,3 +230,14 @@ def test_init():
     mi = yield from r.resolve(req)
     result = yield from mi.handler(req)
     assert result is req, result
+
+
+@asyncio.coroutine
+def test_branch_path():
+    r = TreeUrlDispatcher()
+    h = 'tests.conftest.ViewWithInit.get'
+    r.add_get('/net/ip/', h)
+    route = r.add_get('/net/{ip}/host', h)
+    req = make_request('GET', '/net/ip/host')
+    mi = yield from r.resolve(req)
+    assert mi.route is route
