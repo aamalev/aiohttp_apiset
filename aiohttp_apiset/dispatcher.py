@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import importlib
 import inspect
 import mimetypes
@@ -209,7 +210,11 @@ class Route(AbstractRoute):
         self._extra_info = {}
 
     def __repr__(self):
-        return type(self).__name__
+        return '<{cls} {name}, url={url}, handler={handler}>' \
+               ''.format(cls=type(self).__name__,
+                         name=self.name,
+                         url=self.url(),
+                         handler=repr(self._handler))
 
     @property
     def name(self):
@@ -289,11 +294,13 @@ class Route(AbstractRoute):
             handler = asyncio.coroutine(handler)
         if 'request' in handler_kwargs:
             @asyncio.coroutine
+            @functools.wraps(handler)
             def wrap_handler(request, *args, **kwargs):
                 vi = yield from init(request)
                 return (yield from handler(vi, request, *args, **kwargs))
         else:
             @asyncio.coroutine
+            @functools.wraps(handler)
             def wrap_handler(request, *args, **kwargs):
                 vi = yield from init(request)
                 return (yield from handler(vi, *args, **kwargs))
