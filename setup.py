@@ -13,7 +13,8 @@ else:
         with open(swagger_ui.TEMPLATE_UI, 'w'):
             pass
     elif not os.path.exists(swagger_ui.STATIC_DIR):
-        swagger_ui.setup_ui()
+        swagger_ui.setup_ui('2.2.10')
+        swagger_ui.setup_ui('3.1.6')
 
 
 with open(os.path.join(os.path.abspath(os.path.dirname(

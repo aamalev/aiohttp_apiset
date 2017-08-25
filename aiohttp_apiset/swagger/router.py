@@ -35,7 +35,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     VALIDATE = '$validate'
 
     def __init__(self, path: str=None, *,
-                 search_dirs=None, swagger_ui='/apidoc/',
+                 search_dirs=None, swagger_ui='/apidoc/', version_ui=2,
                  route_factory=route_factory,
                  default_options_handler=None,
                  encoding=None, default_validate=False, file_loader=None):
@@ -69,6 +69,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 swagger_ui, ui.STATIC_UI, name='swagger:ui:static')
             ui.get_template()  # warm up
         self._swagger_ui = swagger_ui
+        self._version_ui = version_ui
 
         if path:
             self.include(path)
@@ -109,9 +110,20 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             paths.setdefault(url, {})[r.method.lower()] = d
         return web.json_response(spec, dumps=SchemaSerializer.dumps)
 
-    def _handler_swagger_ui(self, request):
+    def _handler_swagger_ui(self, spec, version):
+        """
+        ---
+        parameters:
+          - name: spec
+            in: query
+            type: string
+          - name: version
+            in: query
+            type: integer
+            enum: [2,3]
+        """
+        version = version or self._version_ui
         spec_url = self['swagger:spec'].url_for()
-        spec = request.GET.get('spec')
         if isinstance(spec, str):
             spec_url = spec_url.with_query(spec=spec)
         elif len(self._swagger_data) == 1:
@@ -119,9 +131,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 spec_url = spec_url.with_query(spec=basePath)
         else:
             spec_url = spec_url.with_query(spec='/')
-        return web.Response(text=ui.rend_template(spec_url.human_repr(),
-                                                  prefix=self._swagger_ui),
-                            content_type='text/html')
+        return web.Response(
+            text=ui.rend_template(spec_url.human_repr(),
+                                  prefix=self._swagger_ui,
+                                  version=version),
+            content_type='text/html')
 
     def include(self, spec, *, basePath=None, operationId_mapping=None):
         """ Adds a new specification to a router
