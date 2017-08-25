@@ -7,12 +7,7 @@ try:
 except ImportError:
     pass
 else:
-    if os.environ.get('FAKE_UI'):
-        os.makedirs(swagger_ui.STATIC_DIR)
-        os.makedirs(swagger_ui.TEMPLATES_DIR)
-        with open(swagger_ui.TEMPLATE_UI, 'w'):
-            pass
-    elif not os.path.exists(swagger_ui.STATIC_DIR):
+    if not os.path.exists(swagger_ui.STATIC_DIR):
         swagger_ui.setup_ui('2.2.10')
         swagger_ui.setup_ui('3.1.6')
 

@@ -35,6 +35,11 @@ def setup_ui(version=VERSION):
     template_dir = os.path.join(TEMPLATES_DIR, version[0])
     static_dir = os.path.join(STATIC_DIR, version[0])
     template_ui = os.path.join(template_dir, 'index.html')
+    if os.environ.get('FAKE_UI'):
+        os.makedirs(static_dir)
+        os.makedirs(template_dir)
+        with open(template_ui, 'w'):
+            return
     with urllib.request.urlopen(URL.format(version)) as r, \
             tempfile.NamedTemporaryFile() as f:
         f.write(r.read())
