@@ -1,5 +1,4 @@
 import asyncio
-import os
 
 import pytest
 from aiohttp import web
@@ -9,11 +8,12 @@ from aiohttp_apiset import ApiSet
 from aiohttp_apiset.swagger import ui
 
 
-if not os.path.exists(ui.STATIC_UI):
-    os.makedirs(ui.STATIC_UI)
-    os.makedirs(os.path.dirname(ui.TEMPLATE_UI))
-    with open(ui.TEMPLATE_UI, 'w'):
-        pass
+if not ui.STATIC_UI.exists():
+    ui.STATIC_UI.mkdir(parents=True, exist_ok=True)
+    for t in ui.TEMPLATE_UI.values():
+        t.parent.mkdir(parents=True, exist_ok=True)
+        with t.open('a'):
+            pass
 
 
 @pytest.fixture

@@ -13,7 +13,7 @@ TEMPLATE_UI = {
 
 @lru_cache()
 def get_template(version=2):
-    with open(TEMPLATE_UI[version]) as f:
+    with TEMPLATE_UI[version].open() as f:
         return f.read()
 
 
