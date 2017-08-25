@@ -2,6 +2,16 @@
 History
 =======
 
+0.6 (2017-08-25)
+----------------
+
+* New loader for load schemas
+* Customization format_checkers for check and convert value
+* Support swagger-ui version 2 & 3
+* Fixed resolve route and middleware
+* Optional coromethod init in cbv
+
+
 0.5.2 (2017-06-21)
 ------------------
 
