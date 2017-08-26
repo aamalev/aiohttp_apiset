@@ -420,19 +420,37 @@ class RoutesView(Sized, Iterable, Container):
 class TreeUrlDispatcher(CompatRouter, Mapping):
     def __init__(self, *,
                  resource_factory=TreeResource,
-                 default_options_handler=None,
                  route_factory=Route):
         super().__init__()
         self._resource = resource_factory(route_factory=route_factory)
         self._executor = None
+        self._domains = '*'
         self._default_options_route = None
-        if default_options_handler is True:
-            def h(request):
-                return Response()
-            default_options_handler = h
-        if default_options_handler is not None:
-            self._default_options_route = route_factory(
-                'OPTIONS', default_options_handler, self._resource)
+
+    def cors_options(self, request):
+        response = Response()
+        for m in request['allowed_methods']:
+            response.headers.add(hdrs.ACCESS_CONTROL_ALLOW_METHODS, m)
+        for h in request.headers.getall(hdrs.ACCESS_CONTROL_REQUEST_HEADERS, ()):
+            response.headers.add(hdrs.ACCESS_CONTROL_ALLOW_HEADERS, h)
+        return response
+
+    def cors_on_prepare(self, request, response):
+        h = response.headers
+        for d in self._domains:
+            h.add(hdrs.ACCESS_CONTROL_ALLOW_ORIGIN, d)
+
+    def set_cors(self, app, *, domains='*', handler=None):
+        assert app.router is self, 'Application must be initialized ' \
+                                   'with this instance router'
+        self._domains = domains
+        if self._default_options_route is None:
+            app.on_response_prepare.append(self.cors_on_prepare)
+            if handler is None:
+                handler = self.cors_options
+        if handler is not None:
+            self._default_options_route = Route(
+                hdrs.METH_OPTIONS, handler, self._resource)
 
     @asyncio.coroutine
     def resolve(self, request):

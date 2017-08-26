@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
-from aiohttp import web
+from aiohttp import web, hdrs
 from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
@@ -207,19 +207,24 @@ def test_dispatcher_not_resolve():
 
 @asyncio.coroutine
 def test_default_options(test_client):
-    request = make_request('OPTIONS', '/')
-    router = TreeUrlDispatcher(default_options_handler=True)
+    headers = {
+        hdrs.ACCESS_CONTROL_REQUEST_HEADERS: hdrs.AUTHORIZATION}
+    request = make_request('OPTIONS', '/', headers=headers)
+    router = TreeUrlDispatcher()
+    mi = yield from router.resolve(request)
+    assert isinstance(mi, MatchInfoError)
+
+    app = web.Application(router=router)
+    router.set_cors(app)
     router.add_get('/', lambda request: web.Response())
     mi = yield from router.resolve(request)
     assert not isinstance(mi, MatchInfoError)
-    app = web.Application(router=router)
     client = yield from test_client(app)
-    response = yield from client.options('/')
+    response = yield from client.options('/', headers=headers)
     assert response.status == 200
-
-    router = TreeUrlDispatcher(default_options_handler=None)
-    mi = yield from router.resolve(request)
-    assert isinstance(mi, MatchInfoError)
+    assert response.headers[hdrs.ACCESS_CONTROL_ALLOW_ORIGIN] == '*'
+    assert response.headers[hdrs.ACCESS_CONTROL_ALLOW_METHODS] == 'GET'
+    assert response.headers[hdrs.ACCESS_CONTROL_ALLOW_HEADERS] == hdrs.AUTHORIZATION
 
 
 @asyncio.coroutine
