@@ -23,6 +23,7 @@ PREFIX = '{{static_prefix}}'
 REPLACE_STRINGS = [
     ('http://petstore.swagger.io/v2/swagger.json', '{{url}}'),
     ('href="images', 'href="' + PREFIX + 'images'),
+    ('src="images', 'src="' + PREFIX + 'images'),
     ("href='css", "href='" + PREFIX + 'css'),
     ("src='lib", "src='" + PREFIX + 'lib'),
     ("src='swagger-ui.js", "src='" + PREFIX + 'swagger-ui.min.js'),
@@ -40,15 +41,16 @@ def setup_ui(version=VERSION):
         os.makedirs(template_dir)
         with open(template_ui, 'w'):
             return
-    with urllib.request.urlopen(URL.format(version)) as r, \
-            tempfile.NamedTemporaryFile() as f:
-        f.write(r.read())
+    with tempfile.NamedTemporaryFile() as f:
+        with urllib.request.urlopen(URL.format(version)) as r:
+            f.write(r.read())
         f.flush()
-        with zipfile.ZipFile(f.name) as z, tempfile.TemporaryDirectory() as d:
-            mask = 'swagger-ui-{}/dist'.format(version)
-            for member in z.namelist():
-                if member.startswith(mask):
-                    z.extract(member, path=d)
+        with tempfile.TemporaryDirectory() as d:
+            with zipfile.ZipFile(f.name) as z:
+                mask = 'swagger-ui-{}/dist'.format(version)
+                for member in z.namelist():
+                    if member.startswith(mask):
+                        z.extract(member, path=d)
             shutil.move(os.path.join(d, mask), static_dir)
 
     if not os.path.exists(template_dir):
