@@ -46,7 +46,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         if file_loader is None:
             cls = FileLoader.class_factory(include=self.INCLUDE)
-            file_loader = cls()
+            file_loader = cls(encoding=encoding)
         for sd in search_dirs or ():
             file_loader.add_search_dir(sd)
         self._file_loader = file_loader

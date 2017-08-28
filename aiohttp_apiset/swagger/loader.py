@@ -164,9 +164,10 @@ class SchemaFile(Mapping):
             cls.files[inst.path] = inst
             return inst
 
-    def __init__(self, path):
+    def __init__(self, path, encoding='utf-8'):
         self._path = path
-        with path.open() as f:
+        self._encoding = encoding
+        with path.open(encoding=encoding) as f:
             self._data = yaml.load(f, Loader)
 
     @property
@@ -239,7 +240,11 @@ class SchemaFile(Mapping):
         return len(self._data)
 
     def __iter__(self):
-        yield from self._data
+        return (yield from self._data)
+
+    def __repr__(self):
+        return '<{cls} {path}>'.format(cls=type(self).__name__,
+                                       path=self._path)
 
 
 class IncludeSwaggerPaths(SchemaPointer):
@@ -309,10 +314,10 @@ class ExtendedSchemaFile(SchemaFile):
                    (cls.include,), {'INCLUDE': include})
         return type(cls.__name__, (cls,), {'include': inc})
 
-    def __init__(self, path: Path, dirs: list=()):
+    def __init__(self, path: Path, dirs: list=(), encoding='utf-8'):
         self._dirs = dirs
         self._cache = {}
-        super().__init__(self.find_path(path))
+        super().__init__(self.find_path(path), encoding=encoding)
         self._ref_replaced = False
 
     def __getitem__(self, item):
@@ -442,8 +447,9 @@ def deref(data, spec: dict):
 
 
 class BaseLoader:
-    def __init__(self, search_dirs=()):
+    def __init__(self, search_dirs=(), encoding='utf-8'):
         self._search_dirs = list(search_dirs)
+        self._encoding = encoding
 
     @property
     def search_dirs(self):
@@ -465,8 +471,10 @@ class FileLoader(BaseLoader):
         return type(cls.__name__, (cls,), {'file_factory': file})
 
     def load(self, path):
-        f = self.file_factory(path, dirs=self._search_dirs)
-        return f
+        return self.file_factory(
+            path, dirs=self._search_dirs,
+            encoding=self._encoding,
+        )
 
 
 class DictLoader(FileLoader):
