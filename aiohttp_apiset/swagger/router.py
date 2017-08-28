@@ -106,7 +106,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             paths.setdefault(url, {})[r.method.lower()] = d
         return web.json_response(spec, dumps=SchemaSerializer.dumps)
 
-    def _handler_swagger_ui(self, spec, version):
+    def _handler_swagger_ui(self, request, spec, version):
         """
         ---
         parameters:
@@ -119,7 +119,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             enum: [2,3]
         """
         version = version or self._version_ui
-        spec_url = self['swagger:spec'].url_for()
+        spec_url = request.url.with_path(self['swagger:spec'].url())
         if isinstance(spec, str):
             spec_url = spec_url.with_query(spec=spec)
         elif len(self._swagger_data) == 1:
