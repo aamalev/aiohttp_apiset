@@ -231,7 +231,7 @@ class SchemaFile(Mapping):
             try:
                 data = data[p]
             except KeyError:
-                raise KeyError(item)
+                raise KeyError(item, str(self._path))
         if not isinstance(data, Mapping):
             return data
         return SchemaPointer(pointer_file, data)
