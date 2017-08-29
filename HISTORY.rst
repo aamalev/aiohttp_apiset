@@ -2,6 +2,14 @@
 History
 =======
 
+0.6.2 (2017-08-29)
+------------------
+
+* Loader support encoding
+* Absolute url in ui
+* swagger-ui up to 3.1.7
+
+
 0.6.1 (2017-08-26)
 ------------------
 
