@@ -222,9 +222,10 @@ def test_default_options(test_client):
     client = yield from test_client(app)
     response = yield from client.options('/', headers=headers)
     assert response.status == 200
-    assert response.headers[hdrs.ACCESS_CONTROL_ALLOW_ORIGIN] == '*'
-    assert response.headers[hdrs.ACCESS_CONTROL_ALLOW_METHODS] == 'GET'
-    assert response.headers[hdrs.ACCESS_CONTROL_ALLOW_HEADERS] == hdrs.AUTHORIZATION
+    h = response.headers
+    assert h[hdrs.ACCESS_CONTROL_ALLOW_ORIGIN] == '*'
+    assert h[hdrs.ACCESS_CONTROL_ALLOW_METHODS] == 'GET'
+    assert h[hdrs.ACCESS_CONTROL_ALLOW_HEADERS] == hdrs.AUTHORIZATION
 
 
 @asyncio.coroutine
