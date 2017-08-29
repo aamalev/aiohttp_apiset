@@ -428,11 +428,13 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         self._default_options_route = None
 
     def cors_options(self, request):
+        reqhs = request.headers
         response = Response()
+        reshs = response.headers
         for m in request['allowed_methods']:
-            response.headers.add(hdrs.ACCESS_CONTROL_ALLOW_METHODS, m)
-        for h in request.headers.getall(hdrs.ACCESS_CONTROL_REQUEST_HEADERS, ()):
-            response.headers.add(hdrs.ACCESS_CONTROL_ALLOW_HEADERS, h)
+            reshs.add(hdrs.ACCESS_CONTROL_ALLOW_METHODS, m)
+        for h in reqhs.getall(hdrs.ACCESS_CONTROL_REQUEST_HEADERS, ()):
+            reshs.add(hdrs.ACCESS_CONTROL_ALLOW_HEADERS, h)
         return response
 
     def cors_on_prepare(self, request, response):
