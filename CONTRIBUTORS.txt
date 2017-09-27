@@ -2,4 +2,5 @@ Contributors
 ------------
 
 Alain Leufroy
+Alexander Bogushov
 Alexander Malev
