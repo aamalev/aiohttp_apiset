@@ -7,6 +7,7 @@ from .utils import import_obj
 
 
 DEFAULT_CONVERTERS = (
+    ('aiohttp_apiset.exceptions.Errors', lambda o: o.to_tree(), 9),
     ('multidict.MultiDict', lambda o: {k: o.getall(k) for k in o}),
     ('collections.Mapping', dict, 10),
     ('uuid.UUID', str),
@@ -115,5 +116,5 @@ class jsonify:
 
     def __new__(cls, app, handler):
         if cls.singleton is None:
-            cls.singleton = Jsonify()
+            cls.singleton = Jsonify(indent=3, ensure_ascii=False)
         return cls.singleton(app, handler)

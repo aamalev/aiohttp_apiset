@@ -134,11 +134,8 @@ class Validator:
                 messages = error.cause.messages
             else:
                 messages = error.message,
-            self.set_errors(errors, error.path, messages)
+            errors[tuple(error.path)].update(messages)
         return value
-
-    def set_errors(self, errors, path, messages):
-        errors['.'.join(map(str, path))].update(messages)
 
 
 COLLECTION_SEP = {'csv': ',', 'ssv': ' ', 'tsv': '\t', 'pipes': '|'}

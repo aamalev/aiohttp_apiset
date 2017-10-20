@@ -13,6 +13,7 @@ from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.swagger.validate import convert, Validator
+from aiohttp_apiset.exceptions import Errors
 
 
 parameters = yaml.load("""
@@ -155,7 +156,7 @@ def test_json():
     except web.HTTPBadRequest as e:
         resp = e
 
-    assert resp.reason['jso.f'], resp.reason
+    assert resp['jso', 'f'], resp
 
 
 @asyncio.coroutine
@@ -285,7 +286,28 @@ def test_validator_convert(schema, value, check):
 ])
 def test_validator_check_errors(schema, value, errs):
     v = Validator(schema)
-    errors = defaultdict(set)
+    errors = Errors()
     v.validate(value, errors=errors)
-    assert '' in errors, errors
-    assert errors[''] == errs
+    assert errors, errors
+    assert set(errors.to_tree()) == errs
+
+
+def test_errors():
+    e = Errors()
+    e['1'].add('2', '3')
+    x = e['5']['6']
+    assert x is not None
+    e[0].add('')
+    e[8, 9].add('')
+    e.add((8, 9, ''))
+    e.add('4')
+    assert e.to_flat() == {'1.2': ['3'], '.': ['4'], '0': [''], '8.9': ['']}
+    assert e.to_tree() == {'1': {'2': ['3']}, '.': ['4'], '0': [''], '8': {'9': ['']}}
+    assert e, e
+
+    assert repr(e)
+
+    for i in e:
+        assert e[i]
+
+    e.update(Errors('', a=['']))

@@ -1,9 +1,9 @@
 import asyncio
-from collections import defaultdict
 from collections.abc import Mapping
 
 from aiohttp import web
 
+from aiohttp_apiset.exceptions import ValidationError
 from .operations import get_docstring_swagger
 from .validate import convert, Validator, get_collection
 from ..dispatcher import Route
@@ -18,6 +18,8 @@ class SwaggerRoute(Route):
     :param location: SubLocation instance
     :param swagger_data: data
     """
+    errors_factory = ValidationError
+
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None, swagger_data=None):
         super().__init__(method, handler,
@@ -66,7 +68,7 @@ class SwaggerRoute(Route):
         kw = self._handler_kwargs
 
         if errors and 'errors' not in ha:
-            raise web.HTTPBadRequest(reason=errors)
+            raise errors
 
         request.update(parameters)
         if 'errors' in ha:
@@ -101,7 +103,7 @@ class SwaggerRoute(Route):
         """
         parameters = {}
         files = {}
-        errors = defaultdict(set)
+        errors = self.errors_factory()
 
         if request.method not in request.POST_METHODS:
             body = None
