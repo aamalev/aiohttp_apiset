@@ -92,7 +92,7 @@ class Errors(Mapping):
             result[path if path else separator] = list(self._errors)
         for k, v in self._child_errors.items():
             if path is not None:
-                 k = separator.join((path, str(k)))
+                k = separator.join((path, str(k)))
             for p, e in v.to_flat(separator=separator, path=str(k)).items():
                 result[p].extend(e)
         return result
