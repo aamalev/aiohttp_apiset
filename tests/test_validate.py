@@ -225,7 +225,7 @@ def conv_1(value):
 
 
 @Validator.checks_format('test_errors')
-def conv_1(value):
+def conv_2(value):
     yield '123'
     return False
 
@@ -301,8 +301,10 @@ def test_errors():
     e[8, 9].add('')
     e.add((8, 9, ''))
     e.add('4')
-    assert e.to_flat() == {'1.2': ['3'], '.': ['4'], '0': [''], '8.9': ['']}
-    assert e.to_tree() == {'1': {'2': ['3']}, '.': ['4'], '0': [''], '8': {'9': ['']}}
+    assert e.to_flat() == {
+        '1.2': ['3'], '.': ['4'], '0': [''], '8.9': ['']}
+    assert e.to_tree() == {
+        '1': {'2': ['3']}, '.': ['4'], '0': [''], '8': {'9': ['']}}
     assert e, e
 
     assert repr(e)
