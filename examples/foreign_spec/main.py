@@ -40,9 +40,7 @@ opmap = OperationIdMapping(
 
 def main():
     router = SwaggerRouter(
-        encoding='utf-8',
-        default_validate=True,
-        swagger_ui='/',
+        swagger_ui='/swagger/',
         search_dirs=[BASE],
     )
 
@@ -55,11 +53,11 @@ def main():
     ))
 
     # Include our specifications in a router,
-    # is now available in the swagger-ui to the address http://localhost:8080/
+    # is now available in the swagger-ui to the address http://localhost:8080/swagger/?spec=v1
     router.include(
         spec='swagger.yaml',
         operationId_mapping=opmap,
-        name='v1'
+        name='v1',  # name to access in swagger-ui
     )
 
     web.run_app(app)

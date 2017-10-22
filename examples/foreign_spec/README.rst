@@ -5,4 +5,4 @@ Running:
     python main.py
 
 
-View specification in swagger-ui at http://localhost:8080/apidoc/
+View specification in swagger-ui at http://localhost:8080/swagger/
