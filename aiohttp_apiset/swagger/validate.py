@@ -7,7 +7,9 @@ ERROR_TYPE = "Not valid value '{}' for type {}:{}"
 
 
 def to_bool(value):
-    if value in ('true', '1'):
+    if isinstance(value, str):
+        value = value.lower()
+    if value in ('true', '1', ''):
         return True
     elif value in ('false', '0'):
         return False

@@ -1,19 +1,17 @@
 import asyncio
 from collections import defaultdict
 from datetime import datetime
-from unittest import mock
-
-import pytest
-import yaml
 
 import multidict
+import pytest
+import yaml
 from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
 from aiohttp_apiset import SwaggerRouter
+from aiohttp_apiset.exceptions import Errors
 from aiohttp_apiset.middlewares import jsonify
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.swagger.validate import convert, Validator
-from aiohttp_apiset.exceptions import Errors
 
 
 parameters = yaml.load("""
@@ -205,16 +203,20 @@ def test_router_files(test_client):
     assert resp.status == 200, resp
 
 
-@pytest.mark.parametrize('args,result', [
-    (('name', 'true', 'boolean', None, None), True),
-    (('name', 'false', 'boolean', None, None), False),
-    (('name', '2s', 'string', None, mock.MagicMock()), '2s'),
-    (('name', '2s', 'integer', None, mock.MagicMock()), None),
-    (('name', ['2s'], 'number', None, mock.MagicMock()), []),
+@pytest.mark.parametrize('args,le,result', [
+    (('name', 'true', 'boolean', None), 0, True),
+    (('name', 'false', 'boolean', None), 0, False),
+    (('name', '', 'boolean', None), 0, True),
+    (('name', None, 'boolean', None), 1, None),
+    (('name', '2s', 'string', None), 0, '2s'),
+    (('name', '2s', 'integer', None), 1, None),
+    (('name', ['2s'], 'number', None), 1, []),
 ])
-def test_conv(args, result):
-    r = convert(*args)
+def test_conv(args, le, result):
+    e = Errors()
+    r = convert(*args, e)
     assert r == result
+    assert len(e) == le, e
 
 
 @Validator.converts_format('test_date', raises=ValueError)
@@ -313,3 +315,31 @@ def test_errors():
         assert e[i]
 
     e.update(Errors('', a=['']))
+
+
+@asyncio.coroutine
+def test_bool(test_client):
+    def handler(b):
+        return web.json_response(b)
+
+    r = SwaggerRouter()
+    r.add_get('/', handler=handler, swagger_data={'parameters': [{
+        'name': 'b',
+        'in': 'query',
+        'type': 'boolean',
+        'default': False,
+    }]})
+    app = web.Application(router=r)
+    client = yield from test_client(app)
+    r = yield from client.get('/?b=True')
+    assert r.status == 200, (yield from r.text())
+    assert (yield from r.json()) is True
+    r = yield from client.get('/?b=')
+    assert r.status == 200, (yield from r.text())
+    assert (yield from r.json()) is True
+    r = yield from client.get('/?b')
+    assert r.status == 200, (yield from r.text())
+    assert (yield from r.json()) is True
+    r = yield from client.get('/')
+    assert r.status == 200, (yield from r.text())
+    assert (yield from r.json()) is False
