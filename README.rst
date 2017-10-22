@@ -14,7 +14,7 @@ aiohttp_apiset
   :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
 
-Package to build routes and validate request using swagger specification.
+Package to build routes and validate request using swagger specification 2.0.
 
 Features
 --------
