@@ -425,6 +425,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         self._resource = resource_factory(route_factory=route_factory)
         self._executor = None
         self._domains = '*'
+        self._cors_headers = ()
         self._default_options_route = None
 
     def cors_options(self, request):
@@ -439,13 +440,15 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
     def cors_on_prepare(self, request, response):
         h = response.headers
+        h.update(self._cors_headers)
         for d in self._domains:
             h.add(hdrs.ACCESS_CONTROL_ALLOW_ORIGIN, d)
 
-    def set_cors(self, app, *, domains='*', handler=None):
+    def set_cors(self, app, *, domains='*', handler=None, headers=()):
         assert app.router is self, 'Application must be initialized ' \
                                    'with this instance router'
         self._domains = domains
+        self._cors_headers = headers
         if self._default_options_route is None:
             app.on_response_prepare.append(self.cors_on_prepare)
             if handler is None:
