@@ -1,17 +1,23 @@
 swagger: '2.0'
 
+basePath: /
+
+info:
+  title: API
+  description: API
+  version: 1.0.0
 
 paths:
-  /doc/{id:\d+}:
+  /doc/{doc_id:\d+}:
     post:
       tags: [documents]
       operationId: setDocument
       description: Set document
       parameters:
-        - name: id
+        - name: doc_id
           in: path
           type: integer
-          maximum: 0
+          minimum: 0
         - name: body
           in: body
           schema:
@@ -21,3 +27,8 @@ paths:
               a:
                 type: integer
                 minimum: 0
+      responses:
+        200:
+          description: OK
+        400:
+          description: validation error
