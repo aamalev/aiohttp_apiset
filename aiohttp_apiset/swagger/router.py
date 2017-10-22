@@ -74,6 +74,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         key = request.GET.get('spec')
         if key is None and self._swagger_data:
             key = next(iter(self._swagger_data), '')
+
+        if key in self._swagger_data and 'paths' in self._swagger_data[key]:
+            return web.json_response(self._swagger_data[key],
+                                     dumps=SchemaSerializer.dumps)
+
         for k in sorted(self._swagger_data, reverse=True):
             if key.startswith(k):
                 spec = self._swagger_data[k].copy()
@@ -133,7 +138,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                                   version=version),
             content_type='text/html')
 
-    def include(self, spec, *, basePath=None, operationId_mapping=None):
+    def include(self, spec, *, basePath=None, operationId_mapping=None, name=None):
         """ Adds a new specification to a router
 
         :param spec: path to specification
@@ -144,6 +149,12 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         if basePath is None:
             basePath = data.get('basePath', '')
+
+        if name is not None:
+            d = dict(data)
+            d['basePath'] = basePath
+            self._swagger_data[name] = d
+            # TODO clear d
 
         swagger_data = {k: v for k, v in data.items() if k != 'paths'}
         swagger_data['basePath'] = basePath
