@@ -101,7 +101,6 @@ def test_route():
     r = SwaggerValidationRoute(
         'GET', handler=handler, resource=None,
         swagger_data=sd)
-    r.build_swagger_data({})
     query = ('/?road_id=1&road_id=2'
              '&road_id_csv=1,2'
              '&road_id_ssv=1%202'
@@ -131,7 +130,6 @@ def test_json():
     r = SwaggerValidationRoute(
         'GET', handler=handler, resource=None,
         swagger_data=sd)
-    r.build_swagger_data({})
     request = make_mocked_request(
         'POST', '/',
         headers=multidict.CIMultiDict({
@@ -163,7 +161,7 @@ def test_router(test_client):
     router.add_route(
         'POST', '/', handler,
         swagger_data={'parameters': parameters},
-    ).build_swagger_data({})
+    )
 
     def factory(loop, *args, **kwargs):
         app = web.Application(router=router, loop=loop, middlewares=[jsonify])

@@ -174,12 +174,13 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                         name=name,
                         swagger_data=body,
                         validate=validate,
+                        build=False,
                     )
         self._swagger_data[basePath] = swagger_data
 
         for route in self.routes():
             if isinstance(route, SwaggerRoute) and not route.is_built:
-                route.build_swagger_data(swagger_data)
+                route.build_swagger_data()
 
     def add_search_dir(self, path):
         """Add directory for search specification files
@@ -189,7 +190,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
                   swagger_data=None,
-                  validate=None):
+                  validate=None, build=True):
         """ Returns route
 
         :param method: as well as in aiohttp
@@ -201,6 +202,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         :param swagger_data: data
             http://swagger.io/specification/#operationObject
         :param validate: bool param for validate in SwaggerValidationRoute
+        :param build: bool param for build extractor and validator
         :return: route for handler
         """
         if name is None or name in self._named_resources:
@@ -214,6 +216,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             expect_handler=expect_handler,
             swagger_data=swagger_data,
             validate=validate,
+            build=build,
         )
         return route
 

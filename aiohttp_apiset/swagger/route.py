@@ -21,7 +21,7 @@ class SwaggerRoute(Route):
     errors_factory = ValidationError
 
     def __init__(self, method, handler, resource, *,
-                 expect_handler=None, location=None, swagger_data=None):
+                 expect_handler=None, location=None, swagger_data=None, build=True):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource, location=location)
@@ -29,12 +29,14 @@ class SwaggerRoute(Route):
         self._required = []
         self._swagger_data = swagger_data
         self.is_built = False
+        if build:
+            self.build_swagger_data()
 
     @property
     def swagger_operation(self):
         return self._swagger_data
 
-    def build_swagger_data(self, swagger_schema):
+    def build_swagger_data(self):
         """ Prepare data when schema loaded
 
         :param swagger_schema: loaded schema
@@ -191,8 +193,10 @@ class SwaggerRoute(Route):
 
 
 class SwaggerValidationRoute(SwaggerRoute):
-    def build_swagger_data(self, swagger_schema):
-        super().build_swagger_data(swagger_schema)
+    def build_swagger_data(self):
+        if self.is_built:
+            return
+        super().build_swagger_data()
         schema = {
             'type': 'object',
             'properties': self._parameters,
@@ -225,5 +229,5 @@ def route_factory(method, handler, resource, *,
                         expect_handler=expect_handler,
                         swagger_data=swagger_data)
     if ds_swagger_op:
-        route.build_swagger_data({})
+        route.build_swagger_data()
     return route
