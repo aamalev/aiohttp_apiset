@@ -89,7 +89,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             )
 
         paths = spec.setdefault('paths', {})
-        basePath = spec.get('basePath')
+        prefix = spec.get('basePath', '').rstrip('/')
+        lprefix = len(prefix)
         for r in self.routes():
             url = r.url_for().human_repr()
 
@@ -106,8 +107,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             if not d:
                 d = {'tags': ['default']}
 
-            if basePath:
-                url = url[len(basePath):]
+            if prefix:
+                url = url[lprefix:]
             paths.setdefault(url, {})[r.method.lower()] = d
         return web.json_response(spec, dumps=SchemaSerializer.dumps)
 
