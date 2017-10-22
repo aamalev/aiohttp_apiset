@@ -212,7 +212,7 @@ def test_router_files(test_client):
 ])
 def test_conv(args, le, result):
     e = Errors()
-    r = convert(*args, e)
+    r = convert(*args, errors=e)
     assert r == result
     assert len(e) == le, e
 

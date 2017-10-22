@@ -138,11 +138,16 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                                   version=version),
             content_type='text/html')
 
-    def include(self, spec, *, basePath=None, operationId_mapping=None, name=None):
+    def include(self, spec, *,
+                basePath=None,
+                operationId_mapping=None,
+                name=None):
         """ Adds a new specification to a router
 
         :param spec: path to specification
         :param basePath: override base path specify in specification
+        :param operationId_mapping: mapping for handlers
+        :param name: name to access original spec
         """
 
         data = self._file_loader.load(spec)

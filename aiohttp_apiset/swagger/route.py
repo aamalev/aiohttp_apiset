@@ -21,7 +21,8 @@ class SwaggerRoute(Route):
     errors_factory = ValidationError
 
     def __init__(self, method, handler, resource, *,
-                 expect_handler=None, location=None, swagger_data=None, build=True):
+                 expect_handler=None, location=None,
+                 swagger_data=None, build=True):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource, location=location)
