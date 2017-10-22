@@ -38,4 +38,55 @@ Package aiohttp_apiset allows supports several strategies:
 - Mixed strategy. When routing are located in the specification files
   and operations are described in the docstrings.
 
+Example
+-------
+
+.. code-block:: python
+
+  async def handler(request, pet_id):
+      """
+      ---
+      tags: [Pet]
+      description: Info about pet
+      parameters:
+        - name: pet_id
+          in: path
+          type: integer
+          minimum: 0
+      responses:
+        200:
+          description: OK
+        400:
+          description: Validation error
+        404:
+          description: Not found
+      """
+      pet = await db.pets.find(pet_id)
+
+      if not pet:
+          return {'status': 404, 'msg': 'Not Found'}
+
+      return {
+          'pet': pet,  # dict serialized inside jsonify
+      }
+
+
+  def main():
+      router = SwaggerRouter(
+          swagger_ui='/swagger/',
+          version_ui=2,
+      )
+      router.add_get('/pets/{pet_id}', handler=handler)
+
+      app = web.Application(
+          router=router,
+          middlewares=[jsonify],
+      )
+
+      web.run_app(app)
+
+Is now available in the swagger-ui to the address http://localhost:8080/swagger/.
+Available both branch swagger-ui. For use branch 3.x visit http://localhost:8080/swagger/?version=3
+
+
 Examples: `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_
