@@ -9,7 +9,7 @@ except ImportError:
 else:
     if not os.path.exists(swagger_ui.STATIC_DIR):
         swagger_ui.setup_ui('2.2.10')
-        swagger_ui.setup_ui('3.1.7')
+        swagger_ui.setup_ui('3.4.0')
 
 
 with open(os.path.join(os.path.abspath(os.path.dirname(
