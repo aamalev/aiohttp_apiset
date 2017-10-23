@@ -2,6 +2,16 @@
 History
 =======
 
+0.7.0 (2017-10-23)
+------------------
+
+* Introduced Errors and ValidationError
+* Access to original spec by name
+* Now the default_validate is True
+* Added param headers to set_cors for specify default headers
+* swagger-ui up to 3.4.0
+
+
 0.6.2 (2017-08-29)
 ------------------
 
