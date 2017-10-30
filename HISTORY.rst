@@ -7,6 +7,7 @@ History
 
 * Keep the order of the URLs from the specification
 * More error content in the response
+* swagger-ui up to 3.4.1
 
 
 0.7.0 (2017-10-23)
