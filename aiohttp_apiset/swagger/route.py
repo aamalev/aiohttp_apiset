@@ -107,23 +107,32 @@ class SwaggerRoute(Route):
         parameters = {}
         files = {}
         errors = self.errors_factory()
+        body = None
 
         if request.method not in request.POST_METHODS:
-            body = None
+            pass
         elif request.content_type in (
                 'application/x-www-form-urlencoded',
                 'multipart/form-data'):
             try:
                 body = yield from request.post()
+            except ValueError as e:
+                errors[request.content_type].add(str(e))
             except Exception:
-                body = Exception('Bad form')
+                errors[request.content_type].add('Bad form')
         elif request.content_type == 'application/json':
             try:
                 body = yield from request.json()
+            except ValueError as e:
+                errors[request.content_type].add(str(e))
             except Exception:
-                body = Exception('Bad json')
-        else:
-            body = None
+                errors[request.content_type].add('Bad json')
+        elif request.content_type == 'application/octet-stream':
+            body = yield from request.read()
+            if not len(body):
+                body = None
+        elif request.content_type:
+            errors[request.content_type].add('Not supported content type')
 
         for name, param in self._parameters.items():
             where = param['in']
