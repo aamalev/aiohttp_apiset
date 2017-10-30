@@ -2,6 +2,13 @@
 History
 =======
 
+0.7.1 (2017-10-31)
+------------------
+
+* Keep the order of the URLs from the specification
+* More error content in the response
+
+
 0.7.0 (2017-10-23)
 ------------------
 
