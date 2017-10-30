@@ -170,7 +170,7 @@ def test_router(test_client):
     cli = yield from test_client(factory)
     query = '/?road_id=1&road_id_csv=1&road_id_brackets[]=1'
     resp = yield from cli.post(query)
-    assert resp.status == 200, resp
+    assert resp.status == 200, (yield from resp.text())
     txt = yield from resp.text()
     assert 'road_id' in txt, txt
     assert 'road_id_csv' in txt, txt
@@ -198,7 +198,7 @@ def test_router_files(test_client):
         SwaggerValidationRoute)
 
     resp = yield from cli.post(url + '?road_id=g')
-    assert resp.status == 200, resp
+    assert resp.status == 200, (yield from resp.text())
 
 
 @pytest.mark.parametrize('args,le,result', [
