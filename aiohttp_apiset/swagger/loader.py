@@ -1,16 +1,26 @@
 import json
 import os
 import sys
-from collections import Mapping
+from collections import Mapping, OrderedDict
 from functools import reduce
 from itertools import chain
 from pathlib import Path
 
-import yaml
+import yaml.resolver
 try:
-    from yaml import CLoader as Loader
+    from yaml import CLoader as OLoader
 except ImportError:
-    from yaml import Loader
+    from yaml import Loader as OLoader
+
+
+class Loader(OLoader):
+    pass
+
+
+Loader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    lambda loader, node: OrderedDict(loader.construct_pairs(node))
+)
 
 
 class SwaggerLoaderMixin:
@@ -121,7 +131,7 @@ class SchemaPointer(Mapping):
                 return [conv(o) for o in x]
             else:
                 return x
-        return {k: conv(v) for k, v in self.items()}
+        return OrderedDict((k, conv(v)) for k, v in self.items())
 
     def __iter__(self):
         yield from self._data
@@ -363,7 +373,7 @@ class ExtendedSchemaFile(SchemaFile):
 
     def resolve(self):
         data = self._replace_reference(self._data)
-        paths = {}
+        paths = OrderedDict()
         for pref, methods in data['paths'].items():
             includes = self.include._get_includes(methods)
             if not includes:
