@@ -2,6 +2,13 @@
 History
 =======
 
+0.7.2 (2017-10-31)
+------------------
+
+* Fix ValidationError constructor
+* Modify Errors instance through the attribute
+
+
 0.7.1 (2017-10-31)
 ------------------
 
