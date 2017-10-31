@@ -28,6 +28,9 @@ class Errors(Mapping):
             err = err._child_errors.setdefault(i, Errors())
         return err
 
+    def __getattr__(self, item):
+        return self[item]
+
     def __iter__(self):
         if self._errors:
             yield

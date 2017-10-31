@@ -314,6 +314,10 @@ def test_errors():
 
     e.update(Errors('', a=['']))
 
+    e = Errors(a='b')
+    e.c.add('d')
+    assert e.to_tree() == {'a': ['b'], 'c': ['d']}
+
 
 @asyncio.coroutine
 def test_bool(test_client):
