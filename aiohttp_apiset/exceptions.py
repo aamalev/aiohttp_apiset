@@ -8,7 +8,15 @@ from aiohttp.web_exceptions import HTTPBadRequest
 class Errors(Mapping):
     def __init__(self, *args, **kwargs):
         self._errors = args
-        self._child_errors = kwargs
+        self._child_errors = {}
+        for k, v in kwargs.items():
+            if isinstance(v, str):
+                v = Errors(v)
+            elif isinstance(v, (list, tuple)):
+                v = Errors(*v)
+            elif not isinstance(v, Errors):
+                raise ValueError(v)
+            self._child_errors[k] = v
 
     def __getitem__(self, item):
         if item is None:
@@ -99,9 +107,9 @@ class Errors(Mapping):
 
 
 class ValidationError(Errors, HTTPBadRequest):
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         HTTPBadRequest.__init__(self)
-        Errors.__init__(self, **kwargs)
+        Errors.__init__(self, *args, **kwargs)
         self._reason = self
 
     @asyncio.coroutine

@@ -8,7 +8,7 @@ import yaml
 from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request
 from aiohttp_apiset import SwaggerRouter
-from aiohttp_apiset.exceptions import Errors
+from aiohttp_apiset.exceptions import Errors, ValidationError
 from aiohttp_apiset.middlewares import jsonify
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.swagger.validate import convert, Validator
@@ -341,3 +341,16 @@ def test_bool(test_client):
     r = yield from client.get('/')
     assert r.status == 200, (yield from r.text())
     assert (yield from r.json()) is False
+
+
+@asyncio.coroutine
+def test_validation_errors_constructor(test_client):
+    def handler(request):
+        raise ValidationError('', r=[''], q='')
+
+    r = SwaggerRouter()
+    r.add_get('/', handler=handler)
+    app = web.Application(router=r)
+    client = yield from test_client(app)
+    r = yield from client.get('/')
+    assert r.status == 400, (yield from r.text())
