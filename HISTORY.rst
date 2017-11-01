@@ -2,6 +2,12 @@
 History
 =======
 
+0.7.3 (2017-11-01)
+------------------
+
+* Support OrderedDict in loader with yaml tag merge
+
+
 0.7.2 (2017-10-31)
 ------------------
 
