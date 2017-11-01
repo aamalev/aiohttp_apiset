@@ -1,9 +1,11 @@
+from collections import OrderedDict
 from pathlib import Path
 
 import pytest
 
 from aiohttp_apiset.swagger.loader import ExtendedSchemaFile, SchemaFile
 from aiohttp_apiset.swagger.loader import DictLoader, FileLoader, AllOf
+from aiohttp_apiset.swagger.loader import yaml, Loader
 
 
 def test_load():
@@ -68,3 +70,18 @@ def test_allOf():
     with pytest.raises(KeyError):
         print(a['c'])
     assert len(a) == 2
+
+
+def test_ordered_with_merge():
+    d = """
+        d: 1
+        a: 2
+        c: &c
+          f: 3
+          j: 4
+        t:
+          <<: *c
+          z: 5
+        """
+    data = yaml.load(d, Loader)
+    assert isinstance(data, OrderedDict)
