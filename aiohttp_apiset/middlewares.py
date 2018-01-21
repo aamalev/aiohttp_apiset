@@ -99,6 +99,8 @@ class Jsonify:
             except web.HTTPException as ex:
                 return self.resolve_exception(ex)
             else:
+                if isinstance(response, asyncio.Future):
+                    response = yield from response
                 if isinstance(response, dict):
                     status = response.get('status', 200)
                     if not isinstance(status, int):
