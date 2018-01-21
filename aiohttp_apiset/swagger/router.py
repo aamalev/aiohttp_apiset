@@ -91,6 +91,10 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         paths = spec.setdefault('paths', {})
         prefix = spec.get('basePath', '').rstrip('/')
         lprefix = len(prefix)
+        default_operation = dict(
+            tags=['default'],
+            responses={'default': {'description': 'ok'}},
+        )
         for r in self.routes():
             url = r.url_for().human_repr()
 
@@ -105,7 +109,10 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 d = get_docstring_swagger(r.handler)
 
             if not d:
-                d = {'tags': ['default']}
+                d = default_operation
+
+            if 'responses' not in d:
+                d['responses'] = default_operation['responses']
 
             if prefix:
                 url = url[lprefix:]
