@@ -457,6 +457,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             reshs.add(hdrs.ACCESS_CONTROL_ALLOW_HEADERS, h)
         return response
 
+    @asyncio.coroutine
     def cors_on_prepare(self, request, response):
         h = response.headers
         h.update(self._cors_headers)
