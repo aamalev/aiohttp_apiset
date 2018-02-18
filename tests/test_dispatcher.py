@@ -247,3 +247,27 @@ def test_branch_path():
     req = make_request('GET', '/net/ip/host')
     mi = yield from r.resolve(req)
     assert mi.route is route
+
+
+@asyncio.coroutine
+def test_subrouter():
+    request = make_request('GET', '/a/a')
+    router = TreeUrlDispatcher()
+    subapp = web.Application(router=router)
+    route = subapp.router.add_get('/a', handler)
+    app = web.Application()
+    app.add_subapp('/a', subapp)
+    m = yield from app.router.resolve(request)
+    assert route == m.route
+
+
+@asyncio.coroutine
+def test_superrouter():
+    request = make_request('GET', '/a/a')
+    router = TreeUrlDispatcher()
+    subapp = web.Application()
+    route = subapp.router.add_get('/a', handler)
+    app = web.Application(router=router)
+    app.add_subapp('/a', subapp)
+    m = yield from app.router.resolve(request)
+    assert route == m.route

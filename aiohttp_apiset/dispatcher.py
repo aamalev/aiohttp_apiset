@@ -197,6 +197,21 @@ class SubLocation:
         route.location = self.register_route(None, route)
         return route
 
+    def make_prefix_localtion(self, prefix):
+        assert self._parent is None
+        *subs, last = prefix.strip('/').split('/')
+        subs.reverse()
+        subs.append(self._formatter)
+        cls = type(self)
+        location = self
+        self._formatter = last
+        for formatter in subs:
+            parent = cls(formatter=formatter, resource=self._resource)
+            location._parent = parent
+            parent._subs[location._formatter] = location
+            location = parent
+        return location
+
 
 class Route(AbstractRoute):
     def __init__(self, method, handler, resource, *,
@@ -332,6 +347,9 @@ class TreeResource:
     def name(self):
         return self._name
 
+    def add_prefix(self, prefix):
+        self._location = self._location.make_prefix_localtion(prefix)
+
     def add_location(self, path, name):
         return self._location.add_location(path, name=name)
 
@@ -371,7 +389,7 @@ class TreeResource:
         return iter(self._routes)
 
 
-class ResourcesView(Sized, Iterable, Container):
+class LocationsView(Sized, Iterable, Container):
 
     def __init__(self, resource: TreeResource):
         location = resource._location
@@ -423,6 +441,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                  route_factory=Route):
         super().__init__()
         self._resource = resource_factory(route_factory=route_factory)
+        self._resources.append(self._resource)
         self._executor = None
         self._domains = '*'
         self._cors_headers = ()
@@ -459,22 +478,27 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
     @asyncio.coroutine
     def resolve(self, request):
-        match, allowed = yield from self._resource.resolve(request)
+        allowed_methods = set()
 
-        if match is not None:
-            return match
-        elif not allowed:
+        for resource in self._resources:
+            match_dict, allowed = yield from resource.resolve(request)
+            if match_dict is not None:
+                return match_dict
+            else:
+                allowed_methods |= allowed
+
+        if not allowed_methods:
             return MatchInfoError(HTTPNotFound())
         elif self._default_options_route is not None:
-            request['allowed_methods'] = allowed
+            request['allowed_methods'] = allowed_methods
             return UrlMappingMatchInfo(
                 {}, self._default_options_route)
         else:
             return MatchInfoError(
-                HTTPMethodNotAllowed(request.method, allowed))
+                HTTPMethodNotAllowed(request.method, allowed_methods))
 
-    def resources(self):
-        return ResourcesView(self._resource)
+    def locations(self):
+        return LocationsView(self._resource)
 
     def routes(self):
         return RoutesView(self._resource)

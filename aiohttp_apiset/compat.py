@@ -4,6 +4,7 @@ import inspect
 import keyword
 import re
 import warnings
+from collections.abc import Container, Iterable, Sized
 from contextlib import contextmanager
 from types import MappingProxyType
 
@@ -222,6 +223,21 @@ def _defaultExpectHandler(request):  # pragma: no cover
             raise HTTPExpectationFailed(text="Unknown Expect: %s" % expect)
 
 
+class ResourcesView(Sized, Iterable, Container):
+
+    def __init__(self, resources):
+        self._resources = resources
+
+    def __len__(self):
+        return len(self._resources)
+
+    def __iter__(self):
+        yield from self._resources
+
+    def __contains__(self, resource):
+        return resource in self._resources
+
+
 class CompatRouter(AbstractRouter):
     DYN = re.compile(r'\{(?P<var>[_a-zA-Z][_a-zA-Z0-9]*)\}')
     DYN_WITH_RE = re.compile(
@@ -233,6 +249,7 @@ class CompatRouter(AbstractRouter):
     def __init__(self):
         super().__init__()
         self._app = None
+        self._resources = []
         self._named_resources = {}
 
     def __iter__(self):
@@ -247,12 +264,33 @@ class CompatRouter(AbstractRouter):
     def __getitem__(self, name):
         return self._named_resources[name]
 
+    def resources(self):
+        return ResourcesView(self._resources)
+
     def named_resources(self):
         return MappingProxyType(self._named_resources)
 
     def post_init(self, app):
         assert app is not None
         self._app = app
+
+    def register_resource(self, resource):
+        name = resource.name
+
+        if name is not None:
+            parts = self.NAME_SPLIT_RE.split(name)
+            for part in parts:
+                if not part.isidentifier() or keyword.iskeyword(part):
+                    raise ValueError('Incorrect route name {!r}, '
+                                     'the name should be a sequence of '
+                                     'python identifiers separated '
+                                     'by dash, dot or column'.format(name))
+            if name in self._named_resources:
+                raise ValueError('Duplicate {!r}, '
+                                 'already handled by {!r}'
+                                 .format(name, self._named_resources[name]))
+            self._named_resources[name] = resource
+        self._resources.append(resource)
 
     def validate_name(self, name: str):
         """
