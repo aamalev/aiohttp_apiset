@@ -71,7 +71,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             self.include(path)
 
     def _handler_swagger_spec(self, request):
-        key = request.GET.get('spec')
+        key = request.query.get('spec')
         if key is None and self._swagger_data:
             key = next(iter(self._swagger_data), '')
 
