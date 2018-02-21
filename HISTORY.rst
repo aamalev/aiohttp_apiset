@@ -2,6 +2,17 @@
 History
 =======
 
+0.8.0 (2018-02-22)
+------------------
+
+* Support aiohttp 3.0.1
+* Support subapp
+* UrlTreeDispatcher.resources now return resources only
+* Default_operation & setdefault responses
+* Up swagger-ui to 3.10.0
+* Await Future in jsonify
+
+
 0.7.4 (2017-12-22)
 ------------------
 
