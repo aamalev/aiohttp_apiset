@@ -199,13 +199,14 @@ class SubLocation:
 
     def make_prefix_localtion(self, prefix):
         assert self._parent is None
-        *subs, last = prefix.strip('/').split('/')
+        subs = prefix.strip('/').split('/')
         subs.reverse()
         subs.append(self._formatter)
+        g = iter(subs)
         cls = type(self)
         location = self
-        self._formatter = last
-        for formatter in subs:
+        self._formatter = next(g)
+        for formatter in g:
             parent = cls(formatter=formatter, resource=self._resource)
             location._parent = parent
             parent._subs[location._formatter] = location
