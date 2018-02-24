@@ -176,12 +176,16 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             url = basePath + url
             methods = methods.copy()
             location_name = methods.pop(self.NAME, None)
+            parameters = methods.pop('parameters', [])
             for method, body in methods.items():
                 if method == self.VIEW:
                     view = utils.import_obj(body)
                     view.add_routes(self, prefix=url, encoding=self._encoding)
                     continue
                 body = body.copy()
+                if parameters:
+                    body['parameters'] = parameters + \
+                                         body.get('parameters', [])
                 handler = body.pop(self.HANDLER, None)
                 name = location_name or handler
                 if not handler:

@@ -68,6 +68,10 @@ paths:
       $handler: tests.conftest.SimpleView.return_json
 
   '/{id}':
+    parameters:
+      - name: id
+        in: path
+        type: integer
     get: 
       description: test
 
