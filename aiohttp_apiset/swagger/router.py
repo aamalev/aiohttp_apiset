@@ -1,3 +1,4 @@
+import warnings
 from collections import Mapping
 
 from aiohttp import web
@@ -68,6 +69,10 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         self._version_ui = version_ui
 
         if path:
+            warnings.warn(
+                "path param is deprecated and will be removed. "
+                "Use router.include(path) instead",
+                DeprecationWarning, stacklevel=2)
             self.include(path)
 
     def _handler_swagger_spec(self, request):
