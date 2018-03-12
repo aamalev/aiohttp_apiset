@@ -1,2 +1,2 @@
-aiohttp
+aiohttp==3.0.7
 aiohttp_apiset
