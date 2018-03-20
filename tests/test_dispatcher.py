@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 
 import pytest
@@ -7,7 +8,7 @@ from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
 from aiohttp_apiset.dispatcher import \
-    TreeUrlDispatcher, Route, TreeResource, SubLocation
+    TreeUrlDispatcher, Route, TreeResource, SubLocation, ContentReceiver
 from aiohttp_apiset.compat import MatchInfoError
 
 
@@ -271,3 +272,29 @@ def test_superrouter():
     app.add_subapp('/a/b', subapp)
     m = yield from app.router.resolve(request)
     assert route == m.route
+
+
+async def test_content_receiver():
+    cr = ContentReceiver()
+    l1 = len(cr)
+    assert l1
+    mime_json = 'application/json'
+    assert mime_json in cr
+    cr[None] = cr[mime_json]
+    assert len(cr) == l1 + 1
+    request = make_request('PUT', '/', headers={'Content-Type': mime_json})
+    request._read_bytes = json.dumps(2).encode()
+    assert 2 == await cr.receive(request)
+    del cr[None]
+
+    cr.freeze()
+    with pytest.raises(RuntimeError):
+        del cr[mime_json]
+    with pytest.raises(RuntimeError):
+        cr[None] = None
+
+    request = make_request('PUT', '/', headers={'Content-Type': '1'})
+    with pytest.raises(TypeError):
+        await cr.receive(request)
+
+    assert list(cr)

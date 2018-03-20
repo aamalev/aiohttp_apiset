@@ -4,6 +4,7 @@ import importlib
 import inspect
 import mimetypes
 import re
+from collections import MutableMapping
 from collections.abc import Container, Iterable, Mapping, Sized
 from itertools import chain
 from urllib import parse
@@ -216,7 +217,8 @@ class SubLocation:
 
 class Route(AbstractRoute):
     def __init__(self, method, handler, resource, *,
-                 expect_handler=None, location=None, **kwargs):
+                 expect_handler=None, location=None, content_receiver=None,
+                 **kwargs):
         handler, handler_args = self._wrap_handler(handler)
         for k in tuple(handler_args):
             p = handler_args[k]
@@ -232,6 +234,9 @@ class Route(AbstractRoute):
                          resource=resource)
         self._location = location
         self._extra_info = {}
+        if content_receiver is None:
+            content_receiver = ContentReceiver()
+        self._content_receiver = content_receiver
 
     def __repr__(self):
         return '<{cls} {name}, url={url}, handler={handler}>' \
@@ -439,7 +444,8 @@ class RoutesView(Sized, Iterable, Container):
 class TreeUrlDispatcher(CompatRouter, Mapping):
     def __init__(self, *,
                  resource_factory=TreeResource,
-                 route_factory=Route):
+                 route_factory=Route,
+                 content_receiver=None):
         super().__init__()
         self._resource = resource_factory(route_factory=route_factory)
         self._resources.append(self._resource)
@@ -447,6 +453,13 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         self._domains = '*'
         self._cors_headers = ()
         self._default_options_route = None
+        if content_receiver is None:
+            content_receiver = ContentReceiver()
+        self._content_receiver = content_receiver
+
+    def freeze(self):
+        super().freeze()
+        self._content_receiver.freeze()
 
     def cors_options(self, request):
         reqhs = request.headers
@@ -515,6 +528,8 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             raise ValueError("path should be started with / or be empty")
         if name:
             self.validate_name(name)
+
+        kwargs.setdefault('content_receiver', self._content_receiver)
 
         route = self.tree_resource.add_route(
             method=method, handler=handler,
@@ -598,3 +613,72 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         route = self.add_route('GET', prefix + '{filename:.*}',
                                content, name=name)
         route.set_info(prefix=prefix, directory=str(path), default=default)
+
+
+async def form_receiver(request):
+    try:
+        return await request.post()
+    except ValueError as e:
+        raise e from None
+    except Exception:
+        raise ValueError('Bad form')
+
+
+async def json_receiver(request):
+    try:
+        return await request.json()
+    except ValueError as e:
+        raise e from None
+    except Exception:
+        raise ValueError('Bad json')
+
+
+async def stream_receiver(request):
+    body = await request.read()
+    if len(body):
+        return body
+
+
+class ContentReceiver(MutableMapping):
+    def __init__(self):
+        self._frozen = False
+        self._map = {
+            'multipart/form-data': form_receiver,
+            'application/x-www-form-urlencoded': form_receiver,
+            'application/json': json_receiver,
+            'application/octet-stream': stream_receiver,
+        }
+
+    def freeze(self):
+        self._frozen = True
+
+    async def receive(self, request):
+        try:
+            receiver = self._map[request.content_type]
+        except KeyError:
+            raise TypeError(request.content_type) from None
+        return await receiver(request)
+
+    def __setitem__(self, key, value):
+        if self._frozen:
+            raise RuntimeError('Cannot add receiver '
+                               'to frozen ContentReceiver')
+        self._map[key] = value
+
+    def __delitem__(self, key):
+        if self._frozen:
+            raise RuntimeError('Cannot del receiver '
+                               'from frozen ContentReceiver')
+        del self._map[key]
+
+    def __getitem__(self, key):
+        return self._map[key]
+
+    def __len__(self):
+        return len(self._map)
+
+    def __iter__(self):
+        return iter(self._map.items())
+
+    def __contains__(self, key):
+        return key in self._map

@@ -97,8 +97,7 @@ class SwaggerRoute(Route):
     def _validate(self, data, errors):
         return data
 
-    @asyncio.coroutine
-    def validate(self, request: web.Request):
+    async def validate(self, request: web.Request):
         """ Returns parameters extract from request and multidict errors
 
         :param request: Request
@@ -109,30 +108,13 @@ class SwaggerRoute(Route):
         errors = self.errors_factory()
         body = None
 
-        if request.method not in request.POST_METHODS:
-            pass
-        elif request.content_type in (
-                'application/x-www-form-urlencoded',
-                'multipart/form-data'):
+        if request.method in request.POST_METHODS:
             try:
-                body = yield from request.post()
+                body = await self._content_receiver.receive(request)
             except ValueError as e:
                 errors[request.content_type].add(str(e))
-            except Exception:
-                errors[request.content_type].add('Bad form')
-        elif request.content_type == 'application/json':
-            try:
-                body = yield from request.json()
-            except ValueError as e:
-                errors[request.content_type].add(str(e))
-            except Exception:
-                errors[request.content_type].add('Bad json')
-        elif request.content_type == 'application/octet-stream':
-            body = yield from request.read()
-            if not len(body):
-                body = None
-        elif request.content_type:
-            errors[request.content_type].add('Not supported content type')
+            except TypeError:
+                errors[request.content_type].add('Not supported content type')
 
         for name, param in self._parameters.items():
             where = param['in']
