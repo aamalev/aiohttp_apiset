@@ -491,6 +491,9 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             self._default_options_route = Route(
                 hdrs.METH_OPTIONS, handler, self._resource)
 
+    def set_content_receiver(self, mimetype, receiver):
+        self._content_receiver[mimetype] = receiver
+
     @asyncio.coroutine
     def resolve(self, request):
         allowed_methods = set()

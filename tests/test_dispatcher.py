@@ -298,3 +298,15 @@ async def test_content_receiver():
         await cr.receive(request)
 
     assert list(cr)
+
+
+async def test_set_content_receiver(loop):
+    async def test_receiver(request):
+        pass
+
+    r = TreeUrlDispatcher()
+    r.set_content_receiver('test', test_receiver)
+    r.add_post('/', 'tests.conftest.SimpleView.post')
+    req = make_request('POST', '/', headers={'Content-Type': 'test'})
+    mi = await r.resolve(req)
+    assert mi.route._content_receiver.get('test') is test_receiver
