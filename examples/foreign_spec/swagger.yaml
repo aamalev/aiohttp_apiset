@@ -1,6 +1,6 @@
 swagger: '2.0'
 
-basePath: /
+basePath: /api
 
 info:
   title: API
@@ -21,14 +21,21 @@ paths:
         - name: body
           in: body
           schema:
-            type: object
-            additionalProperties: false
-            properties:
-              a:
-                type: integer
-                minimum: 0
+            $ref: 'swagger.yaml#/definitions/Document'
       responses:
         200:
           description: OK
         400:
           description: validation error
+
+definitions:
+  Document:
+    type: object
+    additionalProperties: false
+    properties:
+      doc_id:
+        type: string
+      text:
+        type: string
+    required:
+      - text
