@@ -1,0 +1,16 @@
+
+app:
+  router:
+    swagger_ui: /swagger/
+    version_ui: 3
+    cors:
+      domains: '*'
+  resources:
+    api:
+      v1:
+        prefix: /api/v1
+        spec:
+          include: swagger.yaml
+        documents:
+          /doc/{doc_id:\d+}:
+            post: handlers.set_document

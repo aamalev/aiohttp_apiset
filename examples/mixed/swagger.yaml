@@ -1,0 +1,18 @@
+swagger: '2.0'
+
+info:
+  title: API
+  description: API
+  version: 1.0.0
+
+definitions:
+  Document:
+    type: object
+    additionalProperties: false
+    properties:
+      doc_id:
+        type: string
+      text:
+        type: string
+    required:
+      - text
