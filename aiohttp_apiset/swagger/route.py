@@ -212,7 +212,7 @@ def route_factory(method, handler, resource, *,
         return Route(method, handler, resource=resource,
                      expect_handler=expect_handler)
 
-    elif kwargs.get('validate') is True:
+    elif kwargs.get('validate', True) is True:
         route_class = SwaggerValidationRoute
     else:
         route_class = SwaggerRoute
