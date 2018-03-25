@@ -57,3 +57,9 @@ def import_obj(p: str):
     p, c = r
     package = importlib.import_module(p)
     return getattr(package, c)
+
+
+def allOf(d):
+    for i in d.pop('allOf', ()):
+        d.update(i)
+    return d

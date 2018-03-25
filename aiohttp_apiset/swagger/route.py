@@ -3,10 +3,11 @@ from collections.abc import Mapping
 
 from aiohttp import web
 
-from aiohttp_apiset.exceptions import ValidationError
 from .operations import get_docstring_swagger
 from .validate import convert, Validator, get_collection
 from ..dispatcher import Route
+from ..exceptions import ValidationError
+from ..utils import allOf
 
 
 class SwaggerRoute(Route):
@@ -22,7 +23,7 @@ class SwaggerRoute(Route):
 
     def __init__(self, method, handler, resource, *,
                  expect_handler=None, location=None,
-                 swagger_data=None, build=True):
+                 swagger_data=None):
         super().__init__(method, handler,
                          expect_handler=expect_handler,
                          resource=resource, location=location)
@@ -30,14 +31,12 @@ class SwaggerRoute(Route):
         self._required = []
         self._swagger_data = swagger_data
         self.is_built = False
-        if build:
-            self.build_swagger_data()
 
     @property
     def swagger_operation(self):
         return self._swagger_data
 
-    def build_swagger_data(self):
+    def build_swagger_data(self, loader):
         """ Prepare data when schema loaded
 
         :param swagger_schema: loaded schema
@@ -49,20 +48,19 @@ class SwaggerRoute(Route):
         self._parameters = {}
         if not self._swagger_data:
             return
+        elif loader is not None:
+            data = loader.resolve_data(self._swagger_data).copy()
+        else:
+            data = self._swagger_data
 
-        def allOf(d):
-            for i in d.pop('allOf', ()):
-                d.update(i)
-            return d
-
-        for param in self._swagger_data.get('parameters', ()):
-            p = allOf(param.copy())
+        for param in data.get('parameters', ()):
+            p = param.copy()
+            if loader is None:
+                p = allOf(p)
             name = p.pop('name')
             self._parameters[name] = p
             if p.pop('required', False):
                 self._required.append(name)
-            if 'schema' in p:
-                p.update(allOf(p.pop('schema')))
 
     @asyncio.coroutine
     def handler(self, request):
@@ -118,7 +116,8 @@ class SwaggerRoute(Route):
 
         for name, param in self._parameters.items():
             where = param['in']
-            vtype = param['type']
+            schema = param.get('schema', param)
+            vtype = schema['type']
             is_array = vtype == 'array'
 
             if where == 'query':
@@ -164,10 +163,10 @@ class SwaggerRoute(Route):
                 continue
 
             if is_array:
-                vtype = param['items']['type']
-                vformat = param['items'].get('format')
+                vtype = schema['items']['type']
+                vformat = schema['items'].get('format')
             else:
-                vformat = param.get('format')
+                vformat = schema.get('format')
 
             if source is body and isinstance(body, dict):
                 pass
@@ -185,13 +184,16 @@ class SwaggerRoute(Route):
 
 
 class SwaggerValidationRoute(SwaggerRoute):
-    def build_swagger_data(self):
+    def build_swagger_data(self, loader):
         if self.is_built:
             return
-        super().build_swagger_data()
+        super().build_swagger_data(loader)
         schema = {
             'type': 'object',
-            'properties': self._parameters,
+            'properties': {
+                k: v.get('schema', v)
+                for k, v in self._parameters.items()
+            },
         }
         self._validator = Validator(schema)
 
@@ -220,6 +222,4 @@ def route_factory(method, handler, resource, *,
     route = route_class(method, handler, resource=resource,
                         expect_handler=expect_handler,
                         swagger_data=swagger_data)
-    if ds_swagger_op:
-        route.build_swagger_data()
     return route

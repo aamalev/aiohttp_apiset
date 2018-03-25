@@ -3,11 +3,11 @@ from collections import Mapping
 
 from aiohttp import web
 
-from .. import dispatcher, utils
 from . import ui
 from .loader import FileLoader
 from .operations import get_docstring_swagger
 from .route import route_factory, SwaggerRoute
+from .. import dispatcher, utils
 from ..middlewares import JsonEncoder
 
 
@@ -106,7 +106,11 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             if key and not url.startswith(key):
                 continue
             elif isinstance(r, SwaggerRoute):
-                d = r.swagger_operation or {}
+                op = r.swagger_operation
+                if op is None:
+                    d = None
+                else:
+                    d = dict(op)
             else:
                 d = None
 
@@ -207,13 +211,12 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                         name=name,
                         swagger_data=body,
                         validate=validate,
-                        build=False,
                     )
         self._swagger_data[basePath] = swagger_data
 
         for route in self.routes():
             if isinstance(route, SwaggerRoute) and not route.is_built:
-                route.build_swagger_data()
+                route.build_swagger_data(self._file_loader)
 
     def add_search_dir(self, path):
         """Add directory for search specification files
@@ -223,7 +226,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     def add_route(self, method, path, handler,
                   *, name=None, expect_handler=None,
                   swagger_data=None,
-                  validate=None, build=True):
+                  validate=None):
         """ Returns route
 
         :param method: as well as in aiohttp
@@ -249,7 +252,6 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             expect_handler=expect_handler,
             swagger_data=swagger_data,
             validate=validate,
-            build=build,
         )
         return route
 
@@ -274,3 +276,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             app.router.add_route(
                 route.method, path,
                 route.handler, name=name)
+
+    def freeze(self):
+        for r in self.routes():
+            if isinstance(r, SwaggerRoute):
+                r.build_swagger_data(self._file_loader)
+        super().freeze()
