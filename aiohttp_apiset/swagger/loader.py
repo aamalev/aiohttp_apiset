@@ -263,7 +263,7 @@ class SchemaFile(Mapping):
         return len(self._data)
 
     def __iter__(self):
-        return (yield from self._data)
+        yield from self._data
 
     def __repr__(self):
         return '<{cls} {path}>'.format(cls=type(self).__name__,
