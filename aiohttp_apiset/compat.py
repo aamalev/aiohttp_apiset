@@ -1,5 +1,6 @@
 import abc
 import asyncio
+import functools
 import inspect
 import keyword
 import re
@@ -42,6 +43,7 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
             pass
         else:
             @asyncio.coroutine
+            @functools.wraps(handler)
             def handler_wrapper(*args, **kwargs):
                 result = old_handler(*args, **kwargs)
                 if asyncio.iscoroutine(result):
