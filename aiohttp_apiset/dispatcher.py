@@ -198,7 +198,7 @@ class SubLocation:
         route.location = self.register_route(None, route)
         return route
 
-    def make_prefix_localtion(self, prefix):
+    def make_prefix_location(self, prefix):
         assert self._parent is None
         subs = prefix.strip('/').split('/')
         subs.reverse()
@@ -350,7 +350,7 @@ class TreeResource:
         return self._name
 
     def add_prefix(self, prefix):
-        self._location = self._location.make_prefix_localtion(prefix)
+        self._location = self._location.make_prefix_location(prefix)
 
     def add_location(self, path, name):
         return self._location.add_location(path, name=name)
