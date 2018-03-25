@@ -64,6 +64,25 @@ def test_loader(loader, p):
     assert l.load(p)
 
 
+@pytest.mark.parametrize('loader', [
+    FileLoader,
+    DictLoader,
+])
+@pytest.mark.parametrize('p', [
+    'data/schema01.yaml',
+    'data/root.yaml',
+])
+def test_loader_resolve_data(loader, p):
+    l = loader()
+    d = Path(__file__).parent
+    l.add_search_dir(d)
+    assert '/api/1' == l(p + '#/basePath')
+    data = l.resolve_data({'$ref': p + '#/basePath'})
+    assert '/api/1' == data, data
+    data = l.resolve_data({'t': {'$ref': p + '#/definitions/g'}})
+    assert {'t': {'f': 1, 'd': 2}} == data, data
+
+
 def test_allOf():
     a = AllOf({'a': 1}, {'b': 2})
     assert dict(a) == {'a': 1, 'b': 2}

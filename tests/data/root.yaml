@@ -12,3 +12,9 @@ paths:
   /include3:
     - $include: ./include.yaml
     - $view: tests.conftest.View
+
+definitions:
+  g:
+    allOf:
+      - f: 1
+      - d: 2

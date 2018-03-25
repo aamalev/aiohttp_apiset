@@ -1,8 +1,7 @@
 import json
 import os
 import sys
-from collections import Mapping, Hashable, OrderedDict
-from functools import reduce
+from collections import ChainMap, Hashable, Mapping, OrderedDict
 from itertools import chain
 from pathlib import Path
 
@@ -123,12 +122,16 @@ class SchemaPointer(Mapping):
 
     @classmethod
     def factory(cls, f, data):
-        if isinstance(data, dict):
-            return cls(f, data)
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [cls.factory(f, i) for i in data]
-        else:
+        elif not isinstance(data, dict):
             return data
+        elif 'allOf' in data:
+            return AllOf.factory(f, data)
+        elif '$ref' in data:
+            return f(data['$ref'])
+        else:
+            return cls(f, data)
 
     def __getitem__(self, key):
         if key not in self._data:
@@ -151,27 +154,25 @@ class SchemaPointer(Mapping):
     def __len__(self):
         return len(self._data)
 
+    def __repr__(self):
+        return '<{cls} file={file} data={data!r}>'.format(
+            cls=type(self).__name__,
+            file=str(self._file),
+            data=self._data,
+        )
 
-class AllOf(Mapping):
-    def __init__(self, *pointers):
-        self._pointers = pointers
 
-    def __getitem__(self, key):
-        for data in self._pointers:
-            if key in data:
-                return data[key]
-        raise KeyError(key)
-
-    def __iter__(self):
-        dub = set()
-        for data in self._pointers:
-            for i in data:
-                if i not in dub:
-                    dub.add(i)
-                    yield i
-
-    def __len__(self):
-        return len(reduce(set.union, self._pointers, set()))
+class AllOf(ChainMap):
+    @classmethod
+    def factory(cls, file, data):
+        maps = []
+        for d in reversed(data['allOf']):
+            maps.append(SchemaPointer.factory(file, d))
+        if len(data) > 1:
+            d = dict(data)
+            d.pop('allOf')
+            maps.append(d)
+        return cls(*maps)
 
 
 class SchemaFile(Mapping):
@@ -256,7 +257,7 @@ class SchemaFile(Mapping):
                 raise KeyError(item, str(self._path))
         if not isinstance(data, Mapping):
             return data
-        return SchemaPointer(pointer_file, data)
+        return SchemaPointer.factory(pointer_file, data)
 
     def __len__(self):
         return len(self._data)
@@ -266,7 +267,7 @@ class SchemaFile(Mapping):
 
     def __repr__(self):
         return '<{cls} {path}>'.format(cls=type(self).__name__,
-                                       path=self._path)
+                                       path=getattr(self, '_path', None))
 
 
 class IncludeSwaggerPaths(SchemaPointer):
@@ -483,9 +484,13 @@ class BaseLoader:
     def load(self, path):
         raise NotImplementedError
 
+    def resolve_data(self, data):
+        raise NotImplementedError
+
 
 class FileLoader(BaseLoader):
     file_factory = ExtendedSchemaFile
+    data_factory = SchemaPointer
 
     @classmethod
     def class_factory(cls, *, include):
@@ -498,8 +503,25 @@ class FileLoader(BaseLoader):
             encoding=self._encoding,
         )
 
+    def resolve_data(self, data):
+        return self.data_factory.factory(self, data)
+
+    def __call__(self, ref):
+        path, rel_path = ref.split('#', 1)
+        f = self.file_factory(path, self._search_dirs, self._encoding)
+        return f('#' + rel_path)
+
 
 class DictLoader(FileLoader):
     def load(self, path):
         f = super().load(path)
         return f.resolve()
+
+    def __call__(self, ref):
+        pointer = super().__call__(ref)
+        if isinstance(pointer, Mapping):
+            return pointer.copy()
+        elif isinstance(pointer, list):
+            return [p.copy() for p in pointer]
+        else:
+            return pointer
