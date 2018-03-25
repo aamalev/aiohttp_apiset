@@ -1,4 +1,3 @@
-import asyncio
 import random
 
 import pytest
@@ -12,20 +11,18 @@ def handler(request):
 
 
 @template('fake.html')
-@asyncio.coroutine
-def handler2(request):
+async def handler2(request):
     return {'req': request}
 
 
 @pytest.mark.parametrize('handler', [
     handler, handler2
 ])
-@asyncio.coroutine
-def test_with_req(swagger_router, handler, mocker):
+async def test_with_req(swagger_router, handler, mocker):
     route = swagger_router.add_route(
         'GET', '/jinja2/handler{}'.format(random.randrange(0, 999)), handler)
     m = mocker.patch('aiohttp_apiset.jinja2.render_template')
-    response = yield from route.handler('request')
+    response = await route.handler('request')
     assert response is m()
 
 
@@ -34,10 +31,9 @@ def handler_():
     return {}
 
 
-@asyncio.coroutine
-def test_without_req(swagger_router, mocker):
+async def test_without_req(swagger_router, mocker):
     route = swagger_router.add_route(
         'GET', '/jinja2/handler{}'.format(random.randrange(0, 999)), handler_)
     m = mocker.patch('aiohttp_apiset.jinja2.render_template')
-    response = yield from route.handler()
+    response = await route.handler()
     assert response is m()

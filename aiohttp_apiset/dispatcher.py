@@ -308,31 +308,27 @@ class Route(AbstractRoute):
         signature = inspect.signature(getattr(View(), h))
         handler_kwargs = dict(signature.parameters)
         if hasattr(View, 'init'):
-            @asyncio.coroutine
-            def init(request):
+            async def init(request):
                 vi = View()
-                yield from vi.init(request)
+                await vi.init(request)
                 return vi
         else:
-            @asyncio.coroutine
-            def init(request):
+            async def init(request):
                 vi = View()
                 vi.request = request
                 return vi
         if not asyncio.iscoroutinefunction(handler):
             handler = asyncio.coroutine(handler)
         if 'request' in handler_kwargs:
-            @asyncio.coroutine
             @functools.wraps(handler)
-            def wrap_handler(request, *args, **kwargs):
-                vi = yield from init(request)
-                return (yield from handler(vi, request, *args, **kwargs))
+            async def wrap_handler(request, *args, **kwargs):
+                vi = await init(request)
+                return await handler(vi, request, *args, **kwargs)
         else:
-            @asyncio.coroutine
             @functools.wraps(handler)
-            def wrap_handler(request, *args, **kwargs):
-                vi = yield from init(request)
-                return (yield from handler(vi, *args, **kwargs))
+            async def wrap_handler(request, *args, **kwargs):
+                vi = await init(request)
+                return await handler(vi, *args, **kwargs)
             handler_kwargs['request'] = None
 
         wrap_handler.__signature__ = signature
@@ -369,8 +365,7 @@ class TreeResource:
         route.location = location
         return route
 
-    @asyncio.coroutine
-    def resolve(self, request):
+    async def resolve(self, request):
         path = getattr(request, 'rel_url', request).raw_path
         return self._location.resolve(request, path[1:], {})
 
@@ -471,8 +466,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             reshs.add(hdrs.ACCESS_CONTROL_ALLOW_HEADERS, h)
         return response
 
-    @asyncio.coroutine
-    def cors_on_prepare(self, request, response):
+    async def cors_on_prepare(self, request, response):
         h = response.headers
         h.update(self._cors_headers)
         for d in self._domains:
@@ -494,12 +488,11 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
     def set_content_receiver(self, mimetype, receiver):
         self._content_receiver[mimetype] = receiver
 
-    @asyncio.coroutine
-    def resolve(self, request):
+    async def resolve(self, request):
         allowed_methods = set()
 
         for resource in self._resources:
-            match_dict, allowed = yield from resource.resolve(request)
+            match_dict, allowed = await resource.resolve(request)
             if match_dict is not None:
                 return match_dict
             else:
@@ -591,8 +584,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             with p.open('br') as f:
                 return f.read()
 
-        @asyncio.coroutine
-        def content(request):
+        async def content(request):
             filename = request.match_info['filename']
 
             if filename:
@@ -600,7 +592,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                     raise HTTPForbidden()
             elif not isinstance(default, str):
                 raise HTTPNotFound()
-            f = yield from request.app.loop.run_in_executor(
+            f = await request.app.loop.run_in_executor(
                 self._executor, search, filename, default)
 
             if not f:
@@ -609,7 +601,7 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
             ct, encoding = mimetypes.guess_type(f.name)
             if not ct:
                 ct = 'application/octet-stream'
-            body = yield from request.app.loop.run_in_executor(
+            body = await request.app.loop.run_in_executor(
                 self._executor, read_bytes, f)
             return Response(body=body, content_type=ct)
 

@@ -95,8 +95,7 @@ def handler(request, road_id):
     return dict(request)
 
 
-@asyncio.coroutine
-def test_route():
+async def test_route():
     sd = {'parameters': parameters}
     r = SwaggerValidationRoute(
         'GET', handler=handler, resource=None,
@@ -108,7 +107,7 @@ def test_route():
              '&road_id_brackets[]=1&road_id_brackets[]=2')
     request = make_mocked_request('GET', query)
     request._match_info = {}
-    resp = yield from r.handler(request)
+    resp = await r.handler(request)
     assert isinstance(resp, dict), resp
     assert 'road_id' in resp, resp
     assert resp.get('road_id_csv') == [1, 2], resp
@@ -119,8 +118,7 @@ def test_route():
     assert resp.get('road_id_default_multi') == [24], resp
 
 
-@asyncio.coroutine
-def test_json():
+async def test_json():
 
     def handler(request):
         assert request.content_type == 'application/json'
@@ -140,25 +138,24 @@ def test_json():
     )
     request.json = asyncio.coroutine(lambda: {'f': ''})
     request._match_info = {}
-    resp = yield from r.handler(request)
+    resp = await r.handler(request)
     assert isinstance(resp, dict), resp
     assert 'road_id' in resp, resp
 
     # not valid data
     request.json = asyncio.coroutine(lambda: {'f': 1})
     with pytest.raises(web.HTTPBadRequest):
-        yield from r.handler(request)
+        await r.handler(request)
 
     try:
-        yield from r.handler(request)
+        await r.handler(request)
     except web.HTTPBadRequest as e:
         resp = e
 
     assert resp['jso', 'f'], resp
 
 
-@asyncio.coroutine
-def test_router(test_client):
+async def test_router(test_client):
     router = SwaggerRouter()
     router.add_route(
         'POST', '/', handler,
@@ -169,18 +166,17 @@ def test_router(test_client):
         app = web.Application(router=router, loop=loop, middlewares=[jsonify])
         return app
 
-    cli = yield from test_client(factory)
+    cli = await test_client(factory)
     query = '/?road_id=1&road_id_csv=1&road_id_brackets[]=1'
-    resp = yield from cli.post(query)
-    assert resp.status == 200, (yield from resp.text())
-    txt = yield from resp.text()
+    resp = await cli.post(query)
+    assert resp.status == 200, (await resp.text())
+    txt = await resp.text()
     assert 'road_id' in txt, txt
     assert 'road_id_csv' in txt, txt
     assert 'road_id_brackets' in txt, txt
 
 
-@asyncio.coroutine
-def test_router_files(test_client):
+async def test_router_files(test_client):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
@@ -192,15 +188,15 @@ def test_router_files(test_client):
         app = web.Application(router=router, loop=loop, middlewares=[jsonify])
         return app
 
-    cli = yield from test_client(factory)
+    cli = await test_client(factory)
     url = router['file:simple:view'].url()
 
     assert isinstance(
         router['file:simple:view']._routes['POST'],
         SwaggerValidationRoute)
 
-    resp = yield from cli.post(url + '?road_id=g')
-    assert resp.status == 200, (yield from resp.text())
+    resp = await cli.post(url + '?road_id=g')
+    assert resp.status == 200, (await resp.text())
 
 
 @pytest.mark.parametrize('args,le,result', [
@@ -321,8 +317,7 @@ def test_errors():
     assert e.to_tree() == {'a': ['b'], 'c': ['d']}
 
 
-@asyncio.coroutine
-def test_bool(test_client):
+async def test_bool(test_client):
     def handler(b):
         return web.json_response(b)
 
@@ -334,29 +329,28 @@ def test_bool(test_client):
         'default': False,
     }]})
     app = web.Application(router=r)
-    client = yield from test_client(app)
-    r = yield from client.get('/?b=True')
-    assert r.status == 200, (yield from r.text())
-    assert (yield from r.json()) is True
-    r = yield from client.get('/?b=')
-    assert r.status == 200, (yield from r.text())
-    assert (yield from r.json()) is True
-    r = yield from client.get('/?b')
-    assert r.status == 200, (yield from r.text())
-    assert (yield from r.json()) is True
-    r = yield from client.get('/')
-    assert r.status == 200, (yield from r.text())
-    assert (yield from r.json()) is False
+    client = await test_client(app)
+    r = await client.get('/?b=True')
+    assert r.status == 200, (await r.text())
+    assert (await r.json()) is True
+    r = await client.get('/?b=')
+    assert r.status == 200, (await r.text())
+    assert (await r.json()) is True
+    r = await client.get('/?b')
+    assert r.status == 200, (await r.text())
+    assert (await r.json()) is True
+    r = await client.get('/')
+    assert r.status == 200, (await r.text())
+    assert (await r.json()) is False
 
 
-@asyncio.coroutine
-def test_validation_errors_constructor(test_client):
+async def test_validation_errors_constructor(test_client):
     def handler(request):
         raise ValidationError('', r=[''], q='')
 
     r = SwaggerRouter()
     r.add_get('/', handler=handler)
     app = web.Application(router=r)
-    client = yield from test_client(app)
-    r = yield from client.get('/')
-    assert r.status == 400, (yield from r.text())
+    client = await test_client(app)
+    r = await client.get('/')
+    assert r.status == 400, (await r.text())

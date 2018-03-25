@@ -1,5 +1,3 @@
-import asyncio
-
 import pytest
 from aiohttp import web
 
@@ -11,8 +9,7 @@ from aiohttp_apiset.middlewares import jsonify, Jsonify
     [],
     [jsonify],
 ])
-@asyncio.coroutine
-def test_spec(loop, test_client, middlewares):
+async def test_spec(loop, test_client, middlewares):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
@@ -25,25 +22,24 @@ def test_spec(loop, test_client, middlewares):
 
     router.include('data/root.yaml')
 
-    cli = yield from test_client(app)
+    cli = await test_client(app)
     spec_url = router['swagger:spec'].url_for()
     ui_url = router['swagger:ui'].url_for()
 
-    resp = yield from cli.get(ui_url)
-    assert resp.status == 200, (yield from resp.text())
+    resp = await cli.get(ui_url)
+    assert resp.status == 200, (await resp.text())
 
-    resp = yield from cli.get(ui_url.with_query(spec='/api/1'))
-    assert resp.status == 200, (yield from resp.text())
+    resp = await cli.get(ui_url.with_query(spec='/api/1'))
+    assert resp.status == 200, (await resp.text())
 
-    resp = yield from cli.get(spec_url)
-    assert resp.status == 200, (yield from resp.text())
+    resp = await cli.get(spec_url)
+    assert resp.status == 200, (await resp.text())
 
-    resp = yield from cli.get(spec_url.with_query(spec='/api/1'))
-    assert resp.status == 200, (yield from resp.text())
+    resp = await cli.get(spec_url.with_query(spec='/api/1'))
+    assert resp.status == 200, (await resp.text())
 
 
-@asyncio.coroutine
-def test_json(test_client):
+async def test_json(test_client):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
@@ -57,11 +53,11 @@ def test_json(test_client):
             middlewares=[jsonify])
         return app
 
-    cli = yield from test_client(factory)
+    cli = await test_client(factory)
     url = router['file:simple:view'].url()
 
-    resp = yield from cli.put(url)
-    assert resp.status == 200, (yield from resp.text())
+    resp = await cli.put(url)
+    assert resp.status == 200, (await resp.text())
 
 
 def test_dumper():

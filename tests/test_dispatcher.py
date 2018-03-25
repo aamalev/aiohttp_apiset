@@ -1,4 +1,3 @@
-import asyncio
 import json
 from pathlib import Path
 
@@ -38,31 +37,29 @@ def test_add_resource(dispatcher: TreeUrlDispatcher):
     assert str(location.url_for()) == '/api/1/dogs'
 
 
-@asyncio.coroutine
-def test_simple(dispatcher: TreeUrlDispatcher, request: web.Request):
+async def test_simple(dispatcher: TreeUrlDispatcher, request: web.Request):
     request = make_request('GET', '/api/1/pet/1')
-    md = yield from dispatcher.resolve(request)
+    md = await dispatcher.resolve(request)
     assert md == {'id': '1'}
 
     request = make_request('GET', '/api/1/pets')
-    md = yield from dispatcher.resolve(request)
+    md = await dispatcher.resolve(request)
     assert not md
 
 
-@asyncio.coroutine
-def test_multisubs(dispatcher: TreeUrlDispatcher):
+async def test_multisubs(dispatcher: TreeUrlDispatcher):
     url = '/api/1/host/{host}/eth{num}/{ip:[.\d]+}/'
     dispatcher.add_route('GET', url, handler)
 
     request = make_request('GET', '/api/1/host/myhost/eth0/127.0.0.1/')
-    md = yield from dispatcher.resolve(request)
+    md = await dispatcher.resolve(request)
     assert len(md)
     assert 'ip' in md
     assert 'num' in md
     assert 'host' in md
 
     request = make_request('GET', '/api/1/host/myhost/eth0/127.0.0.1')
-    md = yield from dispatcher.resolve(request)
+    md = await dispatcher.resolve(request)
     assert isinstance(md, MatchInfoError)
 
 
@@ -95,11 +92,15 @@ def test_url(dispatcher: TreeUrlDispatcher):
     'tests.conftest.View.retrieve',
     'tests.conftest.SimpleView.get',
     'tests.conftest.SimpleView.post',
-    'asyncio.wait',  # cover one dot str handler
 ])
-def test_import_handler(hstr):
+async def test_import_handler(hstr):
     handler, parameters = Route._import_handler(hstr)
-    handler(**{k: None for k in parameters})
+    with pytest.raises(web.HTTPException):
+        await handler(**{k: None for k in parameters})
+
+
+def test_import_one_dot_handler():
+    Route._import_handler('asyncio.wait')
 
 
 def test_import_handler_():
@@ -117,55 +118,53 @@ def test_view_locations(dispatcher: TreeUrlDispatcher):
     assert len(routes)
 
 
-@asyncio.coroutine
-def test_static(loop, test_client, mocker):
+async def test_static(loop, test_client, mocker):
     f = Path(__file__)
     dispatcher = TreeUrlDispatcher()
     dispatcher.add_static('/static', f.parent, name='static')
     app = web.Application(router=dispatcher, loop=loop)
-    client = yield from test_client(app)
+    client = await test_client(app)
 
     url = dispatcher['static'].url_for(filename=f.name)
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 200
 
     m = mocker.patch('aiohttp_apiset.dispatcher.mimetypes')
     m.guess_type.return_value = None, None
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 200
 
     url = dispatcher['static'].url_for(filename='..' + f.name)
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 403
 
     url = dispatcher['static'].url_for(filename='1/2/3')
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 404
 
     url = dispatcher['static'].url_for(filename='')
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 404
 
 
-@asyncio.coroutine
-def test_static_with_default(loop, test_client):
+async def test_static_with_default(loop, test_client):
     f = Path(__file__)
     dispatcher = TreeUrlDispatcher()
     dispatcher.add_static('/static', f.parent, name='static', default=f.name)
     dispatcher.add_static('/static2', f.parent, name='static2', default='1234')
     app = web.Application(router=dispatcher, loop=loop)
-    client = yield from test_client(app)
+    client = await test_client(app)
 
     url = dispatcher['static'].url_for(filename='1/2/3')
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 200
 
     url = dispatcher['static2'].url_for(filename='1/2/3')
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 404
 
     url = dispatcher['static'].url_for(filename='')
-    responce = yield from client.get(url)
+    responce = await client.get(url)
     assert responce.status == 200
 
 
@@ -197,31 +196,29 @@ def test_novalid_path():
         r.add_get('dfsdf', None)
 
 
-@asyncio.coroutine
-def test_dispatcher_not_resolve():
+async def test_dispatcher_not_resolve():
     r = TreeUrlDispatcher()
     r.add_put('/', handler)
     req = make_request('GET', '/')
-    a = yield from r.resolve(req)
+    a = await r.resolve(req)
     assert isinstance(a.http_exception, web.HTTPMethodNotAllowed)
 
 
-@asyncio.coroutine
-def test_default_options(test_client):
+async def test_default_options(test_client):
     headers = {
         hdrs.ACCESS_CONTROL_REQUEST_HEADERS: hdrs.AUTHORIZATION}
     request = make_request('OPTIONS', '/', headers=headers)
     router = TreeUrlDispatcher()
-    mi = yield from router.resolve(request)
+    mi = await router.resolve(request)
     assert isinstance(mi, MatchInfoError)
 
     app = web.Application(router=router)
     router.set_cors(app)
     router.add_get('/', lambda request: web.Response())
-    mi = yield from router.resolve(request)
+    mi = await router.resolve(request)
     assert not isinstance(mi, MatchInfoError)
-    client = yield from test_client(app)
-    response = yield from client.options('/', headers=headers)
+    client = await test_client(app)
+    response = await client.options('/', headers=headers)
     assert response.status == 200
     h = response.headers
     assert h[hdrs.ACCESS_CONTROL_ALLOW_ORIGIN] == '*'
@@ -229,48 +226,44 @@ def test_default_options(test_client):
     assert h[hdrs.ACCESS_CONTROL_ALLOW_HEADERS] == hdrs.AUTHORIZATION
 
 
-@asyncio.coroutine
-def test_init():
+async def test_init():
     r = TreeUrlDispatcher()
     r.add_get('/', 'tests.conftest.ViewWithInit.get')
     req = make_request('GET', '/')
-    mi = yield from r.resolve(req)
-    result = yield from mi.handler(req)
+    mi = await r.resolve(req)
+    result = await mi.handler(req)
     assert result is req, result
 
 
-@asyncio.coroutine
-def test_branch_path():
+async def test_branch_path():
     r = TreeUrlDispatcher()
     h = 'tests.conftest.ViewWithInit.get'
     r.add_get('/net/ip/', h)
     route = r.add_get('/net/{ip}/host', h)
     req = make_request('GET', '/net/ip/host')
-    mi = yield from r.resolve(req)
+    mi = await r.resolve(req)
     assert mi.route is route
 
 
-@asyncio.coroutine
-def test_subrouter():
+async def test_subrouter():
     request = make_request('GET', '/a/b/c/d')
     router = TreeUrlDispatcher()
     subapp = web.Application(router=router)
     route = subapp.router.add_get('/c/d', handler)
     app = web.Application()
     app.add_subapp('/a/b', subapp)
-    m = yield from app.router.resolve(request)
+    m = await app.router.resolve(request)
     assert route == m.route
 
 
-@asyncio.coroutine
-def test_superrouter():
+async def test_superrouter():
     request = make_request('GET', '/a/b/c/d')
     router = TreeUrlDispatcher()
     subapp = web.Application()
     route = subapp.router.add_get('/c/d', handler)
     app = web.Application(router=router)
     app.add_subapp('/a/b', subapp)
-    m = yield from app.router.resolve(request)
+    m = await app.router.resolve(request)
     assert route == m.route
 
 

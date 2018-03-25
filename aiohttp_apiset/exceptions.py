@@ -1,4 +1,3 @@
-import asyncio
 import json
 from collections import Mapping, defaultdict
 
@@ -115,8 +114,7 @@ class ValidationError(Errors, HTTPBadRequest):
         Errors.__init__(self, *args, **kwargs)
         self._reason = self
 
-    @asyncio.coroutine
-    def prepare(self, request, dumps=json.dumps):
+    async def prepare(self, request, dumps=json.dumps):
         self.text = dumps({'errors': self.to_tree()})
         self.content_type = 'application/json'
-        return (yield from super().prepare(request))
+        return await super().prepare(request)

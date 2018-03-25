@@ -1,5 +1,3 @@
-import asyncio
-
 import pytest
 from aiohttp import web
 
@@ -24,8 +22,7 @@ def client(loop, test_client, swagger_router):
     return loop.run_until_complete(test_client(create_app))
 
 
-@asyncio.coroutine
-def handler(request):
+async def handler(request):
     """
     ---
     description: swagger operation
@@ -35,16 +32,13 @@ def handler(request):
 
 class SimpleView:
 
-    @asyncio.coroutine
-    def get(self, request):
+    async def get(self, request):
         raise web.HTTPOk(text='simple handler get')
 
-    @asyncio.coroutine
-    def post(self):
+    async def post(self):
         raise web.HTTPOk(text='simple handler post')
 
-    @asyncio.coroutine
-    def return_json(self):
+    async def return_json(self):
         return {'status': 200}
 
 
@@ -52,12 +46,10 @@ class View(ApiSet):
     swagger_ref = 'data/file.yaml'
     namespace = 'test'
 
-    @asyncio.coroutine
-    def get(self):
+    async def get(self):
         raise web.HTTPOk()
 
-    @asyncio.coroutine
-    def retrieve(self, request):
+    async def retrieve(self, request):
         raise web.HTTPGone()
 
 
@@ -77,8 +69,7 @@ def swagger_router():
 
 
 class ViewWithInit:
-    @asyncio.coroutine
-    def init(self, request):
+    async def init(self, request):
         self.request = request
 
     def get(self, **kwargs):

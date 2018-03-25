@@ -42,12 +42,11 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
               issubclass(handler, AbstractView)):
             pass
         else:
-            @asyncio.coroutine
             @functools.wraps(handler)
-            def handler_wrapper(*args, **kwargs):
+            async def handler_wrapper(*args, **kwargs):
                 result = old_handler(*args, **kwargs)
                 if asyncio.iscoroutine(result):
-                    result = yield from result
+                    result = await result
                 return result
             old_handler = handler
             handler = handler_wrapper
@@ -93,9 +92,8 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
                       DeprecationWarning,
                       stacklevel=3)
 
-    @asyncio.coroutine
-    def handle_expect_header(self, request):
-        return (yield from self._expect_handler(request))
+    async def handle_expect_header(self, request):
+        return await self._expect_handler(request)
 
 
 class UrlMappingMatchInfo(dict, AbstractMatchInfo):  # pragma: no cover
@@ -179,8 +177,7 @@ class SystemRoute(AbstractRoute):  # pragma: no cover
     def get_info(self):
         return {'http_exception': self._http_exception}
 
-    @asyncio.coroutine
-    def _handler(self, request):
+    async def _handler(self, request):
         raise self._http_exception
 
     @property
@@ -210,8 +207,7 @@ class MatchInfoError(UrlMappingMatchInfo):  # pragma: no cover
                                                 self._exception.reason)
 
 
-@asyncio.coroutine
-def _defaultExpectHandler(request):  # pragma: no cover
+async def _defaultExpectHandler(request):  # pragma: no cover
     """Default handler for Expect header.
 
     Just send "100 Continue" to client.

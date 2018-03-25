@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 
 from aiohttp import web
@@ -41,18 +40,16 @@ def test_handler(swagger_router: SwaggerRouter):
     assert ('GET', '/api/1/include/image') in paths
 
 
-@asyncio.coroutine
-def test_cbv_handler_get(client, swagger_router):
+async def test_cbv_handler_get(client, swagger_router):
     url = swagger_router['file:simple:view'].url()
-    res = yield from client.get(url)
-    assert (yield from res.text()) == 'simple handler get'
+    res = await client.get(url)
+    assert (await res.text()) == 'simple handler get'
 
 
-@asyncio.coroutine
-def test_cbv_handler_post(client, swagger_router):
+async def test_cbv_handler_post(client, swagger_router):
     url = swagger_router['file:simple:view'].url()
-    res = yield from client.post(url)
-    assert (yield from res.text()) == 'simple handler post'
+    res = await client.post(url)
+    assert (await res.text()) == 'simple handler post'
 
 
 def test_override_basePath(loop):

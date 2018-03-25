@@ -1,4 +1,3 @@
-import asyncio
 from collections.abc import Mapping
 
 from aiohttp import web
@@ -62,9 +61,8 @@ class SwaggerRoute(Route):
             if p.pop('required', False):
                 self._required.append(name)
 
-    @asyncio.coroutine
-    def handler(self, request):
-        parameters, errors = yield from self.validate(request)
+    async def handler(self, request):
+        parameters, errors = await self.validate(request)
         ha = self._handler_args
         kw = self._handler_kwargs
 
@@ -89,7 +87,7 @@ class SwaggerRoute(Route):
             elif p and p.default == p.empty:
                 parameters[k] = None
 
-        response = yield from self._handler(**parameters)
+        response = await self._handler(**parameters)
         return response
 
     def _validate(self, data, errors):

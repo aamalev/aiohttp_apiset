@@ -90,17 +90,15 @@ class Jsonify:
             return self.response(error=ex.reason, status=ex.status)
         raise ex
 
-    @asyncio.coroutine
-    def __call__(self, app, handler):
-        @asyncio.coroutine
-        def process(request):
+    async def __call__(self, app, handler):
+        async def process(request):
             try:
-                response = yield from handler(request)
+                response = await handler(request)
             except web.HTTPException as ex:
                 return self.resolve_exception(ex)
             else:
                 if isinstance(response, asyncio.Future):
-                    response = yield from response
+                    response = await response
                 if isinstance(response, dict):
                     status = response.get('status', 200)
                     if not isinstance(status, int):
