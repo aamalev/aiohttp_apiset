@@ -7,7 +7,7 @@ from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
 from aiohttp_apiset.dispatcher import \
-    TreeUrlDispatcher, Route, TreeResource, SubLocation, ContentReceiver
+    TreeUrlDispatcher, Route, TreeResource, Location, ContentReceiver
 from aiohttp_apiset.compat import MatchInfoError
 
 
@@ -182,7 +182,7 @@ def test_treeresource():
 
 
 def test_sublocation_notresolved(mocker):
-    l = SubLocation(formatter='')
+    l = Location(formatter='')
     m, allow = l.resolve(mocker.Mock(), '/not', {})
     assert not m
     assert not allow

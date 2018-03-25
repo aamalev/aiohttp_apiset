@@ -22,7 +22,7 @@ from .compat import (
 )
 
 
-class SubLocation:
+class Location:
     SPLIT = re.compile(r'/((?:(?:\{.+?\})|(?:[^/{}]+))+)')
 
     def __init__(self, *, formatter, name='', canon=None, parent=None,
@@ -341,7 +341,7 @@ class TreeResource:
                  sublocation_factory=None):
         self._routes = []
         self._route_factory = route_factory or Route
-        self._sublocation_factory = sublocation_factory or SubLocation
+        self._sublocation_factory = sublocation_factory or Location
         self._location = self._sublocation_factory(formatter='', resource=self)
         self._name = name
 
@@ -396,7 +396,7 @@ class LocationsView(Sized, Iterable, Container):
         location = resource._location
         self._resources = self._append(location, [location])
 
-    def _append(self, location: SubLocation, acc):
+    def _append(self, location: Location, acc):
         ptrns = (l for p, l in location._patterns)
         for i in chain(location._subs.values(), ptrns):
             acc.append(i)
@@ -419,7 +419,7 @@ class RoutesView(Sized, Iterable, Container):
         location = resource._location
         self._routes = self._append(location, [])
 
-    def _append(self, location: SubLocation, acc):
+    def _append(self, location: Location, acc):
         ptrns = (l for p, l in location._patterns)
         for i in chain(location._subs.values(), ptrns):
             acc.extend(i._routes.values())
