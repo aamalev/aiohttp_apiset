@@ -181,7 +181,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         swagger_data = {k: v for k, v in data.items() if k != 'paths'}
         swagger_data['basePath'] = basePath
 
-        for url, methods in data['paths'].items():
+        for url, methods in data.get('paths', {}).items():
             url = basePath + url
             methods = methods.copy()
             location_name = methods.pop(self.NAME, None)
