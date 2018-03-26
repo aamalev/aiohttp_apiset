@@ -2,6 +2,15 @@
 History
 =======
 
+0.9 (2018-03-26)
+----------------
+
+* Support $ref in docstrings
+* Added ContentReceiver
+* Drop support py34
+* Renamed SubLocation to Location
+
+
 0.8.1 (2018-02-25)
 ------------------
 
