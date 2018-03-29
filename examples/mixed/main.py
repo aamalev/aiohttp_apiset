@@ -22,7 +22,7 @@ router.set_cors(app, domains='*', headers=(
 ))
 
 # Include our specifications in a router
-router.include(spec='swagger.yaml')
+router.include(spec='swagger.yaml', basePath='/api/v1')
 
 
 if __name__ == '__main__':
