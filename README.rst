@@ -1,4 +1,4 @@
-aiohttp_apiset
+aiohttp-apiset
 ==============
 
 .. image:: https://travis-ci.org/aamalev/aiohttp_apiset.svg?branch=master

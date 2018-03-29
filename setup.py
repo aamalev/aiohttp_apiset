@@ -43,7 +43,7 @@ tests_require = [
 
 
 setup(
-    name='aiohttp_apiset',
+    name='aiohttp-apiset',
     version=version,
     description='Build routes using swagger specification',
     long_description=read('README.rst') + '\n\n' + read('HISTORY.rst'),
