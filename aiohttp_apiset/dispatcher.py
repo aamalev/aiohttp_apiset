@@ -181,6 +181,7 @@ class Location:
                     formatter=formatter, canon=canon,
                     parent=self, resource=resource)
                 self._patterns.append((pattern, location))
+                self._patterns.sort(key=lambda x: x[1]._canon, reverse=True)
         elif location_name in self._subs:
             location = self._subs[location_name]
         else:

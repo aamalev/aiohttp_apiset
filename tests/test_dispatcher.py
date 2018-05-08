@@ -303,3 +303,12 @@ async def test_set_content_receiver(loop):
     req = make_request('POST', '/', headers={'Content-Type': 'test'})
     mi = await r.resolve(req)
     assert mi.route._content_receiver.get('test') is test_receiver
+
+
+async def test_dynamic_sort():
+    r = TreeUrlDispatcher()
+    r.add_get('/a/{b}-{c}', handler)
+    route = r.add_get('/a/{b}-{c}.jpg', handler)
+    req = make_request('GET', '/a/2-3.jpg')
+    mi = await r.resolve(req)
+    assert mi.route is route
