@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aiohttp = "*"
+pyyaml = "*"
+jsonschema = "*"
+"aiohttp-jinja2" = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-aiohttp = "*"
+pytest-cov = "*"
+pytest-mock = "*"
+"pytest-pep8" = "*"
+
+[requires]
+python_version = "3.6"
