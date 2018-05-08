@@ -2,6 +2,15 @@
 History
 =======
 
+0.9.1 (2018-05-08)
+------------------
+
+* fix sort of dynamic locations
+* middleware binary
+* support aiohttp 3.2
+* up swagger-ui to 3.14.1
+
+
 0.9 (2018-03-26)
 ----------------
 
