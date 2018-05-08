@@ -118,3 +118,15 @@ class jsonify:
         if cls.singleton is None:
             cls.singleton = Jsonify(indent=3, ensure_ascii=False)
         return cls.singleton(app, handler)
+
+
+async def binary(app, handler):
+    async def middleware_handler(request):
+        response = await handler(request)
+        if isinstance(response, (bytes, bytearray, memoryview)):
+            return web.HTTPOk(body=response)
+        elif isinstance(response, str):
+            return web.HTTPOk(text=response)
+        else:
+            return response
+    return middleware_handler

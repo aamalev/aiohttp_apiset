@@ -3,6 +3,7 @@ from aiohttp import web
 
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.middlewares import jsonify, Jsonify
+from aiohttp_apiset import middlewares
 
 
 @pytest.mark.parametrize('middlewares', [
@@ -84,3 +85,24 @@ def test_repr():
     Jsonify(default_repr=True).dumps({
         'x': object,
     })
+
+
+@pytest.mark.parametrize('data', [
+    '',
+    b'',
+    web.HTTPOk(),
+])
+async def test_binary(test_client, data):
+    async def h(request):
+        return data
+
+    def factory(loop, *args, **kwargs):
+        app = web.Application(
+            loop=loop,
+            middlewares=[middlewares.binary])
+        app.router.add_get('/', h)
+        return app
+
+    cli = await test_client(factory)
+    resp = await cli.get('/')
+    assert resp.status == 200, await resp.text()
