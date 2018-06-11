@@ -1,4 +1,4 @@
-aiohttp==3.2.1
+aiohttp==3.3.1
 aiohttp-jinja2==1.0.0
 PyYAML==3.12
 jsonschema==2.6.0
