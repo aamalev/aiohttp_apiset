@@ -38,12 +38,14 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     def __init__(self, path: str=None, *,
                  search_dirs=None, swagger_ui='/apidoc/', version_ui=2,
                  route_factory=route_factory,
-                 encoding=None, default_validate=True, file_loader=None):
+                 encoding=None, default_validate=True,
+                 file_loader=None, spec_url=None):
         super().__init__(route_factory=route_factory)
         self.app = None
         self._encoding = encoding
         self._swagger_data = {}
         self._default_validate = default_validate
+        self._spec_url = spec_url
 
         if file_loader is None:
             cls = FileLoader.class_factory(include=self.INCLUDE)
@@ -141,16 +143,20 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             enum: [2,3]
         """
         version = version or self._version_ui
-        spec_url = request.url.with_path(self['swagger:spec'].url())
-        if isinstance(spec, str):
-            spec_url = spec_url.with_query(spec=spec)
-        elif len(self._swagger_data) == 1:
-            for basePath in self._swagger_data:
-                spec_url = spec_url.with_query(spec=basePath)
+        if self._spec_url:
+            spec_url = self._spec_url
         else:
-            spec_url = spec_url.with_query(spec='/')
+            spec_url = request.url.with_path(self['swagger:spec'].url())
+            if isinstance(spec, str):
+                spec_url = spec_url.with_query(spec=spec)
+            elif len(self._swagger_data) == 1:
+                for basePath in self._swagger_data:
+                    spec_url = spec_url.with_query(spec=basePath)
+            else:
+                spec_url = spec_url.with_query(spec='/')
+            spec_url = spec_url.human_repr()
         return web.Response(
-            text=ui.rend_template(spec_url.human_repr(),
+            text=ui.rend_template(spec_url,
                                   prefix=self._swagger_ui,
                                   version=version),
             content_type='text/html')
