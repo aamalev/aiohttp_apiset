@@ -22,6 +22,7 @@ TEMPLATES_DIR = os.path.join(DIR, PACKAGE, 'templates', 'swagger-ui')
 PREFIX = '{{static_prefix}}'
 REPLACE_STRINGS = [
     ('http://petstore.swagger.io/v2/swagger.json', '{{url}}'),
+    ('https://petstore.swagger.io/v2/swagger.json', '{{url}}'),
     ('href="images', 'href="' + PREFIX + 'images'),
     ('src="images', 'src="' + PREFIX + 'images'),
     ("href='css", "href='" + PREFIX + 'css'),
