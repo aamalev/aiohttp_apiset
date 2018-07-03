@@ -2,6 +2,13 @@
 History
 =======
 
+0.9.2 (2018-07-04)
+------------------
+
+* Add spec_url param to SwaggerRouter
+* up swagger-ui to 3.17.2
+
+
 0.9.1 (2018-05-08)
 ------------------
 
