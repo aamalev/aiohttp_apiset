@@ -67,6 +67,7 @@ class WithMessages(BaseException):
 
 
 class Validator:
+    check_schema = True
     format_checker = draft4_format_checker
 
     factory = partial(
@@ -120,6 +121,8 @@ class Validator:
     def __init__(self, schema):
         self.schema = schema
         self.validator = self.factory(schema)
+        if self.check_schema:
+            self.validator.check_schema(schema)
 
     def validate(self, value, errors):
         for error in self.validator.descend(value, self.schema):

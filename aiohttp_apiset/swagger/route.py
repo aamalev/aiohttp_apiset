@@ -191,9 +191,13 @@ class SwaggerValidationRoute(SwaggerRoute):
             'properties': {
                 k: v.get('schema', v)
                 for k, v in self._parameters.items()
+                if v.get('schema', v).get('type') != 'file'
             },
         }
-        self._validator = Validator(schema)
+        try:
+            self._validator = Validator(schema)
+        except Exception as e:
+            raise Exception(self) from e
 
     def _validate(self, data, errors):
         return self._validator.validate(data, errors)
