@@ -1,3 +1,4 @@
+import abc
 import json
 import os
 import sys
@@ -112,7 +113,19 @@ class SwaggerLoaderMixin:
         return data
 
 
-class SchemaPointer(Mapping):
+class Copyable(abc.ABC):
+    def copy(self) -> dict:
+        def conv(x):
+            if isinstance(x, Copyable):
+                return x.copy()
+            elif isinstance(x, list):
+                return [conv(o) for o in x]
+            else:
+                return x
+        return OrderedDict((k, conv(v)) for k, v in self.items())
+
+
+class SchemaPointer(Copyable, Mapping):
     def __init__(self, schema_file, data):
         self._file = schema_file
         if '$ref' in data:
@@ -138,16 +151,6 @@ class SchemaPointer(Mapping):
             raise KeyError((key, self._data))
         return self.factory(self._file, self._data[key])
 
-    def copy(self) -> dict:
-        def conv(x):
-            if isinstance(x, SchemaPointer):
-                return x.copy()
-            elif isinstance(x, list):
-                return [conv(o) for o in x]
-            else:
-                return x
-        return OrderedDict((k, conv(v)) for k, v in self.items())
-
     def __iter__(self):
         yield from self._data
 
@@ -162,7 +165,7 @@ class SchemaPointer(Mapping):
         )
 
 
-class AllOf(ChainMap):
+class AllOf(Copyable, ChainMap):
     @classmethod
     def factory(cls, file, data):
         maps = []
@@ -174,8 +177,19 @@ class AllOf(ChainMap):
             maps.append(d)
         return cls(*maps)
 
+    def copy(self):
+        result = {}
+        for k, v in self.items():
+            if k == 'required' and not v:
+                continue
+            elif isinstance(v, Copyable):
+                result[k] = v.copy()
+            else:
+                result[k] = v
+        return result
 
-class SchemaFile(Mapping):
+
+class SchemaFile(Copyable, Mapping):
     files = {}
 
     def __new__(cls, path, *args, **kwargs):
@@ -519,7 +533,7 @@ class DictLoader(FileLoader):
 
     def __call__(self, ref):
         pointer = super().__call__(ref)
-        if isinstance(pointer, Mapping):
+        if isinstance(pointer, Copyable):
             return pointer.copy()
         elif isinstance(pointer, list):
             return [p.copy() for p in pointer]
