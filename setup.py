@@ -9,7 +9,7 @@ except ImportError:
 else:
     if not os.path.exists(swagger_ui.STATIC_DIR):
         swagger_ui.setup_ui('2.2.10')
-        swagger_ui.setup_ui('3.17.2')
+        swagger_ui.setup_ui('3.17.5')
 
 
 with open(os.path.join(os.path.abspath(os.path.dirname(
@@ -27,7 +27,7 @@ def read(f):
 
 
 install_requires = [
-    'aiohttp>=1.2,<3.3',
+    'aiohttp>=1.2,<3.4',
     'pyyaml',
     'jsonschema',
 ]

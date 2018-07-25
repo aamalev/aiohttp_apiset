@@ -2,6 +2,15 @@
 History
 =======
 
+0.9.3 (2018-07-26)
+------------------
+
+* Fix copy from schema loader
+* Default check_schema in Validator
+* support aiohttp 3.3
+* up swagger-ui to 3.17.5
+
+
 0.9.2 (2018-07-04)
 ------------------
 
