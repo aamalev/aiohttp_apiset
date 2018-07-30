@@ -4,7 +4,7 @@ aiohttp-jinja2==1.0.0
 PyYAML==3.13
 jsonschema==2.6.0
 yarl==1.2.6
-pytest==3.6.3
+pytest==3.6.4
 pytest-aiohttp==0.3.0
 pytest-cov==2.5.1
 pytest-mock==1.10.0
