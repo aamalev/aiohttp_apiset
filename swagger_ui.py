@@ -57,6 +57,9 @@ def setup_ui(version=VERSION):
     if not os.path.exists(template_dir):
         os.makedirs(template_dir)
 
+    if not os.path.exists(static_dir):
+        os.makedirs(static_dir)
+
     with open(os.path.join(static_dir, 'index.html'), 'rt') as source:
         s = source.read()
     for target, source in REPLACE_STRINGS:
