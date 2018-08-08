@@ -7,7 +7,7 @@ python:
 
 install:
   - pip install -U pip setuptools pipenv
-  - PIPENV_IGNORE_VIRTUALENVS=1 pipenv install -d
+  - pipenv install -d --system
   - pip install codecov
   - FAKE_UI=1 python setup.py install
 
