@@ -6,8 +6,8 @@ python:
   - 3.6
 
 install:
-  - pip install -U pip setuptools
-  - pip install -Ur requirements/ci.txt
+  - pip install -U pip setuptools pipenv
+  - pipenv install -d
   - pip install codecov
   - FAKE_UI=1 python setup.py install
 
