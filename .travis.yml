@@ -10,7 +10,6 @@ install:
   - pipenv install -d --system
   - pip install codecov
   - FAKE_UI=1 python setup.py install
-  - make swagger_ui
 
 script: pytest
 
