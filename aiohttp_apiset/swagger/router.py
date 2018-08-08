@@ -1,7 +1,7 @@
 import warnings
 from collections import Mapping
 
-from aiohttp import web
+from aiohttp import hdrs, web
 
 from . import ui
 from .loader import FileLoader
@@ -147,6 +147,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             spec_url = self._spec_url
         else:
             spec_url = request.url.with_path(self['swagger:spec'].url())
+            proto = request.headers.get(hdrs.X_FORWARDED_PROTO)
+            if proto:
+                spec_url = spec_url.with_scheme(proto)
             if isinstance(spec, str):
                 spec_url = spec_url.with_query(spec=spec)
             elif len(self._swagger_data) == 1:
