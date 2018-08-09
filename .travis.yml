@@ -6,7 +6,6 @@ python:
   - 3.6
 
 install:
-  - make swagger_ui
   - pip install -U pip setuptools pipenv
   - pipenv install -d --system
   - pip install codecov
@@ -17,6 +16,7 @@ after_success:
   - codecov
 
 before_deploy:
+  - make clear
   - make aiohttp_apiset/version.py
   - make swagger_ui
 
@@ -29,3 +29,5 @@ deploy:
     tags: true
     distributions: sdist bdist_wheel
     repo: aamalev/aiohttp_apiset
+    condition: $TRAVIS_PYTHON_VERSION = 3.6
+  skip_cleanup: true
