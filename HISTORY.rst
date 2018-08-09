@@ -2,6 +2,13 @@
 History
 =======
 
+0.9.4 (2018-08-09)
+------------------
+
+* replace scheme to X-Forwarded-Proto for spec_url
+* up swagger-ui to 3.18.0
+
+
 0.9.3 (2018-07-26)
 ------------------
 
