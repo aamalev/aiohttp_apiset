@@ -1,4 +1,7 @@
 from .swagger.router import SwaggerRouter
 from .views import ApiSet
 
-__version__ = '0.9.3'
+try:
+    from .version import __version__
+except ImportError:
+    __version__ = 'dev'

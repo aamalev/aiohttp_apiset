@@ -1,29 +1,32 @@
-from setuptools import setup, find_packages
-import os
 import re
+from setuptools import setup, find_packages
+from pathlib import Path
 
 try:
     import swagger_ui
 except ImportError:
     pass
 else:
-    if not os.path.exists(swagger_ui.STATIC_DIR):
+    if not Path(swagger_ui.STATIC_DIR).exists():
         swagger_ui.setup_ui('2.2.10')
         swagger_ui.setup_ui('3.18.0')
 
 
-with open(os.path.join(os.path.abspath(os.path.dirname(
-        __file__)), 'aiohttp_apiset', '__init__.py'), 'r',
-        encoding='latin1') as fp:
+def read(f):
+    path = Path(__file__).parent / f
+    if not path.exists():
+        return ''
+    return path.read_text(encoding='latin1').strip()
+
+
+def get_version():
+    text = read('aiohttp_apiset/version.py')
+    if not text:
+        text = read('aiohttp_apiset/__init__.py')
     try:
-        version = re.findall(r"^__version__ = '([^']+)'$", fp.read(), re.M)[0]
+        return re.findall(r"^__version__ = '([^']+)'$", text, re.M)[0]
     except IndexError:
         raise RuntimeError('Unable to determine version.')
-
-
-def read(f):
-    path = os.path.join(os.path.dirname(__file__), f)
-    return open(path).read().strip()
 
 
 install_requires = [
@@ -43,7 +46,7 @@ tests_require = [
 
 setup(
     name='aiohttp-apiset',
-    version=version,
+    version=get_version(),
     description='Build routes using swagger specification',
     long_description=read('README.rst') + '\n\n' + read('HISTORY.rst'),
     classifiers=[
