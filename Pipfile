@@ -1,23 +1,30 @@
 [[source]]
+
 url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+
 [packages]
+
 async-timeout = "==3.0.0"
 attrs = "==18.1.0"
-aiohttp = "==3.3.2"
+aiohttp = "==3.4.2"
 aiohttp-jinja2 = "==1.0.0"
 PyYAML = "==3.13"
 jsonschema = "==2.6.0"
 yarl = "==1.2.6"
 
+
 [dev-packages]
+
 pytest = "==3.7.1"
 pytest-aiohttp = "==0.3.0"
 pytest-cov = "==2.5.1"
 pytest-mock = "==1.10.0"
 pytest-pep8 = "==1.0.6"
 
+
 [requires]
+
 python_version = "3.6"
