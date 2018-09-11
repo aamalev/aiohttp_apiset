@@ -10,17 +10,52 @@ import yaml.resolver
 from yaml.constructor import ConstructorError, MappingNode
 
 
+class FrozenDict(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._frozen = False
+
+    def freeze(self):
+        self._frozen = True
+
+    def __setitem__(self, key, value):
+        if self._frozen:
+            raise RuntimeError('Frozen')
+        return super().__setitem__(key, value)
+
+    def __delitem__(self, key):
+        if self._frozen:
+            raise RuntimeError('Frozen')
+        return super().__delitem__(key)
+
+    def popitem(self, last: bool = ...):
+        if self._frozen:
+            raise RuntimeError('Frozen')
+        return super().popitem(last)
+
+    def pop(self, last: bool = ...):
+        if self._frozen:
+            raise RuntimeError('Frozen')
+        return super().pop(last)
+
+    def clear(self):
+        if self._frozen:
+            raise RuntimeError('Frozen')
+        return super().clear()
+
+
 class Loader(getattr(yaml, 'CLoader', yaml.Loader)):
     def construct_yaml_map(self, node):
-        data = OrderedDict()
+        data = FrozenDict()
         yield data
         value = self.construct_mapping(node)
         data.update(value)
+        data.freeze()
 
     def construct_mapping(self, node, deep=False):
         if isinstance(node, MappingNode):
             self.flatten_mapping(node)
-        mapping = OrderedDict()
+        mapping = FrozenDict()
         for key_node, value_node in node.value:
             key = self.construct_object(key_node, deep=deep)
             if not isinstance(key, Hashable):
@@ -29,6 +64,7 @@ class Loader(getattr(yaml, 'CLoader', yaml.Loader)):
                     "found unhashable key", key_node.start_mark)
             value = self.construct_object(value_node, deep=deep)
             mapping[key] = value
+        mapping.freeze()
         return mapping
 
 
@@ -133,6 +169,15 @@ class SchemaPointer(Copyable, Mapping):
         else:
             self._data = data
 
+    @property
+    def data(self):
+        if isinstance(self._data, SchemaPointer):
+            return self._data.data
+        elif isinstance(self._data, AllOf):
+            return self._data.data
+        else:
+            return self._data
+
     @classmethod
     def factory(cls, f, data):
         if isinstance(data, list):
@@ -166,6 +211,10 @@ class SchemaPointer(Copyable, Mapping):
 
 
 class AllOf(Copyable, ChainMap):
+    def __init__(self, *maps, data=None):
+        self.data = data
+        super().__init__(*maps)
+
     @classmethod
     def factory(cls, file, data):
         maps = []
@@ -175,7 +224,7 @@ class AllOf(Copyable, ChainMap):
             d = dict(data)
             d.pop('allOf')
             maps.append(d)
-        return cls(*maps)
+        return cls(*maps, data=data)
 
     def copy(self):
         result = {}
@@ -206,6 +255,10 @@ class SchemaFile(Copyable, Mapping):
         self._encoding = encoding
         with path.open(encoding=encoding) as f:
             self._data = yaml.load(f, Loader)
+
+    @property
+    def data(self):
+        return self._data
 
     @property
     def path(self):
@@ -399,7 +452,7 @@ class ExtendedSchemaFile(SchemaFile):
         raise FileNotFoundError(path)
 
     def resolve(self):
-        data = self._replace_reference(self._data)
+        data = self._resolve_reference(self._data)
         paths = OrderedDict()
         for pref, methods in data['paths'].items():
             includes = self.include._get_includes(methods)
@@ -414,11 +467,7 @@ class ExtendedSchemaFile(SchemaFile):
         data['paths'] = paths
         return data
 
-    def _replace_reference(self, data):
-        if self._ref_replaced and data is self._data:
-            return data
-        self._ref_replaced = True
-
+    def _resolve_reference(self, data):
         if not isinstance(data, (dict, list)):
             return data
 
@@ -430,15 +479,20 @@ class ExtendedSchemaFile(SchemaFile):
             if f is self:
                 data = self._data
             else:
-                data = f._replace_reference(f._data)
+                data = f._resolve_reference(f._data)
 
             for p in rel:
                 data = data[p]
             return data
 
-        gen = data.items() if is_dict else enumerate(data)
+        if is_dict:
+            gen = data.items()
+            data = data.copy()
+        else:
+            gen = enumerate(data)
+            data = list(data)
         for k, v in gen:
-            new_v = self._replace_reference(v)
+            new_v = self._resolve_reference(v)
             if new_v is not v:
                 data[k] = new_v
         return data
@@ -505,6 +559,20 @@ class BaseLoader:
 class FileLoader(BaseLoader):
     file_factory = ExtendedSchemaFile
     data_factory = SchemaPointer
+    files = {}
+
+    def _update_mapping(self, f):
+        sd = sorted(self.search_dirs)
+        for k, v in f.files.items():
+            for d in sd:
+                try:
+                    self.files[str(k.relative_to(d))] = v
+                    break
+                except ValueError:
+                    continue
+
+    def __getitem__(self, item):
+        return self.files[item]
 
     @classmethod
     def class_factory(cls, *, include):
@@ -512,17 +580,22 @@ class FileLoader(BaseLoader):
         return type(cls.__name__, (cls,), {'file_factory': file})
 
     def load(self, path):
-        return self.file_factory(
+        result = self.file_factory(
             path, dirs=self._search_dirs,
             encoding=self._encoding,
         )
+        self._update_mapping(result)
+        return result
 
     def resolve_data(self, data):
-        return self.data_factory.factory(self, data)
+        result = self.data_factory.factory(self, data)
+        self._update_mapping(ExtendedSchemaFile)
+        return result
 
     def __call__(self, ref):
         path, rel_path = ref.split('#', 1)
         f = self.file_factory(path, self._search_dirs, self._encoding)
+        self._update_mapping(f)
         return f('#' + rel_path)
 
 
