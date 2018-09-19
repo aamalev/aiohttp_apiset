@@ -104,3 +104,20 @@ def test_ordered_with_merge():
         """
     data = yaml.load(d, Loader)
     assert isinstance(data, OrderedDict)
+
+
+def test_local_refs():
+    class F(dict):
+        local_refs = {('x', 'y'): {'z': 3}}
+    f = F(x={'w': 1}, r=4)
+    loader = FileLoader()
+    assert loader._set_local_refs(f) == {'x': {'y': {'z': 3}, 'w': 1}, 'r': 4}
+
+
+def test_load_local_refs(swagger_router):
+    l = swagger_router._file_loader
+    result = l.load('data/root.yaml')
+    assert 'data/include.yaml' in FileLoader.files
+    assert FileLoader.local_refs
+    assert not ExtendedSchemaFile.files
+    assert 'Defi' in result['definitions']

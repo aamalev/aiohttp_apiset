@@ -7,5 +7,14 @@ paths:
   '':
     $view: tests.conftest.View
 
+  /a:
+    get:
+      $handler: tests.conftest.handler
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/Defi'
+
 definitions:
   Defi: {}
