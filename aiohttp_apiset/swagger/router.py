@@ -4,7 +4,7 @@ from collections import Mapping
 from aiohttp import hdrs, web
 
 from . import ui
-from .loader import FileLoader, SchemaPointer
+from .loader import FileLoader, AllOf, SchemaPointer, SchemaFile
 from .operations import get_docstring_swagger
 from .route import route_factory, SwaggerRoute
 from .. import dispatcher, utils
@@ -13,6 +13,7 @@ from ..middlewares import JsonEncoder
 
 class SchemaSerializer(JsonEncoder):
     converters = [
+        (0, (AllOf, SchemaFile, SchemaPointer), lambda x: x.data),
         (0, Mapping, dict),
     ]
 
@@ -206,7 +207,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
         for url, methods in data.get('paths', {}).items():
             url = basePath + url
-            methods = methods.copy()
+            methods = dict(methods)
             location_name = methods.pop(self.NAME, None)
             parameters = methods.pop('parameters', [])
             for method, body in methods.items():
@@ -214,7 +215,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                     view = utils.import_obj(body)
                     view.add_routes(self, prefix=url, encoding=self._encoding)
                     continue
-                body = body.copy()
+                body = dict(body)
                 if parameters:
                     body['parameters'] = parameters + \
                                          body.get('parameters', [])
