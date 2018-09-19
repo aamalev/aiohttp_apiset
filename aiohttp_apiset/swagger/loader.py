@@ -240,6 +240,7 @@ class AllOf(Copyable, ChainMap):
 
 class SchemaFile(Copyable, Mapping):
     files = {}
+    local_refs = {}
 
     def __new__(cls, path, *args, **kwargs):
         if path in cls.files:
@@ -322,6 +323,8 @@ class SchemaFile(Copyable, Mapping):
                 data = data[p]
             except KeyError:
                 raise KeyError(item, str(self._path))
+        if self is pointer_file:
+            self.local_refs[tuple(rel_path)] = data
         if not isinstance(data, Mapping):
             return data
         return SchemaPointer.factory(pointer_file, data)
@@ -397,6 +400,7 @@ class IncludeSwaggerPaths(SchemaPointer):
 class ExtendedSchemaFile(SchemaFile):
     include = IncludeSwaggerPaths
     files = {}
+    local_refs = {}
 
     @classmethod
     def class_factory(cls, *, include):
@@ -560,6 +564,7 @@ class FileLoader(BaseLoader):
     file_factory = ExtendedSchemaFile
     data_factory = SchemaPointer
     files = {}
+    local_refs = {}
 
     def _update_mapping(self, f):
         sd = sorted(self.search_dirs)
@@ -570,6 +575,36 @@ class FileLoader(BaseLoader):
                     break
                 except ValueError:
                     continue
+
+    def _merge(self, refs, data):
+        d = dict(data)
+        for k, v in refs.items():
+            if k not in d:
+                d[k] = v
+            elif not isinstance(v, Mapping):
+                continue
+            elif not isinstance(d[k], Mapping):
+                continue
+            else:
+                d[k] = self._merge(v, d[k])
+        return d
+
+    def _nested_set(self, data, k, v):
+        key, *k = k
+        if not k:
+            data[key] = v
+            return data
+        elif key not in data:
+            data[key] = {}
+        self._nested_set(data[key], k, v)
+        return data
+
+    def _set_local_refs(self, f):
+        refs = {}
+        for k, v in f.local_refs.items():
+            self._nested_set(refs, k, v)
+        self.local_refs.update(refs)
+        return self._merge(refs, f)
 
     def __getitem__(self, item):
         return self.files[item]
@@ -584,12 +619,13 @@ class FileLoader(BaseLoader):
             path, dirs=self._search_dirs,
             encoding=self._encoding,
         )
+        result.resolve()
         self._update_mapping(result)
-        return result
+        return self._set_local_refs(result)
 
     def resolve_data(self, data):
         result = self.data_factory.factory(self, data)
-        self._update_mapping(ExtendedSchemaFile)
+        self._update_mapping(self.file_factory)
         return result
 
     def __call__(self, ref):
