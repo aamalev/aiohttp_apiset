@@ -487,6 +487,9 @@ class ExtendedSchemaFile(SchemaFile):
 
             for p in rel:
                 data = data[p]
+
+            if f is self:
+                self.local_refs[tuple(rel)] = data
             return data
 
         if is_dict:
