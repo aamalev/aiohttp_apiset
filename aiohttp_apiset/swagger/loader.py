@@ -347,7 +347,7 @@ class IncludeSwaggerPaths(SchemaPointer):
     def _get_includes(cls, methods):
         if isinstance(methods, list):
             return (o[cls.INCLUDE] for o in methods if cls.INCLUDE in o)
-        elif not isinstance(methods, dict):
+        elif not isinstance(methods, Mapping):
             return ()
         elif cls.INCLUDE in methods:
             return methods[cls.INCLUDE],
@@ -622,7 +622,7 @@ class FileLoader(BaseLoader):
             path, dirs=self._search_dirs,
             encoding=self._encoding,
         )
-        result.resolve()
+        result.copy()  # warm up refs
         self._update_mapping(result)
         return self._set_local_refs(result)
 
