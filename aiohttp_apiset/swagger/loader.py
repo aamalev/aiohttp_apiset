@@ -622,9 +622,13 @@ class FileLoader(BaseLoader):
             path, dirs=self._search_dirs,
             encoding=self._encoding,
         )
-        result.copy()  # warm up refs
+        self.warm_up(result)
         self._update_mapping(result)
         return self._set_local_refs(result)
+
+    def warm_up(self, file: SchemaFile) -> Mapping:
+        file.copy()
+        return file
 
     def resolve_data(self, data):
         result = self.data_factory.factory(self, data)
@@ -639,9 +643,8 @@ class FileLoader(BaseLoader):
 
 
 class DictLoader(FileLoader):
-    def load(self, path):
-        f = super().load(path)
-        return f.resolve()
+    def warm_up(self, file: SchemaFile) -> Mapping:
+        return file.copy()
 
     def __call__(self, ref):
         pointer = super().__call__(ref)
