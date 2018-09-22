@@ -2,11 +2,11 @@ from collections.abc import Mapping
 
 from aiohttp import web
 
-from .operations import get_docstring_swagger
-from .validate import convert, Validator, get_collection
 from ..dispatcher import Route
 from ..exceptions import ValidationError
 from ..utils import allOf
+from .operations import get_docstring_swagger
+from .validate import Validator, convert, get_collection
 
 
 class SwaggerRoute(Route):

@@ -9,8 +9,8 @@ from collections.abc import Container, Iterable, Sized
 from contextlib import contextmanager
 from types import MappingProxyType
 
-from aiohttp import hdrs, HttpVersion11
-from aiohttp.abc import AbstractRouter, AbstractMatchInfo, AbstractView
+from aiohttp import HttpVersion11, hdrs
+from aiohttp.abc import AbstractMatchInfo, AbstractRouter, AbstractView
 from aiohttp.web_exceptions import HTTPExpectationFailed
 
 HTTP_METHOD_RE = re.compile(r"^[0-9A-Za-z!#\$%&'\*\+\-\.\^_`\|~]+$")

@@ -2,8 +2,8 @@ import functools
 import json
 import sys
 
-from .swagger.loader import SwaggerLoaderMixin
 from . import utils
+from .swagger.loader import SwaggerLoaderMixin
 
 PY_35 = sys.version_info >= (3, 5)
 

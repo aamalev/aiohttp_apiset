@@ -5,7 +5,6 @@ from aiohttp import web
 
 from .utils import import_obj
 
-
 DEFAULT_CONVERTERS = (
     ('aiohttp_apiset.exceptions.Errors', lambda o: o.to_tree(), 9),
     ('multidict.MultiDict', lambda o: {k: o.getall(k) for k in o}),

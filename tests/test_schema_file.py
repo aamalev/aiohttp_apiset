@@ -1,12 +1,11 @@
-import json
 from collections import OrderedDict
 from pathlib import Path
 
 import pytest
 
-from aiohttp_apiset.swagger.loader import ExtendedSchemaFile, SchemaFile
-from aiohttp_apiset.swagger.loader import DictLoader, FileLoader, AllOf
-from aiohttp_apiset.swagger.loader import yaml, Loader
+from aiohttp_apiset.swagger.loader import (AllOf, DictLoader,
+                                           ExtendedSchemaFile, FileLoader,
+                                           Loader, SchemaFile, yaml)
 
 
 def test_load():
@@ -58,11 +57,11 @@ def test_route_include(swagger_router):
     'data/root.yaml',
 ])
 def test_loader(loader, p):
-    l = loader()
+    loader_instance = loader()
     d = Path(__file__).parent
-    l.add_search_dir(d)
-    l.add_search_dir(d / 'data')
-    assert l.load(p)
+    loader_instance.add_search_dir(d)
+    loader_instance.add_search_dir(d / 'data')
+    assert loader_instance.load(p)
 
 
 @pytest.mark.parametrize('loader', [
@@ -74,13 +73,13 @@ def test_loader(loader, p):
     'data/root.yaml',
 ])
 def test_loader_resolve_data(loader, p):
-    l = loader()
+    loader_instance = loader()
     d = Path(__file__).parent
-    l.add_search_dir(d)
-    assert '/api/1' == l(p + '#/basePath')
-    data = l.resolve_data({'$ref': p + '#/basePath'})
+    loader_instance.add_search_dir(d)
+    assert '/api/1' == loader_instance(p + '#/basePath')
+    data = loader_instance.resolve_data({'$ref': p + '#/basePath'})
     assert '/api/1' == data, data
-    data = l.resolve_data({'t': {'$ref': p + '#/definitions/g'}})
+    data = loader_instance.resolve_data({'t': {'$ref': p + '#/definitions/g'}})
     assert {'t': {'f': 1, 'd': 2}} == data, data
 
 
@@ -116,8 +115,8 @@ def test_local_refs():
 
 
 def test_load_local_refs(swagger_router):
-    l = swagger_router._file_loader
-    result = l.load('data/root.yaml')
+    loader = swagger_router._file_loader
+    result = loader.load('data/root.yaml')
     assert 'data/include.yaml' in FileLoader.files
     assert FileLoader.local_refs
     assert ExtendedSchemaFile.files

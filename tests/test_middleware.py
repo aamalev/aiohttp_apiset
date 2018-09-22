@@ -1,9 +1,8 @@
 import pytest
 from aiohttp import web
 
-from aiohttp_apiset import SwaggerRouter
-from aiohttp_apiset.middlewares import jsonify, Jsonify
-from aiohttp_apiset import middlewares
+from aiohttp_apiset import SwaggerRouter, middlewares
+from aiohttp_apiset.middlewares import Jsonify, jsonify
 
 
 @pytest.mark.parametrize('middlewares', [

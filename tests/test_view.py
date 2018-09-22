@@ -1,5 +1,5 @@
-from aiohttp import web
 import pytest
+from aiohttp import web
 
 
 @pytest.mark.parametrize('prefix', [''])

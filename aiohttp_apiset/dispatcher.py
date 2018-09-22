@@ -7,19 +7,18 @@ import re
 from collections import MutableMapping
 from collections.abc import Container, Iterable, Mapping, Sized
 from itertools import chain
-from urllib import parse
 from pathlib import Path
+from urllib import parse
 
 import yarl
 from aiohttp import hdrs
 from aiohttp.abc import AbstractView
-from aiohttp.web_exceptions import \
-    HTTPMethodNotAllowed, HTTPNotFound, HTTPForbidden
 from aiohttp.web import Response
+from aiohttp.web_exceptions import (HTTPForbidden, HTTPMethodNotAllowed,
+                                    HTTPNotFound)
 
-from .compat import (
-    CompatRouter, AbstractRoute, UrlMappingMatchInfo, MatchInfoError,
-)
+from .compat import (AbstractRoute, CompatRouter, MatchInfoError,
+                     UrlMappingMatchInfo)
 
 
 class Location:

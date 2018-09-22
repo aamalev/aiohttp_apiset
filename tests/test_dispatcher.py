@@ -2,13 +2,13 @@ import json
 from pathlib import Path
 
 import pytest
-from aiohttp import web, hdrs
+from aiohttp import hdrs, web
 from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
-from aiohttp_apiset.dispatcher import \
-    TreeUrlDispatcher, Route, TreeResource, Location, ContentReceiver
 from aiohttp_apiset.compat import MatchInfoError
+from aiohttp_apiset.dispatcher import (ContentReceiver, Location, Route,
+                                       TreeResource, TreeUrlDispatcher)
 
 
 def handler(request):
@@ -67,8 +67,8 @@ def test_url(dispatcher: TreeUrlDispatcher):
     location = dispatcher['root']
     assert 'path' in location.get_info()
     route = location._routes['GET']
-    route.set_info(l=1)
-    assert route.get_info().get('l') == 1
+    route.set_info(x=1)
+    assert route.get_info().get('x') == 1
 
     location = dispatcher['pet']
     assert location.url(parts={'id': 1}) == '/api/1/pet/1'
@@ -182,8 +182,8 @@ def test_treeresource():
 
 
 def test_sublocation_notresolved(mocker):
-    l = Location(formatter='')
-    m, allow = l.resolve(mocker.Mock(), '/not', {})
+    location = Location(formatter='')
+    m, allow = location.resolve(mocker.Mock(), '/not', {})
     assert not m
     assert not allow
 

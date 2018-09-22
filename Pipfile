@@ -18,6 +18,8 @@ pytest-aiohttp = "==0.3.0"
 pytest-cov = "==2.5.1"
 pytest-mock = "==1.10.0"
 pytest-pep8 = "==1.0.6"
+pytest-flake8 = "==1.0.2"
+isort = "==4.3.4"
 
 [requires]
 python_version = "3.6"

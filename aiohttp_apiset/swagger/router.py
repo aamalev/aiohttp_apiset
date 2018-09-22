@@ -4,11 +4,11 @@ from collections import Mapping
 from aiohttp import hdrs, web
 
 from . import ui
-from .loader import FileLoader, AllOf, SchemaPointer, SchemaFile
-from .operations import get_docstring_swagger
-from .route import route_factory, SwaggerRoute
 from .. import dispatcher, utils
 from ..middlewares import JsonEncoder
+from .loader import AllOf, FileLoader, SchemaFile, SchemaPointer
+from .operations import get_docstring_swagger
+from .route import SwaggerRoute, route_factory
 
 
 class SchemaSerializer(JsonEncoder):
