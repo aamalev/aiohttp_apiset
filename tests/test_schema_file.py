@@ -17,7 +17,6 @@ def test_load():
     assert 'get' in f['paths']['/pet']
 
 
-@pytest.mark.skip
 @pytest.mark.parametrize('p', [
     'data/schema01.yaml',
     'data/root.yaml',
@@ -30,9 +29,7 @@ def test_paths(p):
     assert len(items) == len([url for url in paths])
     for url, m in items:
         methods = paths[url]
-        assert \
-            json.dumps(m.copy(), sort_keys=True) == \
-            json.dumps(methods.copy(), sort_keys=True)
+        assert m == methods
 
 
 @pytest.mark.parametrize('p', [

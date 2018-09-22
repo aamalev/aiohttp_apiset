@@ -381,7 +381,7 @@ class IncludeSwaggerPaths(SchemaPointer):
                     return self._file(methods['$ref'])
                 includes = self._get_includes(methods)
                 if not includes and len(pref) == len(item):
-                    return methods
+                    return SchemaPointer.factory(self._file, methods)
                 subitem = item[len(pref):]
                 for i in includes:
                     f = self._file(i)
