@@ -26,7 +26,7 @@ def url_normolize(url: str):
     return u if url.endswith('/') else u[:-1]
 
 
-re_patt = re.compile('\{(\w+):.*?\}')
+re_patt = re.compile(r'\{(\w+):.*?\}')
 
 
 def re_patt_replacer(m):
@@ -35,7 +35,7 @@ def re_patt_replacer(m):
 
 def remove_patterns(url: str):
     """
-    >>> remove_patterns('/{w:\d+}x{h:\d+}')
+    >>> remove_patterns(r'/{w:\d+}x{h:\d+}')
     '/{w}x{h}'
     """
     return re_patt.sub(re_patt_replacer, url)

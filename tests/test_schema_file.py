@@ -22,7 +22,7 @@ def test_load():
 ])
 def test_paths(p):
     d = Path(__file__).parent
-    f = ExtendedSchemaFile(p, [d, d / 'data'])
+    f = ExtendedSchemaFile(p, dirs=[d, d / 'data'])
     paths = f['paths']
     items = list(paths.items())
     assert len(items) == len([url for url in paths])

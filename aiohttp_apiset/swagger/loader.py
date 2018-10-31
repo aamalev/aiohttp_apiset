@@ -1,13 +1,23 @@
 import abc
 import json
+import logging
 import os
 import sys
 from collections import ChainMap, Hashable, Mapping, OrderedDict
 from itertools import chain
 from pathlib import Path
+from typing import Dict, Optional, Sequence, Tuple, Union
 
 import yaml.resolver
-from yaml.constructor import ConstructorError, MappingNode
+from yaml.constructor import ConstructorError
+from yaml.nodes import MappingNode
+
+try:
+    from yaml.cyaml import CLoader as YamlLoader
+except ImportError:
+    from yaml import Loader as YamlLoader
+
+logger = logging.getLogger(__name__)
 
 
 class FrozenDict(OrderedDict):
@@ -28,15 +38,20 @@ class FrozenDict(OrderedDict):
             raise RuntimeError('Frozen')
         return super().__delitem__(key)
 
-    def popitem(self, last: bool = ...):
+    def popitem(self, last: bool = True):
         if self._frozen:
             raise RuntimeError('Frozen')
         return super().popitem(last)
 
-    def pop(self, last: bool = ...):
+    __marker = object()
+
+    def pop(self, key, default=__marker):
         if self._frozen:
             raise RuntimeError('Frozen')
-        return super().pop(last)
+        if default is self.__marker:
+            return super().pop(key)
+        else:
+            return super().pop(key, default)
 
     def clear(self):
         if self._frozen:
@@ -44,7 +59,7 @@ class FrozenDict(OrderedDict):
         return super().clear()
 
 
-class Loader(getattr(yaml, 'CLoader', yaml.Loader)):
+class Loader(YamlLoader):
     def construct_yaml_map(self, node):
         data = FrozenDict()
         yield data
@@ -72,8 +87,8 @@ Loader.add_constructor('tag:yaml.org,2002:map', Loader.construct_yaml_map)
 
 
 class SwaggerLoaderMixin:
-    swagger_files = {}
-    _encoding = None
+    swagger_files = {}  # type: Dict[str, SchemaFile]
+    _encoding: Optional[str] = None
 
     @classmethod
     def get_swagger_ref(cls):
@@ -158,7 +173,8 @@ class Copyable(abc.ABC):
                 return [conv(o) for o in x]
             else:
                 return x
-        return OrderedDict((k, conv(v)) for k, v in self.items())
+        return OrderedDict((k, conv(v))
+                           for k, v in self.items())  # type: ignore
 
 
 class SchemaPointer(Copyable, Mapping):
@@ -239,8 +255,8 @@ class AllOf(Copyable, ChainMap):
 
 
 class SchemaFile(Copyable, Mapping):
-    files = {}
-    local_refs = {}
+    files = {}  # type: Dict[Path, SchemaFile]
+    local_refs = {}  # type: Dict[str, SchemaFile]
 
     def __new__(cls, path, *args, **kwargs):
         if path in cls.files:
@@ -399,8 +415,9 @@ class IncludeSwaggerPaths(SchemaPointer):
 
 class ExtendedSchemaFile(SchemaFile):
     include = IncludeSwaggerPaths
-    files = {}
-    local_refs = {}
+    files: Dict[Path, SchemaFile] = {}
+    local_refs: Dict[str, SchemaFile] = {}
+    _dirs: Tuple[Path, ...]
 
     @classmethod
     def class_factory(cls, *, include):
@@ -408,10 +425,31 @@ class ExtendedSchemaFile(SchemaFile):
                    (cls.include,), {'INCLUDE': include})
         return type(cls.__name__, (cls,), {'include': inc})
 
-    def __init__(self, path: Path, dirs: list=(), encoding='utf-8'):
-        self._dirs = dirs
-        self._cache = {}
-        super().__init__(self.find_path(path), encoding=encoding)
+    def __init__(
+        self, path: Path,
+        dirs: Sequence[Path] = (),
+        encoding='utf-8',
+    ):
+        if not isinstance(path, Path):
+            path = Path(path)
+        if not path.is_absolute():
+            pass
+        elif dirs:
+            for d in dirs:
+                try:
+                    path = path.relative_to(d)
+                    break
+                except ValueError:
+                    continue
+            else:
+                raise ValueError('Name must be relative path or child of dirs')
+        else:
+            dirs = path.parent,
+            path = Path(path.name)
+        self._dirs = tuple(dirs)
+        self._cache: Dict[Union[Path, str], Path] = {}
+        path = self.find_path(path)
+        super().__init__(path, encoding=encoding)
         self._ref_replaced = False
 
     def __getitem__(self, item):
@@ -472,6 +510,10 @@ class ExtendedSchemaFile(SchemaFile):
         return data
 
     def _resolve_reference(self, data):
+        # if self._ref_replaced and data is self._data:
+        #     return data
+        # self._ref_replaced = True
+
         if not isinstance(data, (dict, list)):
             return data
 
@@ -521,16 +563,19 @@ def deref(data, spec: dict):
     :param spec:
     :return:
     """
-    is_dict = isinstance(data, dict)
-
-    if is_dict and '$ref' in data:
-        return deref(get_ref(spec, data['$ref']), spec)
-
-    if not isinstance(data, (dict, list)):
+    if isinstance(data, Sequence):
+        is_dict = False
+        gen = enumerate(data)
+    elif not isinstance(data, Mapping):
         return data
+    elif '$ref' in data:
+        return deref(get_ref(spec, data['$ref']), spec)
+    else:
+        is_dict = True
+        gen = data.items()  # type: ignore
 
     result = None
-    gen = data.items() if is_dict else enumerate(data)
+
     for k, v in gen:
         new_v = deref(v, spec)
         if new_v is not v:
@@ -566,8 +611,8 @@ class BaseLoader:
 class FileLoader(BaseLoader):
     file_factory = ExtendedSchemaFile
     data_factory = SchemaPointer
-    files = {}
-    local_refs = {}
+    files = {}  # type: Dict[Path, SchemaFile]
+    local_refs = {}  # type: Dict[str, SchemaFile]
 
     def _update_mapping(self, f):
         sd = sorted(self.search_dirs)

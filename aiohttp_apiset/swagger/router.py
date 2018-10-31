@@ -1,5 +1,6 @@
 import warnings
 from collections import Mapping
+from typing import Any, Dict, Optional, Set
 
 from aiohttp import hdrs, web
 
@@ -36,15 +37,15 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     NAME = '$name'
     VALIDATE = '$validate'
 
-    def __init__(self, path: str=None, *,
+    def __init__(self, path: str = None, *,
                  search_dirs=None, swagger_ui='/apidoc/', version_ui=2,
                  route_factory=route_factory,
                  encoding=None, default_validate=True,
                  file_loader=None, spec_url=None):
         super().__init__(route_factory=route_factory)
-        self.app = None
-        self._encoding = encoding
-        self._swagger_data = {}
+        self.app: Optional[web.Application] = None
+        self._encoding: str = encoding
+        self._swagger_data: Dict[str, Any] = {}
         self._default_validate = default_validate
         self._spec_url = spec_url
 
@@ -218,7 +219,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 body = dict(body)
                 if parameters:
                     body['parameters'] = parameters + \
-                                         body.get('parameters', [])
+                        body.get('parameters', [])
                 handler = body.pop(self.HANDLER, None)
                 name = location_name or handler
                 if not handler:
@@ -291,7 +292,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         routes = sorted(
             ((r.name, (r, r.url_for().human_repr())) for r in self.routes()),
             key=utils.sort_key)
-        exists = set()
+        exists: Set[str] = set()
         for name, (route, path) in routes:
             if name and name not in exists:
                 exists.add(name)

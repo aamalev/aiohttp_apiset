@@ -8,6 +8,7 @@ from collections import MutableMapping
 from collections.abc import Container, Iterable, Mapping, Sized
 from itertools import chain
 from pathlib import Path
+from typing import Set
 from urllib import parse
 
 import yarl
@@ -87,7 +88,7 @@ class Location:
 
     def resolve(self, request, path: str, match_dict: dict):
         method = request.method
-        allowed_methods = set()
+        allowed_methods: Set[str] = set()
 
         if path is None:
             allowed_methods.update(self._routes)
@@ -282,17 +283,17 @@ class Route(AbstractRoute):
 
     @classmethod
     def _import_handler(cls, path: str):
-        p = path.rsplit('.', 2)
-        if len(p) == 3:
-            p, v, h = p
+        parts = path.rsplit('.', 2)
+        if len(parts) == 3:
+            p, v, h = parts
             if v == v.lower():
                 p = '.'.join((p, v))
-                v = None
-        elif len(p) == 2:
-            p, h = p
-            v = None
+                v = ''
+        elif len(parts) == 2:
+            p, h = parts
+            v = ''
         else:
-            raise ValueError('.'.join(p))
+            raise ValueError(path)
 
         package = importlib.import_module(p)
 
@@ -325,13 +326,13 @@ class Route(AbstractRoute):
                 vi = await init(request)
                 return await handler(vi, request, *args, **kwargs)
         else:
-            @functools.wraps(handler)
+            @functools.wraps(handler)  # type: ignore
             async def wrap_handler(request, *args, **kwargs):
                 vi = await init(request)
                 return await handler(vi, *args, **kwargs)
-            handler_kwargs['request'] = None
+            handler_kwargs['request'] = None  # type: ignore
 
-        wrap_handler.__signature__ = signature
+        wrap_handler.__signature__ = signature  # type: ignore
         return wrap_handler, handler_kwargs
 
 
