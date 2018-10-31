@@ -10,7 +10,7 @@ install:
   - pipenv install -d --system
   - pip install codecov
 
-script: pytest
+script: mypy aiohttp_apiset && pytest
 
 after_success:
   - codecov
