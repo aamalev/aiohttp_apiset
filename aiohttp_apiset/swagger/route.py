@@ -145,9 +145,9 @@ class SwaggerRoute(Route):
                 if param.get('minItems') and not value \
                         and name not in self._required:
                     continue
-            elif isinstance(source, Mapping) and name in source \
-                    and (vtype not in ('number', 'integer') or
-                         source[name] != ''):
+            elif isinstance(source, Mapping) and name in source and (
+                vtype not in ('number', 'integer') or source[name] != ''
+            ):
                 value = source[name]
             elif 'default' in param:
                 parameters[name] = param['default']

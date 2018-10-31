@@ -38,8 +38,7 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
         elif inspect.isgeneratorfunction(handler):
             warnings.warn("Bare generators are deprecated, "
                           "use @coroutine wrapper", DeprecationWarning)
-        elif (isinstance(handler, type) and
-              issubclass(handler, AbstractView)):
+        elif isinstance(handler, type) and issubclass(handler, AbstractView):
             pass
         else:
             @functools.wraps(handler)
