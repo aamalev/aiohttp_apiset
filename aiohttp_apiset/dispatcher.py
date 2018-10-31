@@ -8,7 +8,7 @@ from collections import MutableMapping
 from collections.abc import Container, Iterable, Mapping, Sized
 from itertools import chain
 from pathlib import Path
-from typing import Set
+from typing import Set  # noqa
 from urllib import parse
 
 import yarl
@@ -88,7 +88,7 @@ class Location:
 
     def resolve(self, request, path: str, match_dict: dict):
         method = request.method
-        allowed_methods: Set[str] = set()
+        allowed_methods = set()  # type: Set[str]
 
         if path is None:
             allowed_methods.update(self._routes)

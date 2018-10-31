@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple  # noqa
 
 from aiohttp import web
 
@@ -19,9 +19,9 @@ DEFAULT_CONVERTERS = (
 
 
 class JsonEncoder(json.JSONEncoder):
-    converters: List[Tuple[float, Any, Callable]] = []
+    converters = []  # type: List[Tuple[float, Any, Callable]]
     default_repr = True
-    kwargs: Dict[str, Any] = {}
+    kwargs = {}  # type: Dict[str, Any]
 
     def default(self, o):
         for score, klass, conv in self.converters:

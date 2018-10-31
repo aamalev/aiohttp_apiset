@@ -1,6 +1,6 @@
 import warnings
 from collections import Mapping
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional, Set  # noqa
 
 from aiohttp import hdrs, web
 
@@ -43,9 +43,9 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                  encoding=None, default_validate=True,
                  file_loader=None, spec_url=None):
         super().__init__(route_factory=route_factory)
-        self.app: Optional[web.Application] = None
-        self._encoding: str = encoding
-        self._swagger_data: Dict[str, Any] = {}
+        self.app = None  # type: Optional[web.Application]
+        self._encoding = encoding  # type: str
+        self._swagger_data = {}  # type: Dict[str, Any]
         self._default_validate = default_validate
         self._spec_url = spec_url
 
@@ -292,7 +292,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         routes = sorted(
             ((r.name, (r, r.url_for().human_repr())) for r in self.routes()),
             key=utils.sort_key)
-        exists: Set[str] = set()
+        exists = set()  # type: Set[str]
         for name, (route, path) in routes:
             if name and name not in exists:
                 exists.add(name)

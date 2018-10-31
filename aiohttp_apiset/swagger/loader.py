@@ -6,7 +6,7 @@ import sys
 from collections import ChainMap, Hashable, Mapping, OrderedDict
 from itertools import chain
 from pathlib import Path
-from typing import Dict, Optional, Sequence, Tuple, Union
+from typing import Dict, Optional, Sequence, Tuple, Union  # noqa
 
 import yaml.resolver
 from yaml.constructor import ConstructorError
@@ -88,7 +88,7 @@ Loader.add_constructor('tag:yaml.org,2002:map', Loader.construct_yaml_map)
 
 class SwaggerLoaderMixin:
     swagger_files = {}  # type: Dict[str, SchemaFile]
-    _encoding: Optional[str] = None
+    _encoding = None  # type: Optional[str]
 
     @classmethod
     def get_swagger_ref(cls):
@@ -415,9 +415,8 @@ class IncludeSwaggerPaths(SchemaPointer):
 
 class ExtendedSchemaFile(SchemaFile):
     include = IncludeSwaggerPaths
-    files: Dict[Path, SchemaFile] = {}
-    local_refs: Dict[str, SchemaFile] = {}
-    _dirs: Tuple[Path, ...]
+    files = {}  # type: Dict[Path, SchemaFile]
+    local_refs = {}  # type: Dict[str, SchemaFile]
 
     @classmethod
     def class_factory(cls, *, include):
@@ -447,7 +446,7 @@ class ExtendedSchemaFile(SchemaFile):
             dirs = path.parent,
             path = Path(path.name)
         self._dirs = tuple(dirs)
-        self._cache: Dict[Union[Path, str], Path] = {}
+        self._cache = {}  # type: Dict[Union[Path, str], Path]
         path = self.find_path(path)
         super().__init__(path, encoding=encoding)
         self._ref_replaced = False
