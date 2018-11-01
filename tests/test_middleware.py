@@ -9,7 +9,7 @@ from aiohttp_apiset.middlewares import Jsonify, jsonify
     [],
     [jsonify],
 ])
-async def test_spec(loop, test_client, middlewares):
+async def test_spec(loop, aiohttp_client, middlewares):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
@@ -22,7 +22,7 @@ async def test_spec(loop, test_client, middlewares):
 
     router.include('data/root.yaml')
 
-    cli = await test_client(app)
+    cli = await aiohttp_client(app)
     spec_url = router['swagger:spec'].url_for()
     ui_url = router['swagger:ui'].url_for()
 
@@ -39,7 +39,7 @@ async def test_spec(loop, test_client, middlewares):
     assert resp.status == 200, (await resp.text())
 
 
-async def test_json(test_client):
+async def test_json(aiohttp_client):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
@@ -53,7 +53,7 @@ async def test_json(test_client):
             middlewares=[jsonify])
         return app
 
-    cli = await test_client(factory)
+    cli = await aiohttp_client(factory)
     url = router['file:simple:view'].url()
 
     resp = await cli.put(url)
@@ -91,7 +91,7 @@ def test_repr():
     b'',
     web.HTTPOk(),
 ])
-async def test_binary(test_client, data):
+async def test_binary(aiohttp_client, data):
     async def h(request):
         return data
 
@@ -102,6 +102,6 @@ async def test_binary(test_client, data):
         app.router.add_get('/', h)
         return app
 
-    cli = await test_client(factory)
+    cli = await aiohttp_client(factory)
     resp = await cli.get('/')
     assert resp.status == 200, await resp.text()
