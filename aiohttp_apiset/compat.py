@@ -56,7 +56,7 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
         self._resource = resource
 
     @property
-    def method(self):
+    def method(self) -> str:
         return self._method
 
     @property
@@ -77,7 +77,7 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
         """Return a dict with additional info useful for introspection"""
 
     @abc.abstractmethod  # pragma: no branch
-    def url_for(self, *args, **kwargs):
+    def url_for(self, *args: str, **kwargs: str):
         """Construct url for route with additional params."""
 
     @abc.abstractmethod  # pragma: no branch
@@ -91,8 +91,8 @@ class AbstractRoute(abc.ABC):  # pragma: no cover
                       DeprecationWarning,
                       stacklevel=3)
 
-    async def handle_expect_header(self, request):
-        return await self._expect_handler(request)
+    async def handle_expect_header(self, request) -> None:
+        await self._expect_handler(request)
 
 
 class UrlMappingMatchInfo(dict, AbstractMatchInfo):  # pragma: no cover
