@@ -62,6 +62,7 @@ setup(
     url='https://github.com/aamalev/aiohttp_apiset/',
     license='Apache 2',
     packages=[i for i in find_packages() if i.startswith('aiohttp_apiset')],
+    python_requires='>=3.5.3',
     install_requires=install_requires,
     tests_require=tests_require,
     include_package_data=True,
