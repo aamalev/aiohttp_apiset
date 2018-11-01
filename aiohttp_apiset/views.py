@@ -1,6 +1,7 @@
 import functools
 import json
 import sys
+import warnings
 
 from . import utils
 from .swagger.loader import SwaggerLoaderMixin
@@ -45,10 +46,16 @@ class ApiSet(BaseApiSet, SwaggerLoaderMixin):
     def factory(cls, prefix, encoding=None):
         assert prefix in cls.methods
 
+        @functools.wraps(cls, updated=())
         class View(cls):
             _prefix = prefix
             _encoding = encoding
             _methods = dict((y, x) for x, y in cls.methods[prefix])
+
+        warnings.warn(
+            "ApiSet is deprecated. Warning for %r" % View,
+            DeprecationWarning,
+            stacklevel=3)
 
         return View
 
