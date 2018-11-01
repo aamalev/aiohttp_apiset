@@ -126,3 +126,6 @@ class ValidationError(Errors, HTTPBadRequest):  # type: ignore
             HTTPBadRequest.update(self, **kwargs)
         else:
             HTTPBadRequest.update(self, arg, **kwargs)
+
+    def __bool__(self):
+        return bool(Errors.__len__(self))

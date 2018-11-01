@@ -30,7 +30,7 @@ def get_version():
 
 
 install_requires = [
-    'aiohttp>=1.2,<3.4',
+    'aiohttp>=2,<3.5',
     'pyyaml',
     'jsonschema',
 ]
