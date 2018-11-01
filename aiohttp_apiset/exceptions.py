@@ -108,7 +108,7 @@ class Errors(Mapping):
         return result
 
 
-class ValidationError(Errors, HTTPBadRequest):
+class ValidationError(Errors, HTTPBadRequest):  # type: ignore
     def __init__(self, *args, **kwargs):
         HTTPBadRequest.__init__(self)
         Errors.__init__(self, *args, **kwargs)
@@ -118,3 +118,14 @@ class ValidationError(Errors, HTTPBadRequest):
         self.text = dumps({'errors': self.to_tree()})
         self.content_type = 'application/json'
         return await super().prepare(request)
+
+    def update(self, arg=None, **kwargs):  # type: ignore
+        if isinstance(arg, (list, tuple, Errors)):
+            Errors.update(self, arg)
+        elif not arg:
+            HTTPBadRequest.update(self, **kwargs)
+        else:
+            HTTPBadRequest.update(self, arg, **kwargs)
+
+    def __bool__(self):
+        return bool(Errors.__len__(self))
