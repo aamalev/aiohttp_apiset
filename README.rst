@@ -18,6 +18,9 @@ aiohttp-apiset
   :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
 
+.. image:: https://img.shields.io/pypi/pyversions/aiohttp_apiset.svg
+  :target: https://pypi.python.org/pypi/aiohttp_apiset
+
 Package to build routes and validate request using swagger specification 2.0.
 
 Features
