@@ -15,7 +15,7 @@ from yaml.nodes import MappingNode
 try:
     from yaml.cyaml import CLoader as YamlLoader
 except ImportError:
-    from yaml import Loader as YamlLoader
+    from yaml import Loader as YamlLoader  # type: ignore
 
 logger = logging.getLogger(__name__)
 
