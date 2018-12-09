@@ -1,7 +1,7 @@
 import types
-from functools import partial
 
-from jsonschema import Draft4Validator, draft4_format_checker
+from jsonschema import draft4_format_checker, ValidationError
+from jsonschema.validators import Draft4Validator, extend
 
 ERROR_TYPE = "Not valid value '{}' for type {}:{}"
 
@@ -66,13 +66,28 @@ class WithMessages(BaseException):
         self.messages = messages
 
 
+class RequiredException(ValidationError):
+    def __init__(self, *args, prop, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prop = prop
+
+
 class Validator:
     check_schema = True
     format_checker = draft4_format_checker
 
-    factory = partial(
-        Draft4Validator,
-        format_checker=format_checker)
+    @classmethod
+    def factory(cls, *args, **kwargs):
+        factory = extend(Draft4Validator, dict(required=cls._required))
+        return factory(*args, format_checker=cls.format_checker, **kwargs)
+
+    @staticmethod
+    def _required(validator, required, instance, schema):
+        if not validator.is_type(instance, "object"):
+            return
+        for property in required:
+            if property not in instance:
+                yield RequiredException("required", prop=property)
 
     @staticmethod
     def _raises(raises):
@@ -126,20 +141,27 @@ class Validator:
 
     def validate(self, value, errors):
         for error in self.validator.descend(value, self.schema):
+            if error.path:
+                path = tuple(error.path)
+            else:
+                path = ()
             if isinstance(error.cause, ConvertTo):
-                if not error.path:
+                if not path:
                     return error.cause.new_value
                 base = value
-                *path, tail = error.path
+                *path, tail = path
                 for i in path:
                     base = base[i]
                 base[tail] = error.cause.new_value
                 continue
             elif isinstance(error.cause, WithMessages):
                 messages = error.cause.messages
+            elif isinstance(error, RequiredException):
+                path += error.prop,
+                messages = error.message,
             else:
                 messages = error.message,
-            errors[tuple(error.path)].update(messages)
+            errors[path].update(messages)
         return value
 
 

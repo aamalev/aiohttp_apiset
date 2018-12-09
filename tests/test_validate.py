@@ -154,6 +154,15 @@ async def test_json():
 
     assert resp['jso', 'f'], resp
 
+    request.json = asyncio.coroutine(lambda: {})
+    try:
+        await r.handler(request)
+    except web.HTTPBadRequest as e:
+        resp = e
+    assert isinstance(resp, ValidationError)
+    errors = resp.to_tree()
+    assert 'f' in errors['jso']
+
 
 async def test_router(test_client):
     router = SwaggerRouter()
