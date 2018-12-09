@@ -14,7 +14,7 @@ class OperationIdMapping(Mapping):
         self.add(*args, **kwargs)
 
     def __getitem__(self, key):
-        for om in self._operations:
+        for om in reversed(self._operations):
             try:
                 if isinstance(om, Mapping):
                     return om[key]

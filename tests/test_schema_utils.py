@@ -46,3 +46,12 @@ def test_operation_id2():
 def test_operation_id3():
     with pytest.raises(ValueError):
         OperationIdMapping('3')
+
+
+def test_opmap_replace():
+    opmap = OperationIdMapping(dict(a=1))
+    assert opmap['a'] == 1
+    opmap.add(dict(a=2))
+    assert opmap['a'] == 2
+    opmap.add(a=3)
+    assert opmap['a'] == 3
