@@ -138,6 +138,10 @@ async def test_static(loop, test_client, mocker):
     responce = await client.get(url)
     assert responce.status == 403
 
+    url = dispatcher['static'].url_for(filename='/etc/passwd')
+    responce = await client.get(url)
+    assert responce.status == 404
+
     url = dispatcher['static'].url_for(filename='1/2/3')
     responce = await client.get(url)
     assert responce.status == 404
