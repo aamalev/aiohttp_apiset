@@ -5,7 +5,7 @@ History
 0.9.5 (2018-12-12)
 ------------------
 
-* fix safe static
+* security fix static
 
 
 0.9.4 (2018-08-09)
