@@ -440,6 +440,8 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
         @asyncio.coroutine
         def content(request):
             filename = request.match_info['filename']
+            if isinstance(filename, str):
+                filename = filename.lstrip('/')
 
             if filename:
                 if '..' in filename:
