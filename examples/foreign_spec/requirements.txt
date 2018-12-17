@@ -1,2 +1,2 @@
 aiohttp==3.4.4
-aiohttp_apiset==0.9.4.2
+aiohttp_apiset==0.9.5
