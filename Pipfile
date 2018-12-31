@@ -9,7 +9,7 @@ name = "pypi"
 
 async-timeout = "==3.0.1"
 attrs = "==18.2.0"
-aiohttp = "==3.5.0"
+aiohttp = "==3.5.1"
 aiohttp-jinja2 = "==1.1.0"
 PyYAML = "==3.13"
 jsonschema = "==2.6.0"
