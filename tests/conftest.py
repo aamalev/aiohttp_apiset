@@ -13,11 +13,11 @@ if not ui.STATIC_UI.exists():
 
 
 @pytest.fixture
-def client(loop, test_client, swagger_router):
+def client(loop, aiohttp_client, swagger_router):
     def create_app(loop):
         app = web.Application(loop=loop, router=swagger_router)
         return app
-    return loop.run_until_complete(test_client(create_app))
+    return loop.run_until_complete(aiohttp_client(create_app))
 
 
 async def handler(request):
