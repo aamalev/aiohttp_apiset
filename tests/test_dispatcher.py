@@ -48,7 +48,7 @@ async def test_simple(dispatcher: TreeUrlDispatcher, request: web.Request):
 
 
 async def test_multisubs(dispatcher: TreeUrlDispatcher):
-    url = '/api/1/host/{host}/eth{num}/{ip:[.\d]+}/'
+    url = r'/api/1/host/{host}/eth{num}/{ip:[.\d]+}/'
     dispatcher.add_route('GET', url, handler)
 
     request = make_request('GET', '/api/1/host/myhost/eth0/127.0.0.1/')

@@ -35,7 +35,7 @@ def re_patt_replacer(m):
 
 def remove_patterns(url: str):
     """
-    >>> remove_patterns('/{w:\d+}x{h:\d+}')
+    >>> remove_patterns(r'/{w:\d+}x{h:\d+}')
     '/{w}x{h}'
     """
     return re_patt.sub(re_patt_replacer, url)
