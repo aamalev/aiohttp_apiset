@@ -564,6 +564,10 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
 
         def search(filename, default):
             p = path / filename
+
+            if p.is_dir():
+                filename = ''
+
             if filename and p.exists():
                 return p
             elif default:

@@ -150,6 +150,10 @@ async def test_static(loop, test_client, mocker):
     responce = await client.get(url)
     assert responce.status == 404
 
+    url = dispatcher['static'].url_for(filename='data')
+    responce = await client.get(url)
+    assert responce.status == 404
+
 
 async def test_static_with_default(loop, test_client):
     f = Path(__file__)
@@ -168,6 +172,10 @@ async def test_static_with_default(loop, test_client):
     assert responce.status == 404
 
     url = dispatcher['static'].url_for(filename='')
+    responce = await client.get(url)
+    assert responce.status == 200
+
+    url = dispatcher['static'].url_for(filename='data')
     responce = await client.get(url)
     assert responce.status == 200
 
