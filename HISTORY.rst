@@ -2,6 +2,14 @@
 History
 =======
 
+0.9.6 (2018-03-10)
+------------------
+
+* fix static access dir
+* support aiohttp 3.5
+* up swagger-ui to 3.21.0
+
+
 0.9.5 (2018-12-12)
 ------------------
 
