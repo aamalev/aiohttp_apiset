@@ -5,6 +5,7 @@ from importlib import import_module
 import yaml
 
 from ..utils import import_obj
+from .loader import Loader
 
 
 class OperationIdMapping(Mapping):
@@ -97,6 +98,6 @@ def get_docstring_swagger(handler):
         if len(ds) == 1:
             return
         swagger_yaml = ds[-1]
-        operation = yaml.load(swagger_yaml)
+        operation = yaml.load(swagger_yaml, Loader)
         if isinstance(operation, dict):
             return operation
