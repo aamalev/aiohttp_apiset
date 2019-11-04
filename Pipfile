@@ -26,7 +26,7 @@ pytest-mock = "==1.11.2"
 pytest-pep8 = "==1.0.6"
 pytest-flake8 = "==1.0.4"
 pytest-codestyle = "==1.4.0"
-pytest-mypy = "==0.4.1"
+pytest-mypy = "==0.4.2"
 isort = "==4.3.21"
 
 
