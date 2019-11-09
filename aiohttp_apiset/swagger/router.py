@@ -138,6 +138,8 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             if not d:
                 d = default_operation
 
+            d = dict(d)
+
             if 'responses' not in d:
                 d['responses'] = default_operation['responses']
 
