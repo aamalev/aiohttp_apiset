@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from collections import ChainMap, Hashable, Mapping, OrderedDict
+from functools import lru_cache
 from itertools import chain
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Tuple, Union  # noqa
@@ -84,6 +85,12 @@ class Loader(YamlLoader):
 
 
 Loader.add_constructor('tag:yaml.org,2002:map', Loader.construct_yaml_map)
+
+
+@lru_cache(100)
+def yaml_load(path: Path, encoding) -> dict:
+    with path.open(encoding=encoding) as f:
+        return yaml.load(f, Loader)
 
 
 class SwaggerLoaderMixin:
@@ -270,8 +277,7 @@ class SchemaFile(Copyable, Mapping):
     def __init__(self, path, encoding='utf-8'):
         self._path = path
         self._encoding = encoding
-        with path.open(encoding=encoding) as f:
-            self._data = yaml.load(f, Loader)
+        self._data = yaml_load(path, encoding=encoding)
 
     @property
     def data(self):
