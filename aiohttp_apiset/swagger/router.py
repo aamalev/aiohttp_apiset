@@ -61,9 +61,18 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
                 swagger_ui = '/' + swagger_ui
             if not swagger_ui.endswith('/'):
                 swagger_ui += '/'
-            spec = swagger_ui + 'swagger.yaml'
             self.add_get(
-                spec, self._handler_swagger_spec, name='swagger:spec')
+                swagger_ui + 'swagger.yml',
+                self._handler_swagger_spec, name='swagger:spec',
+            )
+            self.add_get(
+                swagger_ui + 'swagger.yaml',
+                self._handler_swagger_spec, name='swagger:spec:yaml',
+            )
+            self.add_get(
+                swagger_ui + 'swagger.json',
+                self._handler_swagger_spec, name='swagger:spec:json',
+            )
             self.add_get(
                 swagger_ui, self._handler_swagger_ui, name='swagger:ui')
             self.add_get(
@@ -89,12 +98,12 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
 
     def _handler_swagger_spec(self, request):
         key = request.query.get('spec')
+        format = request.path.split('.')[-1]
         if key is None and self._swagger_data:
             key = next(iter(self._swagger_data), '')
 
         if key in self._swagger_data and 'paths' in self._swagger_data[key]:
-            return web.json_response(self._swagger_data[key],
-                                     dumps=SchemaSerializer.dumps)
+            return self._response(self._swagger_data[key], format=format)
 
         for k in sorted(self._swagger_data, reverse=True):
             if key.startswith(k):
@@ -146,7 +155,20 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             if prefix:
                 url = url[lprefix:]
             paths.setdefault(url, {})[r.method.lower()] = d
-        return web.json_response(spec, dumps=SchemaSerializer.dumps)
+        return self._response(spec, format=format)
+
+    def _response(self, data: dict, format: str = 'json') -> web.Response:
+        content_type = 'application/'
+        if format == 'json':
+            content_type += format
+        elif format in ('yml', 'yaml'):
+            content_type += 'x-yaml'
+        else:
+            raise ValueError('Unsupported format %s' % format)
+        return web.json_response(
+            data, content_type=content_type,
+            dumps=SchemaSerializer.dumps,
+        )
 
     def _handler_swagger_ui(self, request, spec, version):
         """

@@ -87,7 +87,7 @@ class Loader(YamlLoader):
 Loader.add_constructor('tag:yaml.org,2002:map', Loader.construct_yaml_map)
 
 
-@lru_cache(100)
+@lru_cache(None)
 def yaml_load(path: Path, encoding) -> dict:
     with path.open(encoding=encoding) as f:
         return yaml.load(f, Loader)
