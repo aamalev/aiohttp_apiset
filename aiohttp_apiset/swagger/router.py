@@ -1,6 +1,7 @@
 import warnings
 from collections import Mapping
 
+import yaml
 from aiohttp import hdrs, web
 
 from . import ui
@@ -11,10 +12,21 @@ from .. import dispatcher, utils
 from ..middlewares import JsonEncoder
 
 
-class SchemaSerializer(JsonEncoder):
+class JsonSerializer(JsonEncoder):
     converters = [
         (0, Mapping, dict),
     ]
+
+
+class YamlSerializer(yaml.Dumper):
+    def represent_data(self, data):
+        if isinstance(data, Mapping):
+            return self.represent_dict(data)
+        return super().represent_data(data)
+
+    @classmethod
+    def dumps(cls, data):
+        return yaml.dump(data, Dumper=cls)
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
@@ -143,13 +155,15 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
         content_type = 'application/'
         if format == 'json':
             content_type += format
+            dumps = JsonSerializer.dumps
         elif format in ('yml', 'yaml'):
             content_type += 'x-yaml'
+            dumps = YamlSerializer.dumps
         else:
             raise ValueError('Unsupported format %s' % format)
         return web.json_response(
             data, content_type=content_type,
-            dumps=SchemaSerializer.dumps,
+            dumps=dumps,
         )
 
     def _handler_swagger_ui(self, request, spec, version):
