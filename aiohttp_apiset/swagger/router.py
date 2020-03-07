@@ -35,8 +35,8 @@ class YamlSerializer(yaml.Dumper):
         return super().represent_data(data)
 
     @classmethod
-    def dumps(cls, data):
-        return yaml.dump(data, Dumper=cls)
+    def dumps(cls, *args, **kwargs):
+        return yaml.dump(*args, Dumper=cls, **kwargs)
 
 
 class SwaggerRouter(dispatcher.TreeUrlDispatcher):
