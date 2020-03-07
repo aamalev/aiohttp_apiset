@@ -114,7 +114,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
     def _handler_file_loader(self, request):
         filename = request.match_info['filename']
         spec = self._file_loader[filename].data
-        return web.json_response(spec, dumps=SchemaSerializer.dumps)
+        return self._response(spec)
 
     def _handler_swagger_spec(self, request):
         key = request.query.get('spec')
