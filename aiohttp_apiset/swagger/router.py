@@ -8,7 +8,7 @@ from aiohttp import hdrs, web
 from . import ui
 from .. import dispatcher, utils
 from ..middlewares import JsonEncoder
-from .loader import AllOf, FileLoader, SchemaFile, SchemaPointer
+from .loader import AllOf, FileLoader, FrozenDict, SchemaFile, SchemaPointer
 from .operations import get_docstring_swagger
 from .route import SwaggerRoute, route_factory
 
@@ -21,9 +21,17 @@ class JsonSerializer(JsonEncoder):
 
 
 class YamlSerializer(yaml.Dumper):
+    attr_data = (
+        AllOf,
+        SchemaFile,
+        SchemaPointer,
+    )
+
     def represent_data(self, data):
-        if isinstance(data, Mapping):
+        if isinstance(data, FrozenDict):
             return self.represent_dict(data)
+        elif isinstance(data, self.attr_data):
+            return self.represent_dict(data.data)
         return super().represent_data(data)
 
     @classmethod
