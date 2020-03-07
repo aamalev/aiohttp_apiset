@@ -7,7 +7,7 @@ python:
 
 install:
   - pip install -U pip setuptools pipenv
-  - pipenv install -d --system
+  - pipenv install -d --system --skip-lock
   - pip install codecov
 
 script: pytest
