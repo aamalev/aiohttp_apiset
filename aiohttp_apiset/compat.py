@@ -379,3 +379,11 @@ class CompatRouter(AbstractRouter):
         Shortcut for add_route with method DELETE
         """
         return self.add_route(hdrs.METH_DELETE, *args, **kwargs)
+
+    def add_routes(self, routes) -> None:
+        """Append routes to route table.
+
+        Parameter should be a sequence of RouteDef objects.
+        """
+        for route_def in routes:
+            route_def.register(self)
