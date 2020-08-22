@@ -15,20 +15,3 @@ script: mypy aiohttp_apiset && pytest
 
 after_success:
   - codecov
-
-before_deploy:
-  - make clear
-  - make aiohttp_apiset/version.py
-  - make swagger_ui
-
-deploy:
-  provider: pypi
-  user: yttrium
-  password:
-    secure: CMo5lkCfU3Cl0ytE6xjfRioWdFIwjQteCuZMBM4gWlPt8xXSSBH17gqx+Fm2inZ9v9NJGtBHrSdBFDtfXrasE6gykwe5PP2uX4WN0xL+W3GZG+ywKy1aAiGSA+kgIZ8XGMTT8Ik1IKVaxo5fFNXKrT9a0mFr3Izsva6l3zS1Z03aqkxL6KgyRMCNcS4zpeU3FcQjZWqTo46E2i3WtwXHQir2FCEjB83jKoSOAkj9kyYs5GoA3/yNTTrue6MA2pe6Gb+Ov/r5MiVQ2WmD+OzpUjEcC47NmUZamAyKvNeSxwcFH0/YszCLwDK4V/bYPXXIFE8yXgBZsg7MirymYJbCuzMCzgl5NTYqRl0TJHNpXT1SLKF1bt1RYdngN2fDT8nJoVMgmf9cUbkstZLi2LG9KNE46qnsqdEr+vy9EJqmFdvyAsOnrqRQLyz0lV3sSNerKf229DepSVyF4I1N+v0SGWIsdVCj1BYgiG67jWPeY0LvHpQzYQAuuXCNmIjz6HMwkUYc5u33H3d2Av1IR75n45cAqFqpeHFF5rLTCIkx3lVbokEnzZ2pXoHR0NAdcirJe/UZyOGebNwKPPrwDfeu1sMCKerEAdeMQwN2fMtFNgRxJdTDfY+AXtOrQUhaMfyAaHGy/KcrM+52lVo4y2zdXdTPIdcchwLft+po1zKvYJs=
-  on:
-    tags: true
-    distributions: sdist bdist_wheel
-    repo: aamalev/aiohttp_apiset
-    condition: $TRAVIS_PYTHON_VERSION = 3.6
-  skip_cleanup: true
