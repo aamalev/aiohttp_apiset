@@ -28,7 +28,7 @@ Features
 
 - Building of the routing from specification swagger
 - Using inclusions other specifications with concatenate url
-- Optional output of the resulting specification and view embed swagger-ui
+- Optional output of the resulting specification and view embed `swagger-ui <https://github.com/swagger-api/swagger-ui>`_
 - Advanced router with TreeResource
 - Extract specify parameters from request and validate with jsonschema
 - Serialize data as response with middleware
