@@ -2,6 +2,12 @@
 History
 =======
 
+0.9.12 (2020-08-22)
+-------------------
+
+* up swagger-ui to 3.32.4
+
+
 0.9.11 (2020-08-16)
 -------------------
 
@@ -90,6 +96,7 @@ History
 * Renamed SubLocation to Location
 
 
+
 0.8.1 (2018-02-25)
 ------------------
 
@@ -105,6 +112,7 @@ History
 * Default_operation & setdefault responses
 * Up swagger-ui to 3.10.0
 * Await Future in jsonify
+
 
 
 0.7.4 (2017-12-22)
@@ -145,6 +153,7 @@ History
 * swagger-ui up to 3.4.0
 
 
+
 0.6.2 (2017-08-29)
 ------------------
 
@@ -167,6 +176,7 @@ History
 * Support swagger-ui version 2 & 3
 * Fixed resolve route and middleware
 * Optional coromethod init in cbv
+
 
 
 0.5.2 (2017-06-21)
