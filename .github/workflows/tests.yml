@@ -43,7 +43,7 @@ jobs:
       run: |
         pip install -U pip setuptools
         pip install -U pipenv codecov
-        echo "__version__ = '$(git describe --tags)'" > aiohttp_apiset/version.py
+        echo "__version__ = 'tests'" > aiohttp_apiset/version.py
         pip install -e .
         pipenv install -d --skip-lock --system
     - name: Test with pytest
