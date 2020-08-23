@@ -19,7 +19,7 @@ jobs:
       run: |
         pip install --user pip setuptools
         pip install --user pipenv
-        python -m pipenv run pip install -U pip setuptools codecov
+        python -m pipenv --three run pip install -U pip setuptools codecov
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
         python -m pipenv run pip install -e .
         python -m pipenv install -d --skip-lock --system
