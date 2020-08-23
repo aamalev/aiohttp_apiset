@@ -3,6 +3,30 @@ name: Tests
 on: [push]
 
 jobs:
+  isort-mypy-flake8:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          pip install -U pip setuptools
+          pip install -U pipenv isort mypy flake8 flake8-print
+          pipenv install -d --skip-lock --system
+      - name: isort
+        run: |
+          isort -c aiohttp_apiset tests
+      - name: flake8
+        run: |
+          flake8 aiohttp_apiset tests
+      - name: mypy
+        run: |
+          mypy aiohttp_apiset tests
+
   tests:
     runs-on: ${{ matrix.os }}
     strategy:
