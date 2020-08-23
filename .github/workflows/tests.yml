@@ -15,7 +15,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -U pip setuptools
-        pip install -U pipenv
+        pip install -U pipenv isort mypy flake8 flake8-print
         pipenv install -d --skip-lock --system
     - name: isort
       run: |
