@@ -18,10 +18,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --user pipenv
-        pipenv run pip install -U pip setuptools codecov
+        python -m pipenv run pip install -U pip setuptools codecov
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
-        pipenv run pip install -e .
-        pipenv install -d --skip-lock --system
+        python -m pipenv run pip install -e .
+        python -m pipenv install -d --skip-lock --system
     - name: Test with pytest
       run: |
         pytest --cov=aiohttp_apiset --cov-report=xml
