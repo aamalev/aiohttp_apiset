@@ -17,7 +17,6 @@ pytest = "==3.7.1"
 pytest-aiohttp = "==0.3.0"
 pytest-cov = "==2.5.1"
 pytest-mock = "==1.10.0"
-pytest-pep8 = "==1.0.6"
 
 [requires]
 python_version = "3.6"
