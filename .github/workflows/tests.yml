@@ -26,7 +26,7 @@ jobs:
             requirements: aiohttp
         include:
           - os: ubuntu-latest
-          - python:
+            python:
               version: 3.6
               file: python3.6
               requirements: aiohttp==3.7.2
