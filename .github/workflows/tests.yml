@@ -21,9 +21,11 @@ jobs:
             file: pypy3
         exclude:
           - os: macos-latest
-            python-version: pypy3
+            python:
+              version: pypy3
           - os: windows-latest
-            python-version: pypy3
+            python:
+              version: pypy3
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python.version }}
