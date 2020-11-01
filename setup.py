@@ -9,7 +9,7 @@ except ImportError:
 else:
     if not Path(swagger_ui.STATIC_DIR).exists():
         swagger_ui.setup_ui('2.2.10')
-        swagger_ui.setup_ui('3.32.4')
+        swagger_ui.setup_ui('3.36.1')
 
 
 def read(f):
