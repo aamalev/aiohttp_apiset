@@ -11,14 +11,25 @@ jobs:
         python:
           - version: 3.5
             file: python3.5
+            requirements: aiohttp
           - version: 3.6
             file: python3.6
+            requirements: aiohttp
           - version: 3.7
             file: python3.7
+            requirements: aiohttp
           - version: 3.8
             file: python3.8
+            requirements: aiohttp
           - version: pypy3
             file: pypy3
+            requirements: aiohttp
+        include:
+          - os: ubuntu-latest
+          - python:
+              version: 3.6
+              file: python3.6
+              requirements: aiohttp==3.7.2
         exclude:
           - os: macos-latest
             python:
@@ -41,6 +52,7 @@ jobs:
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
         python -m pipenv run pip install -e .
         python -m pipenv install -d --skip-lock
+        python -m pipenv run pip install ${{ matrix.python.requirements }}
     - name: Test with pytest
       run: |
         python -m pipenv run pytest --cov=aiohttp_apiset --cov-report=xml
