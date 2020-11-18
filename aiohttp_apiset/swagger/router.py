@@ -5,9 +5,9 @@ from typing import Any, Dict, Optional, Set  # noqa
 import yaml
 from aiohttp import hdrs, web
 
-from . import ui
 from .. import dispatcher, utils
 from ..middlewares import JsonEncoder
+from . import ui
 from .loader import AllOf, FileLoader, FrozenDict, SchemaFile, SchemaPointer
 from .operations import get_docstring_swagger
 from .route import SwaggerRoute, route_factory

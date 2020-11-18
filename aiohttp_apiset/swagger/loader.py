@@ -13,6 +13,7 @@ import yaml.resolver
 from yaml.constructor import ConstructorError
 from yaml.nodes import MappingNode
 
+
 try:
     from yaml.cyaml import CLoader as YamlLoader
 except ImportError:
