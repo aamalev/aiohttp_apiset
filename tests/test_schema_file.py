@@ -93,7 +93,7 @@ def test_allOf():
     a = AllOf({'a': 1}, {'b': 2})
     assert dict(a) == {'a': 1, 'b': 2}
     with pytest.raises(KeyError):
-        print(a['c'])
+        print(a['c'])  # noqa
     assert len(a) == 2
 
 
