@@ -15,9 +15,9 @@ class BaseApiSet:
 
 
 class ApiSet(BaseApiSet, SwaggerLoaderMixin):
-    namespace = NotImplemented
+    namespace = NotImplemented  # type: str
     root_dir = '/'
-    swagger_ref = None
+    swagger_ref = None  # type: str
     methods = {
         '': (
             ('options', 'OPTIONS'),
