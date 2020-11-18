@@ -62,9 +62,10 @@ async def test_json(aiohttp_client):
 
 def test_dumper():
     from datetime import datetime
-    from uuid import uuid4
-    import multidict
     from decimal import Decimal
+    from uuid import uuid4
+
+    import multidict
     Jsonify().dumps({
         'since': datetime.now(),
         'date': datetime.now().date(),

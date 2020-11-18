@@ -4,6 +4,7 @@ from aiohttp import web
 from aiohttp_apiset import ApiSet, SwaggerRouter
 from aiohttp_apiset.swagger import ui
 
+
 if not ui.STATIC_UI.exists():
     ui.STATIC_UI.mkdir(parents=True, exist_ok=True)
     for t in ui.TEMPLATE_UI.values():

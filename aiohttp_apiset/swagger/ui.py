@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).parent.parent
 STATIC = BASE_DIR / 'static'
 STATIC_UI = STATIC / 'swagger-ui'

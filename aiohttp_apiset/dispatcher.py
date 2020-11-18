@@ -15,11 +15,18 @@ import yarl
 from aiohttp import hdrs
 from aiohttp.abc import AbstractView
 from aiohttp.web import Response
-from aiohttp.web_exceptions import (HTTPForbidden, HTTPMethodNotAllowed,
-                                    HTTPNotFound)
+from aiohttp.web_exceptions import (
+    HTTPForbidden,
+    HTTPMethodNotAllowed,
+    HTTPNotFound,
+)
 
-from .compat import (AbstractRoute, CompatRouter, MatchInfoError,
-                     UrlMappingMatchInfo)
+from .compat import (
+    AbstractRoute,
+    CompatRouter,
+    MatchInfoError,
+    UrlMappingMatchInfo,
+)
 
 
 class Location:

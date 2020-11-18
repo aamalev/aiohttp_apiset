@@ -6,6 +6,7 @@ import warnings
 from . import utils
 from .swagger.loader import SwaggerLoaderMixin
 
+
 PY_35 = sys.version_info >= (3, 5)
 
 

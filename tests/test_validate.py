@@ -14,6 +14,7 @@ from aiohttp_apiset.middlewares import jsonify
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.swagger.validate import Validator, convert
 
+
 parameters = yaml.load("""
 - name: road_id
   in: query

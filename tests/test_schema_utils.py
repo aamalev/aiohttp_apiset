@@ -3,6 +3,7 @@ import pytest
 from aiohttp_apiset.swagger.loader import deref
 from aiohttp_apiset.swagger.operations import OperationIdMapping
 
+
 data = {
     'a': {
         'b': [

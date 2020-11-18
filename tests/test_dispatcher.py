@@ -7,8 +7,13 @@ from aiohttp.test_utils import make_mocked_request as make_request
 from yarl import URL
 
 from aiohttp_apiset.compat import MatchInfoError
-from aiohttp_apiset.dispatcher import (ContentReceiver, Location, Route,
-                                       TreeResource, TreeUrlDispatcher)
+from aiohttp_apiset.dispatcher import (
+    ContentReceiver,
+    Location,
+    Route,
+    TreeResource,
+    TreeUrlDispatcher,
+)
 
 
 def handler(request):

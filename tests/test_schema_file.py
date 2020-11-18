@@ -3,9 +3,15 @@ from pathlib import Path
 
 import pytest
 
-from aiohttp_apiset.swagger.loader import (AllOf, DictLoader,
-                                           ExtendedSchemaFile, FileLoader,
-                                           Loader, SchemaFile, yaml)
+from aiohttp_apiset.swagger.loader import (
+    AllOf,
+    DictLoader,
+    ExtendedSchemaFile,
+    FileLoader,
+    Loader,
+    SchemaFile,
+    yaml,
+)
 
 
 def test_load():

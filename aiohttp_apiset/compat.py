@@ -13,6 +13,7 @@ from aiohttp import HttpVersion11, hdrs
 from aiohttp.abc import AbstractMatchInfo, AbstractRouter, AbstractView
 from aiohttp.web_exceptions import HTTPExpectationFailed
 
+
 HTTP_METHOD_RE = re.compile(r"^[0-9A-Za-z!#\$%&'\*\+\-\.\^_`\|~]+$")
 
 

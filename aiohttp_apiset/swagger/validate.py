@@ -1,7 +1,8 @@
 import types
 
-from jsonschema import draft4_format_checker, ValidationError
+from jsonschema import ValidationError, draft4_format_checker
 from jsonschema.validators import Draft4Validator, extend
+
 
 ERROR_TYPE = "Not valid value '{}' for type {}:{}"
 
