@@ -123,7 +123,7 @@ def test_local_refs():
 def test_load_local_refs(swagger_router):
     loader = swagger_router._file_loader
     result = loader.load('data/root.yaml')
-    assert 'data/include.yaml' in FileLoader.files
+    assert str(Path('data/include.yaml')) in FileLoader.files
     assert FileLoader.local_refs
     assert ExtendedSchemaFile.files
     assert 'Defi' in result['definitions']
