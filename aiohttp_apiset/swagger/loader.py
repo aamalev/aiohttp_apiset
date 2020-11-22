@@ -542,7 +542,7 @@ class ExtendedSchemaFile(SchemaFile):
 
         if is_dict:
             gen = data.items()
-            data = data.copy()
+            data = dict(data)
         else:
             gen = enumerate(data)
             data = list(data)
