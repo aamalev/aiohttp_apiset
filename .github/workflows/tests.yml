@@ -61,7 +61,7 @@ jobs:
             python:
               version: 3.9
               file: python3.9
-              requirements: aiohttp
+              requirements: -d aiohttp
           - os: ubuntu-latest
             python:
               version: pypy3
