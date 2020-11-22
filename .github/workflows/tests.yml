@@ -35,28 +35,28 @@ jobs:
         python:
           - version: 3.6
             file: python3.6
-            requirements: aiohttp
+            requirements: -d aiohttp
         include:
           - os: ubuntu-latest
             python:
               version: 3.5
               file: python3.5
-              requirements: aiohttp
+              requirements: -d aiohttp
           - os: ubuntu-latest
             python:
               version: 3.6
               file: python3.6
-              requirements: aiohttp==3.7.2
+              requirements: -d aiohttp==3.7.2
           - os: ubuntu-latest
             python:
               version: 3.7
               file: python3.7
-              requirements: aiohttp
+              requirements: -d aiohttp
           - os: ubuntu-latest
             python:
               version: 3.8
               file: python3.8
-              requirements: aiohttp
+              requirements: -d aiohttp
           - os: ubuntu-latest
             python:
               version: pypy3
@@ -76,8 +76,7 @@ jobs:
         python -m pipenv run pip install -U pip setuptools codecov
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
         python -m pipenv run pip install -e .
-        python -m pipenv install -d --skip-lock
-        python -m pipenv run pip install ${{ matrix.python.requirements }}
+        python -m pipenv install ${{ matrix.python.requirements }} --skip-lock
     - name: Test with pytest
       run: |
         python -m pipenv run pytest --cov=aiohttp_apiset --cov-report=xml
