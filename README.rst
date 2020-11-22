@@ -10,10 +10,6 @@ aiohttp-apiset
 .. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
   :target: https://pypi.python.org/pypi/aiohttp_apiset
 
-.. image:: https://pyup.io/repos/github/aamalev/aiohttp_apiset/shield.svg
-  :target: https://pyup.io/repos/github/aamalev/aiohttp_apiset/
-  :alt: Updates
-
 .. image:: https://readthedocs.org/projects/aiohttp-apiset/badge/?version=latest
   :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
