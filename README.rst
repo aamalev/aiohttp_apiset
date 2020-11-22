@@ -1,8 +1,8 @@
 aiohttp-apiset
 ==============
 
-.. image:: https://travis-ci.org/aamalev/aiohttp_apiset.svg?branch=master
-  :target: https://travis-ci.org/aamalev/aiohttp_apiset
+.. image:: https://github.com/aamalev/aiohttp_apiset/workflows/Tests/badge.svg
+  :target: https://github.com/aamalev/aiohttp_apiset/actions?query=workflow%3ATests
 
 .. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/aamalev/aiohttp_apiset
