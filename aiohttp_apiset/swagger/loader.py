@@ -617,10 +617,10 @@ class BaseLoader:
 class FileLoader(BaseLoader):
     file_factory = ExtendedSchemaFile
     data_factory = SchemaPointer
-    files = {}  # type: Dict[Path, SchemaFile]
+    files = {}  # type: Dict[str, SchemaFile]
     local_refs = {}  # type: Dict[str, SchemaFile]
 
-    def _update_mapping(self, f):
+    def _update_mapping(self, f: SchemaFile) -> None:
         sd = sorted(self.search_dirs)
         for k, v in f.files.items():
             for d in sd:
