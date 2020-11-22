@@ -59,6 +59,11 @@ jobs:
               requirements: -d aiohttp
           - os: ubuntu-latest
             python:
+              version: 3.9
+              file: python3.9
+              requirements: aiohttp
+          - os: ubuntu-latest
+            python:
               version: pypy3
               file: pypy3
               requirements: aiohttp pytest-aiohttp pytest-mock pytest-cov
