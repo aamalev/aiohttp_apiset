@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from typing import Dict, Tuple, Union
 
 from aiohttp import web
 
@@ -93,7 +94,8 @@ class SwaggerRoute(Route):
     def _validate(self, data, errors):
         return data
 
-    async def validate(self, request: web.Request):
+    async def validate(self,
+                       request: web.Request) -> Tuple[Dict, ValidationError]:
         """ Returns parameters extract from request and multidict errors
 
         :param request: Request
@@ -119,7 +121,7 @@ class SwaggerRoute(Route):
             is_array = vtype == 'array'
 
             if where == 'query':
-                source = request.query
+                source = request.query  # type: Union[Mapping, Tuple]
             elif where == 'header':
                 source = request.headers
             elif where == 'path':
