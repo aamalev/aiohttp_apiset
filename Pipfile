@@ -28,5 +28,4 @@ pytest-isort = "==1.2.0"
 
 
 [requires]
-
-python_version = "3.6"
+python_version = "3.5"
