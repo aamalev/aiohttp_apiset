@@ -87,7 +87,7 @@ jobs:
         python -m pipenv run pytest --cov=aiohttp_apiset --cov-report=xml
     - name: Upload coverage to Codecov
       if: ${{ matrix.python.version == '3.5' && matrix.os == 'ubuntu-latest' }}
-      uses: codecov/codecov-action@v1.5.0
+      uses: codecov/codecov-action@v2.1.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
