@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.3.5
       - uses: actions/setup-python@v2
         with:
           python-version: '3.x'
@@ -68,7 +68,7 @@ jobs:
               file: pypy3
               requirements: aiohttp pytest-aiohttp pytest-mock pytest-cov
     steps:
-    - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.5
     - name: Set up Python ${{ matrix.python.version }}
       uses: actions/setup-python@v2
       with:
