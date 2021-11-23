@@ -10,6 +10,7 @@ from aiohttp.test_utils import make_mocked_request
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.exceptions import Errors, ValidationError
 from aiohttp_apiset.middlewares import jsonify
+from aiohttp_apiset.swagger.loader import Loader
 from aiohttp_apiset.swagger.route import SwaggerValidationRoute
 from aiohttp_apiset.swagger.validate import convert, Validator
 
@@ -87,7 +88,7 @@ parameters = yaml.load("""
     properties:
       f:
         type: string
-""")
+""", Loader)
 
 
 def handler(request, road_id):
