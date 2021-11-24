@@ -52,12 +52,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --user pip setuptools
-        pip install --user pipenv
         python -m pipenv --python ${{ matrix.python.file }}
         python -m pipenv run pip install -U pip setuptools codecov
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
-        python -m pipenv run pip install -e .
-        python -m pipenv install -d --skip-lock
+        python -m pipenv run pip install -e .[dev]
         python -m pipenv run pip install ${{ matrix.python.requirements }}
     - name: Test with pytest
       run: |
