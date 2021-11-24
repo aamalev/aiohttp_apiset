@@ -56,7 +56,7 @@ jobs:
         python -m pipenv --python ${{ matrix.python.file }}
         python -m pipenv run pip install -U pip setuptools codecov
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
-        FAKE_UI=1 python -m pipenv run pip install -e .[dev]
+        python -m pipenv run pip install -e .[dev]
         python -m pipenv run pip install ${{ matrix.python.requirements }}
     - name: Test with pytest
       run: |
