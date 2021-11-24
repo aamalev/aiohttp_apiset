@@ -41,7 +41,6 @@ tests_require = [
     'pytest-aiohttp',
     'pytest-mock',
     'pytest-cov',
-    'pytest-pep8',
 ]
 
 
@@ -72,5 +71,8 @@ setup(
     extras_require={
         'docs': [
             'sphinx >= 1.4.8',
-            'sphinx_rtd_theme']},
+            'sphinx_rtd_theme',
+        ],
+        'dev': tests_require,
+    },
 )
