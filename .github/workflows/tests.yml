@@ -5,6 +5,8 @@ on: [push]
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
+    env:
+      FAKE_UI: 'yes'
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
