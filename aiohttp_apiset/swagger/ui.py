@@ -9,6 +9,7 @@ TEMPLATES = BASE_DIR / 'templates'
 TEMPLATE_UI = {
     2: TEMPLATES / 'swagger-ui' / '2' / 'index.html',
     3: TEMPLATES / 'swagger-ui' / '3' / 'index.html',
+    4: TEMPLATES / 'swagger-ui' / '4' / 'index.html',
 }
 
 
