@@ -41,6 +41,7 @@ tests_require = [
     'pytest-aiohttp',
     'pytest-mock',
     'pytest-cov',
+    'aiohttp-jinja2',
 ]
 
 
