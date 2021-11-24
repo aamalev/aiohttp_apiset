@@ -52,6 +52,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --user pip setuptools
+        pip install --user pipenv
         python -m pipenv --python ${{ matrix.python.file }}
         python -m pipenv run pip install -U pip setuptools codecov
         echo "__version__ = 'tests'" > aiohttp_apiset/version.py
