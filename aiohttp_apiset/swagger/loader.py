@@ -96,7 +96,8 @@ class SwaggerLoaderMixin:
                 if ext == '.json':
                     loader = json.load
                 elif ext in ('.yml', '.yaml'):
-                    loader = lambda x: yaml.load(x, Loader)
+                    def loader(x):
+                        return yaml.load(x, Loader)
                 else:
                     raise ValueError('File type {} not supported'.format(ext))
             with open(file_path, encoding=cls._encoding) as f:
