@@ -23,7 +23,3 @@ pytest-mock = "==3.6.1"
 pytest-flake8 = "==1.0.6"
 pytest-mypy = "==0.8.0"
 pytest-isort = "==1.2.0"
-
-
-[requires]
-python_version = "3.6"
