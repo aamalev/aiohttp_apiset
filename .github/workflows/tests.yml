@@ -36,7 +36,7 @@ jobs:
         python:
           - version: 3.6
             file: python3.6
-            requirements: -d aiohttp
+            requirements: aiohttp
         include:
           - os: ubuntu-latest
             python:
@@ -47,22 +47,22 @@ jobs:
             python:
               version: 3.6
               file: python3.6
-              requirements: -d aiohttp==3.7.2
+              requirements: aiohttp==3.7.2
           - os: ubuntu-latest
             python:
               version: 3.7
               file: python3.7
-              requirements: -d aiohttp
+              requirements: aiohttp
           - os: ubuntu-latest
             python:
               version: 3.8
               file: python3.8
-              requirements: -d aiohttp
+              requirements: aiohttp
           - os: ubuntu-latest
             python:
               version: 3.9
               file: python3.9
-              requirements: -d aiohttp
+              requirements: aiohttp
           - os: ubuntu-latest
             python:
               version: pypy3
