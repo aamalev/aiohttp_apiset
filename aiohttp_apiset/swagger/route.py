@@ -142,6 +142,13 @@ class SwaggerRoute(Route):
             if is_array and hasattr(source, 'getall'):
                 collection_format = param.get('collectionFormat')
                 default = param.get('default', [])
+                if collection_format is None:
+                    style = param.get('style', 'form')
+                    explode = param.get('explode', True)
+                    if explode:
+                        pass
+                    elif style == 'form':
+                        collection_format = 'csv'
                 value = get_collection(source, name,
                                        collection_format, default)
                 if param.get('minItems') and not value \
