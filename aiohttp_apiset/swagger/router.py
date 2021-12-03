@@ -176,7 +176,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
           - name: version
             in: query
             type: integer
-            enum: [2,3]
+            enum: [2,3,4]
         """
         version = version or self._version_ui
         if self._spec_url:
