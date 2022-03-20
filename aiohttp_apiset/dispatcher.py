@@ -4,8 +4,7 @@ import importlib
 import inspect
 import mimetypes
 import re
-from collections import MutableMapping
-from collections.abc import Container, Iterable, Mapping, Sized
+from collections.abc import Container, Iterable, Mapping, MutableMapping, Sized
 from itertools import chain
 from urllib import parse
 from pathlib import Path

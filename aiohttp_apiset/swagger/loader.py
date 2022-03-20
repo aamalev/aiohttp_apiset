@@ -2,7 +2,8 @@ import abc
 import json
 import os
 import sys
-from collections import ChainMap, Hashable, Mapping, OrderedDict
+from collections import ChainMap, OrderedDict
+from collections.abc import Hashable, Mapping
 from functools import lru_cache
 from itertools import chain
 from pathlib import Path
