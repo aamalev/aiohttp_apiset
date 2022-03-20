@@ -1,5 +1,6 @@
 import json
-from collections import Mapping, defaultdict
+from collections import defaultdict
+from collections.abc import Mapping
 
 from aiohttp.web_exceptions import HTTPBadRequest
 

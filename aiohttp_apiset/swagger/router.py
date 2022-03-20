@@ -1,5 +1,5 @@
 import warnings
-from collections import Mapping
+from collections.abc import Mapping
 from typing import Any, Dict, Optional, Set  # noqa
 
 import yaml
