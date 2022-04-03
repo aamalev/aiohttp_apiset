@@ -38,7 +38,7 @@ install_requires = [
 
 tests_require = [
     'pytest',
-    'pytest-aiohttp',
+    'pytest-aiohttp<1',
     'pytest-mock',
     'pytest-cov',
     'aiohttp-jinja2',
