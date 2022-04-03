@@ -30,6 +30,7 @@ REPLACE_STRINGS = [
     ("src='swagger-ui.js", "src='" + PREFIX + 'swagger-ui.min.js'),
     ('href="./', 'href="' + PREFIX),
     ('src="./', 'src="' + PREFIX),
+    ('href="index.css"', 'href="' + PREFIX + 'index.css"'),
 ]
 
 
