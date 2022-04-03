@@ -166,18 +166,16 @@ async def test_json():
     assert 'f' in errors['jso']
 
 
-async def test_router(test_client):
+async def test_router(aiohttp_client):
     router = SwaggerRouter()
     router.add_route(
         'POST', '/', handler,
         swagger_data={'parameters': parameters},
     )
 
-    def factory(loop, *args, **kwargs):
-        app = web.Application(router=router, loop=loop, middlewares=[jsonify])
-        return app
+    app = web.Application(router=router, middlewares=[jsonify])
 
-    cli = await test_client(factory)
+    cli = await aiohttp_client(app)
     query = '/?road_id=1&road_id_csv=1&road_id_brackets[]=1'
     resp = await cli.post(query)
     assert resp.status == 200, (await resp.text())
@@ -187,7 +185,7 @@ async def test_router(test_client):
     assert 'road_id_brackets' in txt, txt
 
 
-async def test_router_files(test_client):
+async def test_router_files(aiohttp_client):
     router = SwaggerRouter(
         search_dirs=['tests'],
         default_validate=True,
@@ -195,11 +193,9 @@ async def test_router_files(test_client):
     )
     router.include('data/root.yaml')
 
-    def factory(loop, *args, **kwargs):
-        app = web.Application(router=router, loop=loop, middlewares=[jsonify])
-        return app
+    app = web.Application(router=router, middlewares=[jsonify])
 
-    cli = await test_client(factory)
+    cli = await aiohttp_client(app)
     url = router['file:simple:view'].url()
 
     assert isinstance(
@@ -328,7 +324,7 @@ def test_errors():
     assert e.to_tree() == {'a': ['b'], 'c': ['d']}
 
 
-async def test_bool(test_client):
+async def test_bool(aiohttp_client):
     def handler(b):
         return web.json_response(b)
 
@@ -340,7 +336,7 @@ async def test_bool(test_client):
         'default': False,
     }]})
     app = web.Application(router=r)
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     r = await client.get('/?b=True')
     assert r.status == 200, (await r.text())
     assert (await r.json()) is True
@@ -355,13 +351,13 @@ async def test_bool(test_client):
     assert (await r.json()) is False
 
 
-async def test_validation_errors_constructor(test_client):
+async def test_validation_errors_constructor(aiohttp_client):
     def handler(request):
         raise ValidationError('', r=[''], q='')
 
     r = SwaggerRouter()
     r.add_get('/', handler=handler)
     app = web.Application(router=r)
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     r = await client.get('/')
     assert r.status == 400, (await r.text())

@@ -123,12 +123,12 @@ def test_view_locations(dispatcher: TreeUrlDispatcher):
     assert len(routes)
 
 
-async def test_static(loop, test_client, mocker):
+async def test_static(loop, aiohttp_client, mocker):
     f = Path(__file__)
     dispatcher = TreeUrlDispatcher()
     dispatcher.add_static('/static', f.parent, name='static')
     app = web.Application(router=dispatcher, loop=loop)
-    client = await test_client(app)
+    client = await aiohttp_client(app)
 
     url = dispatcher['static'].url_for(filename=f.name)
     responce = await client.get(url)
@@ -160,13 +160,13 @@ async def test_static(loop, test_client, mocker):
     assert responce.status == 404
 
 
-async def test_static_with_default(loop, test_client):
+async def test_static_with_default(loop, aiohttp_client):
     f = Path(__file__)
     dispatcher = TreeUrlDispatcher()
     dispatcher.add_static('/static', f.parent, name='static', default=f.name)
     dispatcher.add_static('/static2', f.parent, name='static2', default='1234')
     app = web.Application(router=dispatcher, loop=loop)
-    client = await test_client(app)
+    client = await aiohttp_client(app)
 
     url = dispatcher['static'].url_for(filename='1/2/3')
     responce = await client.get(url)
@@ -221,7 +221,7 @@ async def test_dispatcher_not_resolve():
     assert isinstance(a.http_exception, web.HTTPMethodNotAllowed)
 
 
-async def test_default_options(test_client):
+async def test_default_options(aiohttp_client):
     headers = {
         hdrs.ACCESS_CONTROL_REQUEST_HEADERS: hdrs.AUTHORIZATION}
     request = make_request('OPTIONS', '/', headers=headers)
@@ -234,7 +234,7 @@ async def test_default_options(test_client):
     router.add_get('/', lambda request: web.Response())
     mi = await router.resolve(request)
     assert not isinstance(mi, MatchInfoError)
-    client = await test_client(app)
+    client = await aiohttp_client(app)
     response = await client.options('/', headers=headers)
     assert response.status == 200
     h = response.headers

@@ -34,38 +34,38 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python:
-          - version: 3.6
+          - version: '3.6'
             file: python3.6
             requirements: aiohttp
         include:
           - os: ubuntu-latest
             python:
-              version: 3.5
+              version: '3.5'
               file: python3.5
               requirements: aiohttp 'aiohttp-jinja2<1.3'
           - os: ubuntu-latest
             python:
-              version: 3.6
+              version: '3.6'
               file: python3.6
               requirements: aiohttp==3.7.2
           - os: ubuntu-latest
             python:
-              version: 3.7
+              version: '3.7'
               file: python3.7
               requirements: aiohttp
           - os: ubuntu-latest
             python:
-              version: 3.8
+              version: '3.8'
               file: python3.8
               requirements: aiohttp
           - os: ubuntu-latest
             python:
-              version: 3.9
+              version: '3.9'
               file: python3.9
               requirements: aiohttp
           - os: ubuntu-latest
             python:
-              version: 3.10
+              version: '3.10'
               file: python3.10
               requirements: aiohttp
           - os: ubuntu-latest

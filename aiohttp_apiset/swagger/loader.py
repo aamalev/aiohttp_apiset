@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 class FrozenDict(OrderedDict):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._frozen = False
+        super().__init__(*args, **kwargs)
 
     def freeze(self):
         self._frozen = True
