@@ -12,9 +12,6 @@ updates:
     # Raise pull requests for version updates
     # to pip against the `develop` branch
     target-branch: "0.9.X"
-    # Labels on pull requests for version updates only
-    labels:
-      - "pip"
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
@@ -25,6 +22,3 @@ updates:
     # Raise pull requests for version updates
     # to pip against the `develop` branch
     target-branch: "0.9.X"
-    # Labels on pull requests for version updates only
-    labels:
-      - "github-actions"
