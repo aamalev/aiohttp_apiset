@@ -10,7 +10,7 @@ else:
     if not Path(swagger_ui.STATIC_DIR).exists():
         swagger_ui.setup_ui('2.2.10')
         swagger_ui.setup_ui('3.52.5')
-        swagger_ui.setup_ui('4.1.0')
+        swagger_ui.setup_ui('4.10.3')
 
 
 def read(f):
