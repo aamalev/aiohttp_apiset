@@ -1,5 +1,5 @@
 import warnings
-from collections import Mapping
+from collections.abc import Mapping
 
 import yaml
 from aiohttp import hdrs, web

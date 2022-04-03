@@ -38,7 +38,7 @@ install_requires = [
 
 tests_require = [
     'pytest',
-    'pytest-aiohttp',
+    'pytest-aiohttp<1',
     'pytest-mock',
     'pytest-cov',
     'aiohttp-jinja2',
@@ -60,6 +60,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Internet :: WWW/HTTP'],
     author='Alexander Malev',
     author_email='malev@somedev.ru',
