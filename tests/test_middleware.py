@@ -47,13 +47,12 @@ async def test_json(aiohttp_client):
     )
     router.include('data/root.yaml')
 
-    def factory(loop, *args, **kwargs):
-        app = web.Application(
-            router=router, loop=loop,
-            middlewares=[jsonify])
-        return app
+    app = web.Application(
+        router=router,
+        middlewares=[jsonify],
+    )
 
-    cli = await aiohttp_client(factory)
+    cli = await aiohttp_client(app)
     url = router['file:simple:view'].url()
 
     resp = await cli.put(url)
@@ -96,13 +95,9 @@ async def test_binary(aiohttp_client, data):
     async def h(request):
         return data
 
-    def factory(loop, *args, **kwargs):
-        app = web.Application(
-            loop=loop,
-            middlewares=[middlewares.binary])
-        app.router.add_get('/', h)
-        return app
+    app = web.Application(middlewares=[middlewares.binary])
+    app.router.add_get('/', h)
 
-    cli = await aiohttp_client(factory)
+    cli = await aiohttp_client(app)
     resp = await cli.get('/')
     assert resp.status == 200, await resp.text()
