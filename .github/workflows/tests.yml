@@ -51,7 +51,7 @@ jobs:
               file: pypy3
               requirements: aiohttp
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python.version }}
       uses: actions/setup-python@v2
       with:
