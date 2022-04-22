@@ -102,6 +102,7 @@ class SwaggerRoute(Route):
         :return: tuple of parameters and errors
         """
         parameters = {}
+        query_spec_params = set()
         files = {}
         errors = self.errors_factory()
         body = None
@@ -121,6 +122,7 @@ class SwaggerRoute(Route):
             is_array = vtype == 'array'
 
             if where == 'query':
+                query_spec_params.add(name)
                 source = request.query  # type: Union[Mapping, Tuple]
             elif where == 'header':
                 source = request.headers
@@ -177,6 +179,11 @@ class SwaggerRoute(Route):
                 files[name] = value
             else:
                 parameters[name] = value
+
+        extra_params = set(request.query.keys()) - query_spec_params
+        if extra_params:
+            for param in extra_params:
+                errors[param].add(f'Unexpected query parameter: {param}')
 
         parameters = self._validate(parameters, errors)
         parameters.update(files)
