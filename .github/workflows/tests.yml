@@ -1,6 +1,13 @@
 name: Tests
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - 0.9.X
 
 jobs:
   tests:
