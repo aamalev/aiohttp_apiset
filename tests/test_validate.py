@@ -67,6 +67,33 @@ parameters = yaml.load("""
   default: [24]
   items:
     type: integer
+- name: road_id_style_form
+  in: query
+  required: true
+  style: form
+  explode: false
+  schema:
+    type: array
+    items:
+      type: integer
+- name: road_id_style_space
+  in: query
+  required: true
+  style: spaceDelimited
+  explode: false
+  schema:
+    type: array
+    items:
+      type: integer
+- name: road_id_style_pipe
+  in: query
+  required: true
+  style: pipeDelimited
+  explode: false
+  schema:
+    type: array
+    items:
+      type: integer
 - name: gt
   in: path
   required: false
@@ -102,10 +129,18 @@ async def test_route():
         'GET', handler=handler, resource=None,
         swagger_data=sd)
     r.build_swagger_data(None)
-    query = ('/?road_id=1&road_id=2'
-             '&road_id_csv=1,2'
-             '&road_id_ssv=1%202'
-             '&road_id_brackets[]=1&road_id_brackets[]=2')
+    query = (
+        '/'
+        '?road_id=1'
+        '&road_id=2'
+        '&road_id_csv=1,2'
+        '&road_id_ssv=1%202'
+        '&road_id_style_form=1,2'
+        '&road_id_style_space=1%202'
+        '&road_id_style_pipe=1|2'
+        '&road_id_brackets[]=1'
+        '&road_id_brackets[]=2'
+    )
     request = make_mocked_request('GET', query)
     request._match_info = {}
     resp = await r.handler(request)
@@ -117,6 +152,9 @@ async def test_route():
     assert resp.get('road_id_default_csv') == [42], resp
     assert resp.get('road_id_default_brackets') == [12], resp
     assert resp.get('road_id_default_multi') == [24], resp
+    assert resp.get('road_id_style_form') == [1, 2], resp
+    assert resp.get('road_id_style_space') == [1, 2], resp
+    assert resp.get('road_id_style_pipe') == [1, 2], resp
 
 
 async def test_json():
