@@ -1,6 +1,13 @@
 name: Tests
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - 0.9.X
 
 jobs:
   isort-mypy-flake8:
@@ -74,7 +81,7 @@ jobs:
               file: pypy3
               requirements: aiohttp pytest-aiohttp pytest-mock pytest-cov
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python.version }}
       uses: actions/setup-python@v2
       with:
