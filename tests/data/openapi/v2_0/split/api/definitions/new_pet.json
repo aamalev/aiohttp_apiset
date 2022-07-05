@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "definitions/pet.json"
+    },
+    {
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "description": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "avatar": {
+          "$ref": "definitions/avatar_ref.json"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "$ref": "definitions/owner.json"
+          }
+        }
+      }
+    }
+  ]
+}

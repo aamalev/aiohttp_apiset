@@ -1,0 +1,5 @@
+basePath: /users
+paths:
+  /profile:
+    get:
+      operationId: userProfile

@@ -1,0 +1,17 @@
+basePath: /users
+paths:
+  /login:
+    post:
+      operationId: userLogin
+      parameters:
+        - name: login
+          in: formData
+          type: string
+          required: true
+        - name: password
+          in: formData
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Ok

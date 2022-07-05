@@ -1,0 +1,26 @@
+{
+  "allOf": [
+    {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "properties": {
+        "avatar": {
+          "$ref": "definitions/avatar_ref.json"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "components": {
+    "schemas": {
+      "NewPet": {
+        "$ref": "definitions/new_pet.json"
+      },
+      "Pet": {
+        "$ref": "definitions/pet.json"
+      }
+    },
+    "headers": {
+      "RateLimit": {
+        "name": "X-Rate-Limit-Limit",
+        "description": "The number of allowed requests in the current period",
+        "schema": {
+          "type": "integer"
+        }
+      }
+    },
+    "request_bodies": {
+      "Avatar": {
+        "description": "Avatar to upload",
+        "required": true,
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "encoding": {
+              "image": {
+                "contentType": "image/png",
+                "headers": {
+                  "X-Rate-Limit-Limit": {
+                    "$ref": "#/components/headers/RateLimit"
+                  }
+                }
+              }
+            }
+          },
+          "image/png": {
+            "schema": {
+              "type": "string",
+              "contentMediaType": "image/png",
+              "contentEncoding": "base64"
+            }
+          },
+          "*/*": {
+            "schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "encoding": {
+              "image": {
+                "contentType": "image/png"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

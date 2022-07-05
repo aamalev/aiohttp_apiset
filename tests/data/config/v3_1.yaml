@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: API
+  version: 1.0.0
+paths:
+  /:
+    get:
+      operationId: root
+  /greet/{user}:
+    get:
+      $handler: tests.test_config.test_app.greet
+      parameters:
+        - name: user
+          in: path
+          schema:
+            type: string
+          required: true

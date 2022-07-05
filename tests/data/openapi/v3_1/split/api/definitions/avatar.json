@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "file_id": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

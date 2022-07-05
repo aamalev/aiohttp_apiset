@@ -1,0 +1,28 @@
+{
+  "post": {
+    "description": "Sets a new avatar for a single pet",
+    "operationId": "setPetAvatar",
+    "parameters": [
+      {
+        "$ref": "./parameters.json#PetID"
+      },
+      {
+        "name": "image",
+        "in": "formData",
+        "type": "file",
+        "required": true
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "avatar uploaded"
+      },
+      "default": {
+        "description": "unexpected error",
+        "schema": {
+          "$ref": "../common/error.json"
+        }
+      }
+    }
+  }
+}

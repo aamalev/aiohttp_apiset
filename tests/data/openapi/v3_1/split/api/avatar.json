@@ -1,0 +1,35 @@
+{
+  "post": {
+    "operationId": "setPetAvatar",
+    "parameters": [
+      {
+        "$ref": "./parameters.json#PetID"
+      }
+    ],
+    "requestBody": {
+      "$ref": "components.json#components/request_bodies/Avatar"
+    },
+    "responses": {
+      "200": {
+        "description": "pet response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Pet"
+            }
+          }
+        }
+      },
+      "default": {
+        "description": "unexpected error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

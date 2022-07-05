@@ -1,0 +1,7 @@
+swagger: '2.0'
+basePath: '/api'
+info:
+  title: example
+  version: '1.0'
+paths:
+  /: 1

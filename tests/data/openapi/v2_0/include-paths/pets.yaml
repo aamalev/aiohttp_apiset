@@ -1,0 +1,7 @@
+paths:
+  /:
+    get:
+      operationId: getPets
+      responses:
+        '200':
+          description: OK
