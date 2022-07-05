@@ -1,6 +1,8 @@
 import re
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
+
 
 try:
     import swagger_ui
@@ -31,16 +33,18 @@ def get_version():
 
 
 install_requires = [
-    'aiohttp>=2,<4',
-    'pyyaml',
+    'aiohttp',
     'jsonschema',
+    'multidict',
+    'pydantic',
+    'PyYAML',
 ]
 
 tests_require = [
     'pytest',
     'pytest-aiohttp',
-    'pytest-mock',
     'pytest-cov',
+    'pytest-mock',
     'aiohttp-jinja2',
 ]
 
@@ -55,19 +59,18 @@ setup(
         'Intended Audience :: Developers',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-        'Topic :: Internet :: WWW/HTTP'],
+        'Topic :: Internet :: WWW/HTTP'
+    ],
     author='Alexander Malev',
     author_email='malev@somedev.ru',
     url='https://github.com/aamalev/aiohttp_apiset/',
     license='Apache 2',
     packages=[i for i in find_packages() if i.startswith('aiohttp_apiset')],
-    python_requires='>=3.5.3',
+    python_requires='>=3.7.0',
     install_requires=install_requires,
     tests_require=tests_require,
     include_package_data=True,
