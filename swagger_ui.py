@@ -4,12 +4,13 @@
 Author: Alexander Malev
 """
 
-import urllib.request
-import tempfile
-import zipfile
-import shutil
 import os
+import shutil
 import sys
+import tempfile
+import urllib.request
+import zipfile
+
 
 VERSION = os.environ.get('SWAGGER_UI_VERSION', '2.2.10')
 PACKAGE = os.environ.get('PACKAGE', 'aiohttp_apiset')
@@ -58,10 +59,25 @@ def setup_ui(version=VERSION):
     if not os.path.exists(template_dir):
         os.makedirs(template_dir)
 
+    initializer_path = os.path.join(static_dir, 'swagger-initializer.js')
+    if os.path.isfile(initializer_path):
+        with open(initializer_path) as source:
+            init_script = source.read()
+    else:
+        init_script = None
+
     with open(os.path.join(static_dir, 'index.html'), 'rt') as source:
         s = source.read()
+
+    if init_script is not None:
+        s = s.replace(
+            '<script src="./swagger-initializer.js" charset="UTF-8"> </script>',
+            '<script type="text/javascript">' + init_script + '</script>'
+        )
+
     for target, source in REPLACE_STRINGS:
         s = s.replace(target, source)
+
     with open(template_ui, 'wt') as f:
         f.write(s)
 
