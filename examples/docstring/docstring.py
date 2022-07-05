@@ -1,8 +1,11 @@
 from pathlib import Path
 
 from aiohttp import web
-from aiohttp_apiset import SwaggerRouter
+
+from aiohttp_apiset import Config, setup
 from aiohttp_apiset.middlewares import jsonify
+from aiohttp_apiset.openapi.loader.v2_0 import Loader
+from aiohttp_apiset.validator import ValidationError
 
 
 BASE = Path(__file__).parent
@@ -11,7 +14,7 @@ BASE = Path(__file__).parent
 DB = {}
 
 
-def set_document(request, doc_id, body, errors):
+async def set_document(request, doc_id, body):
     """ Simple handler for set document
     ---
     tags: [documents]
@@ -36,6 +39,8 @@ def set_document(request, doc_id, body, errors):
       400:
         description: Validation error
     """
+    errors = ValidationError()
+
     if doc_id in DB:
         errors['doc_id'].add('Document already exists')
 
@@ -50,16 +55,11 @@ def set_document(request, doc_id, body, errors):
 
 
 def main():
-    router = SwaggerRouter(
-        swagger_ui='/swagger/',
-    )
-    router.add_post('/doc/{doc_id:\d+}', handler=set_document)
-
-    app = web.Application(
-        router=router,
-        middlewares=[jsonify],
-    )
-
+    loader = Loader.default()
+    config = Config(loader, ui_path='/swagger/', ui_version=3)
+    config.add_operation('POST', r'/doc/{doc_id:\d+}', set_document)
+    app = web.Application(middlewares=[jsonify()])
+    setup(config, app)
     # is now available in the swagger-ui to the address http://localhost:8080/swagger/
     web.run_app(app)
 

@@ -1,6 +1,7 @@
-swagger: '2.0'
+openapi: 3.0.0
 
-basePath: /api
+servers:
+  - url: /api
 
 info:
   title: API
@@ -16,26 +17,30 @@ paths:
       parameters:
         - name: doc_id
           in: path
-          type: integer
-          minimum: 0
-        - name: body
-          in: body
+          required: true
           schema:
-            $ref: 'swagger.yaml#/definitions/Document'
+            type: integer
+            minimum: 0
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: 'swagger.yaml#/components/schemas/Document'
       responses:
         200:
           description: OK
         400:
           description: validation error
 
-definitions:
-  Document:
-    type: object
-    additionalProperties: false
-    properties:
-      doc_id:
-        type: string
-      text:
-        type: string
-    required:
-      - text
+components:
+  schemas:
+    Document:
+      type: object
+      additionalProperties: false
+      properties:
+        doc_id:
+          type: string
+        text:
+          type: string
+      required:
+        - text
