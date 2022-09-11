@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from functools import partial
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from ... import schema as target_schema
 from ...utils import remove_patterns
@@ -65,7 +66,7 @@ class Converter:
         )
 
     def _convert_operations(self, path_item: source_schema.PathItem) -> target_schema.Operations:
-        base_parameters, base_payload = self._convert_parameters(path_item.parameters)
+        convert_base_parameters = partial(self._convert_parameters, path_item.parameters)
 
         result = []
         for method, operation in [
@@ -79,7 +80,8 @@ class Converter:
         ]:
             if operation is None:
                 continue
-            parameters, payload = self._convert_parameters(operation.parameters)
+            base_parameters, base_payload = convert_base_parameters(operation.consumes)
+            parameters, payload = self._convert_parameters(operation.parameters, operation.consumes)
             parameters = self._combine_parameters(base_parameters, parameters)
             payload = self._choose_payload(base_payload, payload)
             result.append(target_schema.Operation(
@@ -116,7 +118,8 @@ class Converter:
 
     def _convert_parameters(
         self,
-        items: Optional[List[Union[source_schema.Ref, source_schema.Parameter]]]
+        items: Optional[List[Union[source_schema.Ref, source_schema.Parameter]]],
+        consumes: Optional[Set[str]]
     ) -> Tuple[target_schema.Parameters, Optional[target_schema.Payload]]:
         if items is None:
             return [], None
@@ -133,7 +136,7 @@ class Converter:
                 common_parameters.append(item)
 
         parameters = self._convert_common_parameters(common_parameters)
-        payload = self._convert_payload_parameters(payload_parameters)
+        payload = self._convert_payload_parameters(payload_parameters, consumes)
 
         return parameters, payload
 
@@ -167,46 +170,48 @@ class Converter:
             data=self._convert_parameter_to_schema(parameter)
         )
 
-    def _convert_payload_parameters(self, parameters: List[source_schema.Parameter]) -> Optional[target_schema.Payload]:
-        TYPE_MULTIPART = target_schema.MediaContentType.multipart
-        TYPE_URLENCODED = target_schema.MediaContentType.urlencoded
-        TYPE_JSON = target_schema.MediaContentType.json
+    def _convert_payload_parameters(
+        self,
+        parameters: List[source_schema.Parameter],
+        consumes: Optional[Set[str]]
+    ) -> Optional[target_schema.Payload]:
+        FORM_MULTIPART = target_schema.MediaContentType.multipart
+        FORM_URLENCODED = target_schema.MediaContentType.urlencoded
 
         ParametersMap = Dict[target_schema.MediaContentType, List[source_schema.Parameter]]
 
-        parameters_map: ParametersMap = defaultdict(list)
+        form_parameters: ParametersMap = defaultdict(list)
+        object_parameters: List[source_schema.Parameter] = []
         is_required = False
 
         for item in parameters:
             if item.in_ == source_schema.ParameterLocation.form_data:
                 if item.type_ == source_schema.ParameterType.file:
-                    parameters_map[TYPE_MULTIPART].append(item)
+                    form_parameters[FORM_MULTIPART].append(item)
                 else:
-                    parameters_map[TYPE_URLENCODED].append(item)
+                    form_parameters[FORM_URLENCODED].append(item)
             else:
-                parameters_map[TYPE_JSON].append(item)
+                assert item.in_ == source_schema.ParameterLocation.body
+                object_parameters.append(item)
             if item.required is not None:
                 is_required = is_required or item.required
 
-        if TYPE_MULTIPART in parameters_map:
-            parameters_map[TYPE_MULTIPART].extend(parameters_map.pop(TYPE_URLENCODED, []))
+        if FORM_MULTIPART in form_parameters:
+            form_parameters[FORM_MULTIPART].extend(form_parameters.pop(FORM_URLENCODED, []))
 
         media_types: target_schema.MediaTypes = []
 
-        multipart_parameters = parameters_map.pop(TYPE_MULTIPART, [])
-        multipart_body = self._convert_payload_form_body(TYPE_MULTIPART, multipart_parameters)
+        multipart_parameters = form_parameters.pop(FORM_MULTIPART, [])
+        multipart_body = self._convert_payload_form_body(FORM_MULTIPART, multipart_parameters)
         if multipart_body is not None:
             media_types.append(multipart_body)
 
-        urlencoded_parameters = parameters_map.pop(TYPE_URLENCODED, [])
-        urlencoded_body = self._convert_payload_form_body(TYPE_URLENCODED, urlencoded_parameters)
+        urlencoded_parameters = form_parameters.pop(FORM_URLENCODED, [])
+        urlencoded_body = self._convert_payload_form_body(FORM_URLENCODED, urlencoded_parameters)
         if urlencoded_body is not None:
             media_types.append(urlencoded_body)
 
-        json_parameters = parameters_map.pop(TYPE_JSON, [])
-        json_body = self._convert_payload_json_body(json_parameters)
-        if json_body is not None:
-            media_types.append(json_body)
+        media_types.extend(self._convert_payload_object_body(object_parameters, consumes))
 
         if media_types:
             return target_schema.Payload(
@@ -255,21 +260,39 @@ class Converter:
             encodings=encodings
         )
 
-    def _convert_payload_json_body(self, items: List[source_schema.Parameter]) -> Optional[target_schema.MediaType]:
+    def _convert_payload_object_body(
+        self,
+        items: List[source_schema.Parameter],
+        consumes: Optional[Set[str]]
+    ) -> List[target_schema.MediaType]:
         if not items:
-            return None
+            return []
 
         if len(items) > 1:
             raise ValueError('There can be one payload at most')
 
         parameter = items[0]
+        schema = self._convert_parameter_to_schema(parameter)
 
-        return target_schema.MediaType(
-            name=parameter.name,
-            content_type=target_schema.MediaContentType.json,
-            data=self._convert_parameter_to_schema(parameter),
-            encodings=[]
-        )
+        if consumes:
+            content_types = consumes - {
+                target_schema.MediaContentType.multipart.value,
+                target_schema.MediaContentType.urlencoded.value
+            }
+        else:
+            content_types = set()
+        if not content_types:
+            content_types.add(target_schema.MediaContentType.json)
+
+        return [
+            target_schema.MediaType(
+                name=parameter.name,
+                content_type=content_type,
+                data=schema,
+                encodings=[]
+            )
+            for content_type in content_types
+        ]
 
     def _convert_parameter_to_schema(self, parameter: source_schema.Parameter) -> target_schema.Schema:
         if parameter.schema_:

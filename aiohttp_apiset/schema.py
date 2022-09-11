@@ -305,9 +305,11 @@ Encodings = List[Encoding]
 
 
 class MediaContentType(str, Enum):
+    any_ = '*/*'
     binary = 'application/octet-stream'
     json = 'application/json'
     multipart = 'multipart/form-data'
+    text = 'text/plain'
     urlencoded = 'application/x-www-form-urlencoded'
 
 

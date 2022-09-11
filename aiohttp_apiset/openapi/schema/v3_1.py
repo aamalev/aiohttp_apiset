@@ -236,7 +236,6 @@ class Response(Model):
     links: Optional[Dict[str, Union[Reference, Link]]]
 
 
-
 class SecuritySchemeType(str, Enum):
     api_key = 'apiKey'
     http = 'http'
