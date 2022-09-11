@@ -137,4 +137,4 @@ async def test_extract_payload(aiohttp_client):
     rep = await client.post('/', data=b'', headers={'Content-Type': 'text/plain'})
     assert rep.status == 200, (await rep.text())
     data = await rep.json()
-    assert data == {'payload': ['Unsupported content type']}
+    assert data == {'payload': ['Unsupported content type: text/plain']}

@@ -1,0 +1,145 @@
+openapi: 3.0.1
+info:
+  title: API
+  version: 1.0.0
+paths:
+  /any:
+    post:
+      operationId: any
+      requestBody:
+        content:
+          '*/*': {}
+  /any-binary:
+    post:
+      operationId: any_binary
+      requestBody:
+        content:
+          'application/octet-stream': {}
+  /binary-string:
+    post:
+      operationId: binary_string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+  /json:
+    post:
+      operationId: json
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+              required:
+                - key
+  /images:
+    post:
+      operationId: images
+      requestBody:
+        content:
+          'image/png': {}
+          'image/jpeg': {}
+          'image/gif': {}
+  /string-array:
+    post:
+      operationId: string_array
+      requestBody:
+        content:
+          'text/plain':
+            schema:
+              type: array
+              items:
+                type: string
+  /multipart:
+    post:
+      operationId: multipart
+      requestBody:
+        content:
+          'multipart/form-data':
+            schema:
+              type: object
+              properties:
+                object_id:
+                  type: string
+                  format: uuid
+                country_id:
+                  type: integer
+                city_id:
+                  type: array
+                  items:
+                    type: integer
+                address:
+                  # default Content-Type for objects is `application/json`
+                  type: object
+                  properties:
+                    city:
+                      type: string
+                profile_image: {}
+                cover_image:
+                  # Content-Type for application-level encoded resource is `text/plain`
+                  type: string
+                  contentMediaType: image/png
+                  contentEncoding: base64
+                photo:
+                  type: string
+                  format: binary
+                additional_photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                children:
+                  # default Content-Type for arrays is based on the _inner_ type (`text/plain` here)
+                  type: array
+                  items:
+                    type: string
+                addresses:
+                  # default Content-Type for arrays is based on the _inner_ type (object shown, so `application/json` in this example)
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      city:
+                        type: string
+                history_metadata:
+                  # need to declare XML format!
+                  description: metadata in XML format
+                  type: object
+                  properties: {}
+              required:
+                - country_id
+            encoding:
+              history_metadata:
+                # require XML Content-Type in utf-8 encoding
+                contentType: application/xml; charset=utf-8
+              profile_image:
+                # only accept png/jpeg
+                contentType: image/png, image/jpeg
+                headers:
+                  X-Rate-Limit-Limit:
+                    description: The number of allowed requests in the current period
+                    schema:
+                      type: integer
+  /urlencoded:
+    post:
+      operationId: urlencoded
+      requestBody:
+        content:
+          'application/x-www-form-urlencoded':
+            schema:
+              type: object
+              properties:
+                object_id:
+                  type: string
+                  format: uuid
+                address:
+                  # complex types are stringified to support RFC 1866
+                  type: object
+                  properties:
+                    city:
+                      type: string

@@ -1,4 +1,4 @@
-# Can not convert a list of schemas
+# Can not convert a list of objects
 swagger: '2.0'
 basePath: '/api'
 info:
