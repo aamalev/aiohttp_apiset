@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: '3.1.0'
 
 servers:
   - url: /api
@@ -6,7 +6,7 @@ servers:
 info:
   title: API
   description: API
-  version: 1.0.0
+  version: '1.0.0'
 
 paths:
   /doc/{doc_id:\d+}:
