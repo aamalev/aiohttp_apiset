@@ -106,3 +106,30 @@ async def handler_without_doc_comment():
 async def handler_without_spec():
     """
     """
+
+
+async def goodbye(user):
+    """
+    ---
+    parameters: [{name: user, in: path, type: string, required: true}]
+    responses:
+        200:
+            description: OK
+    """
+    return web.json_response({'msg': 'Goodbye, {}!'.format(user)})
+
+
+async def test_add_operation_for_str_handler(aiohttp_client):
+    loader = LoaderV2()
+    loader.add_directory(DATA_ROOT)
+    loader.load('v2_0.yaml')
+    config = Config(loader)
+    config.add_operation('GET', '/goodbye/{user}', 'tests.test_config.test_app.goodbye')
+    app = web.Application()
+    config.setup(app)
+    client = await aiohttp_client(app)
+
+    rep = await client.get('/goodbye/user')
+    assert rep.status == 200, await rep.text()
+    data = await rep.json()
+    assert data['msg'] == 'Goodbye, user!'

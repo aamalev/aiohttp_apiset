@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple, Union
 
 from aiohttp import web
 
@@ -8,7 +8,7 @@ from ..openapi.loader.base import BaseLoader
 from ..parameters.extractor import ParametersExtractor
 from ..parameters.payload import PayloadReader
 from ..schema import OpenAPI, Operation, Path
-from ..utils import load_docstring_yaml, normalize_url
+from ..utils import import_obj, load_docstring_yaml, normalize_url
 from .operation import OperationIdMapping
 
 
@@ -73,7 +73,7 @@ class Config:
     def route_base_path(self) -> str:
         return self._route_base_path or self._specification.base_path
 
-    def add_operation(self, method: str, path: str, handler: Callable):
+    def add_operation(self, method: str, path: str, handler: Union[str, Callable]):
         """
         Adds an operation to OpenAPI specification
 
@@ -85,16 +85,22 @@ class Config:
         :param path: Path of the operation
         :param handler: Operation handler
         """
-        doc_comment = getattr(handler, '__doc__', None)
+        if isinstance(handler, str):
+            handler_obj = import_obj(handler)
+            default_operation_id = handler
+        else:
+            default_operation_id = (handler.__module__ + handler.__name__)
+            handler_obj = handler
+        default_operation_id = default_operation_id.replace('.', '__')
+        doc_comment = getattr(handler_obj, '__doc__', None)
         if doc_comment is None:
             raise ValueError('A handler has no doc comment')
         operation_data = load_docstring_yaml(doc_comment)
         if not operation_data:
             raise ValueError('A handler doc comment has no operation data')
-        default_operation_id = (handler.__module__ + handler.__name__).replace('.', '__')
         operation_data.setdefault('operation_id', default_operation_id)
         operation = self.loader.add_operation(path, method, operation_data)
-        self.operation_id_mapping.add({operation.operation_id: handler})
+        self.operation_id_mapping.add({operation.operation_id: handler_obj})
 
     def setup(self, app: web.Application, app_key: str = APP_CONFIG_KEY):
         """
