@@ -4,7 +4,7 @@ import pytest
 import yaml
 from aiohttp import web
 
-from aiohttp_apiset.config.app import Config
+from aiohttp_apiset.config.app import Config, UIType
 from aiohttp_apiset.openapi.loader.v3_1 import Loader
 from aiohttp_apiset.ui import (
     ROUTE_SPEC_ANY,
@@ -19,12 +19,13 @@ from aiohttp_apiset.ui import (
 DATA_ROOT = Path(__file__).parent / 'data' / 'ui'
 
 
+@pytest.mark.parametrize('ui_type', [UIType.swagger_ui, UIType.redoc])
 @pytest.mark.parametrize('ui_spec_url', ['/custom-spec-url', None])
-async def test_handler(aiohttp_client, ui_spec_url):
+async def test_handler(aiohttp_client, ui_type, ui_spec_url):
     loader = Loader()
     loader.add_directory(DATA_ROOT)
     loader.load('v3_1.yaml')
-    config = Config(loader, ui_spec_url=ui_spec_url, ui_version=3)
+    config = Config(loader, ui_spec_url=ui_spec_url, ui_type=ui_type, ui_version=3)
     handler = Handler(config)
     app = web.Application()
     handler.setup(app.router)
@@ -41,7 +42,6 @@ async def test_handler(aiohttp_client, ui_spec_url):
     data = await rep.text()
     if ui_spec_url is None:
         assert 'apidoc/swagger.yml' in data
-        assert 'url: "https:' in data
     else:
         assert ui_spec_url in data
 

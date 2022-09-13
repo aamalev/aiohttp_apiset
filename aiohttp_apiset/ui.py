@@ -4,34 +4,44 @@ from typing import Optional
 
 from aiohttp import hdrs, web
 
-from .config.app import Config
+from .config.app import Config, UIType
 from .decorators import operation
 from .openapi.loader.base import ExportFormat
 from .schema import Parameter
 
 
-ROUTE_SPEC_DEFAULT = 'swagger:spec'
-ROUTE_SPEC_YAML = 'swagger:spec:yaml'
-ROUTE_SPEC_JSON = 'swagger:spec:json'
-ROUTE_SPEC_ANY = 'swagger:spec:any'
-ROUTE_UI = 'swagger:ui'
-ROUTE_UI_STATIC = 'swagger:ui:static'
+ROUTE_SPEC_DEFAULT = 'aiohttp_apiset:spec'
+ROUTE_SPEC_YAML = 'aiohttp_apiset:spec:yaml'
+ROUTE_SPEC_JSON = 'aiohttp_apiset:spec:json'
+ROUTE_SPEC_ANY = 'aiohttp_apiset:spec:any'
+ROUTE_UI = 'aiohttp_apiset:ui'
+ROUTE_UI_STATIC = 'aiohttp_apiset:ui:static'
 
 DIR_ROOT = Path(__file__).parent
 DIR_STATIC = DIR_ROOT / 'static'
-DIR_STATIC_UI = DIR_STATIC / 'swagger-ui'
+DIR_STATIC_UI = {
+    UIType.swagger_ui: DIR_STATIC / 'swagger-ui',
+    UIType.redoc: DIR_STATIC / 'redoc'
+
+}
 DIR_TEMPLATES = DIR_ROOT / 'templates'
-TEMPLATE_PATHS = {
+TEMPLATES_SWAGGER_UI = {
     2: DIR_TEMPLATES / 'swagger-ui' / '2' / 'index.html',
     3: DIR_TEMPLATES / 'swagger-ui' / '3' / 'index.html',
     4: DIR_TEMPLATES / 'swagger-ui' / '4' / 'index.html',
 }
+TEMPLATE_REDOC = DIR_TEMPLATES / 'redoc' / 'index.html'
 
 
 @lru_cache()
-def _get_template(version: int) -> str:
-    with TEMPLATE_PATHS[version].open() as f:
-        return f.read()
+def _get_template(ui_type: UIType, version: int) -> str:
+    if ui_type == UIType.swagger_ui:
+        with TEMPLATES_SWAGGER_UI[version].open() as f:
+            return f.read()
+    else:
+        assert ui_type == UIType.redoc
+        with TEMPLATE_REDOC.open() as f:
+            return f.read()
 
 
 class Handler:
@@ -56,8 +66,8 @@ class Handler:
         router.add_get(path + 'swagger.json', get_spec_handler, name=ROUTE_SPEC_JSON)
         router.add_get(path + r'{filename:.*\.(json|yaml|yml)}', get_spec_handler, name=ROUTE_SPEC_ANY)
         router.add_get(path, get_ui_handler, name=ROUTE_UI)
-        router.add_static(path, DIR_STATIC_UI, name=ROUTE_UI_STATIC)
-        _get_template(self.config.ui_version)  # warm up
+        router.add_static(path, DIR_STATIC_UI[self.config.ui_type], name=ROUTE_UI_STATIC)
+        _get_template(self.config.ui_type, self.config.ui_version)  # warm up
 
     def _get_specification_url(self, request: web.Request) -> str:
         default_url = self.config.ui_spec_url
@@ -74,8 +84,10 @@ class Handler:
     def _render_ui_template(self, spec_url: str, ui_version: Optional[int] = None) -> str:
         if ui_version is None:
             ui_version = self.config.ui_version
-        template = _get_template(ui_version)
-        static_prefix = self.config.ui_path + str(ui_version) + '/'
+        template = _get_template(self.config.ui_type, ui_version)
+        static_prefix = self.config.ui_path
+        if self.config.ui_type == UIType.swagger_ui:
+            static_prefix += str(ui_version) + '/'
         template = template.replace('{{url}}', spec_url)
         return template.replace('{{static_prefix}}', static_prefix)
 

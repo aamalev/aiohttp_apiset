@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Callable, Optional, Tuple, Union
 
 from aiohttp import web
@@ -15,6 +16,11 @@ from .operation import OperationIdMapping
 APP_CONFIG_KEY = 'aiohttp_apiset:swagger:config'
 
 
+class UIType(str, Enum):
+    swagger_ui = 'swagger_ui'
+    redoc = 'redoc'
+
+
 class Config:
     """
     Allows to setup application routes using OpenAPI specification config
@@ -25,7 +31,8 @@ class Config:
     :param route_base_path: A base path override for routes
     :param ui_path: Path to Swagger-UI
     :param ui_spec_url: Default URL of the base specification file
-    :param ui_version: Version of Swagger UI: 2, 3, 4
+    :param ui_type: Type of UI: swagger_ui or redoc
+    :param ui_version: Version of UI (Swagger only): 2, 3, 4
     """
 
     def __init__(
@@ -37,6 +44,7 @@ class Config:
         route_base_path: Optional[str] = None,
         ui_path: str = '/apidoc/',
         ui_spec_url: Optional[str] = None,
+        ui_type: UIType = UIType.swagger_ui,
         ui_version: int = 4,
     ):
         if not ui_path.startswith('/'):
@@ -56,8 +64,9 @@ class Config:
         self.payload_reader = payload_reader
         self.loader = loader
         self.operation_id_mapping = operation_id_mapping
-        self.ui_spec_url = ui_spec_url
         self.ui_path = ui_path
+        self.ui_spec_url = ui_spec_url
+        self.ui_type = ui_type
         self.ui_version = ui_version
 
         self._route_base_path = route_base_path
