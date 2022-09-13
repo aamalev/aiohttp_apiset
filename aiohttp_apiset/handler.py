@@ -1,7 +1,7 @@
 import functools
 import importlib
 import inspect
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from aiohttp import web
 from aiohttp.abc import AbstractView
@@ -12,7 +12,7 @@ from .utils import get_unbound_method_class, split_fqn
 
 def create_handler(handler: Any, parameters_extractor: ParametersExtractor) -> Callable:
     view_cls, handler = _process_handler(handler)
-    handler_parameters, handler_has_kwargs = _process_signature(handler)
+    handler_signature = inspect.signature(handler)
 
     async def _init_view(request: web.Request) -> Optional[Any]:
         if view_cls is None:
@@ -24,36 +24,21 @@ def create_handler(handler: Any, parameters_extractor: ParametersExtractor) -> C
             view.request = request
         return view
 
-    def _bind_parameters(items: Dict[str, Any]) -> Dict[str, Any]:
-        if handler_has_kwargs:
-            a, b = items, items
-        else:
-            a, b = {}, items
-        for k, v in handler_parameters.items():
-            if k in a:
-                continue
-            elif k in b:
-                a[k] = b[k]
-            elif v.default == v.empty:
-                a[k] = None
-        return a
-
     @functools.wraps(handler)
     async def wrapper(request: web.Request) -> Any:
         parameters = await parameters_extractor.extract(request)
         request.update(parameters)
 
-        if 'request' in handler_parameters:
+        if 'request' in handler_signature.parameters:
             parameters['request'] = request
 
-        args = []
+        args, kwargs = _bind_parameters(handler_signature, parameters)
+
         view = await _init_view(request)
         if view is not None:
-            args.append(view)
+            args.insert(0, view)
 
-        parameters = _bind_parameters(parameters)
-
-        return await handler(*args, **parameters)
+        return await handler(*args, **kwargs)
 
     return wrapper
 
@@ -82,18 +67,36 @@ def _process_handler(handler):
     return view_cls, handler
 
 
-def _process_signature(handler):
-    signature = inspect.signature(handler)
-    has_kwargs = False
-    result = {}
-    for k, v in signature.parameters.items():
-        if v.name == 'self':
+def _bind_parameters(signature, data):
+    args = []
+    kwargs = {}
+    has_var_positional = False
+    has_var_keyword = False
+
+    for parameter_name, parameter in signature.parameters.items():
+        if parameter_name == 'self':
             continue
-        if v.kind == v.VAR_KEYWORD:
-            has_kwargs = True
+
+        if parameter.kind == parameter.VAR_POSITIONAL:
+            has_var_positional = True
             continue
-        result[k] = v
-    return result, has_kwargs
+
+        if parameter.kind == parameter.VAR_KEYWORD:
+            has_var_keyword = True
+            continue
+
+        parameter_value = data.pop(parameter_name, None)
+        if parameter.kind == parameter.POSITIONAL_ONLY or parameter.kind == parameter.POSITIONAL_OR_KEYWORD:
+            args.append(parameter_value)
+        elif parameter.kind == parameter.KEYWORD_ONLY:
+            kwargs[parameter_name] = parameter_value
+
+    if has_var_keyword:
+        kwargs.update(data)
+    elif has_var_positional and data:
+        args.extend(data.values())
+
+    return args, kwargs
 
 
 def _assert_async_handler(handler):

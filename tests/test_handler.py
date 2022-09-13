@@ -37,8 +37,20 @@ async def handler(request, **kwargs):
     return web.json_response({'handler_name': 'handler', 'kwargs': kwargs})
 
 
+async def handler_with_var_positional(*args):
+    return web.json_response({'handler_name': 'hwvp', 'args': args})
+
+
 async def handler_without_request(limit=None):
-    return web.json_response({'handler_name': 'handler_without_request', 'limit': limit})
+    return web.json_response({'handler_name': 'hwr', 'limit': limit})
+
+
+async def handler_without_request_with_var_positional(*args):
+    return web.json_response({'handler_name': 'hwrwvp', 'args': args})
+
+
+async def handler_with_kw_only(*, limit):
+    return web.json_response({'handler_name': 'hwko', 'limit': limit})
 
 
 def sync_handler(request):
@@ -66,7 +78,10 @@ async def test_handler(aiohttp_client):
     app.router.add_view('/cv', create_handler('tests.test_handler.CustomView.handle', extractor))
     app.router.add_view('/iv', create_handler('tests.test_handler.InitView.handle', extractor))
     app.router.add_get('/h', create_handler(handler, extractor))
+    app.router.add_get('/hwvp', create_handler(handler_with_var_positional, extractor))
     app.router.add_view('/hwr', create_handler('tests.test_handler.handler_without_request', extractor))
+    app.router.add_view('/hwrwvp', create_handler(handler_without_request_with_var_positional, extractor))
+    app.router.add_view('/hwko', create_handler(handler_with_kw_only, extractor))
 
     with pytest.raises(TypeError, match='Handler must be async'):
         create_handler(sync_handler, extractor)
@@ -87,5 +102,11 @@ async def test_handler(aiohttp_client):
     await assert_rep('/iv', {'handler_name': 'InitView.handle', 'limit': None})
     await assert_rep('/h', {'handler_name': 'handler', 'kwargs': {}})
     await assert_rep('/h', {'handler_name': 'handler', 'kwargs': {'limit': 1}}, params={'limit': 1})
-    await assert_rep('/hwr', {'handler_name': 'handler_without_request', 'limit': None})
-    await assert_rep('/hwr', {'handler_name': 'handler_without_request', 'limit': 1}, params={'limit': 1})
+    await assert_rep('/hwvp', {'handler_name': 'hwvp', 'args': []})
+    await assert_rep('/hwvp', {'handler_name': 'hwvp', 'args': [1]}, params={'limit': 1})
+    await assert_rep('/hwr', {'handler_name': 'hwr', 'limit': None})
+    await assert_rep('/hwr', {'handler_name': 'hwr', 'limit': 1}, params={'limit': 1})
+    await assert_rep('/hwrwvp', {'handler_name': 'hwrwvp', 'args': []})
+    await assert_rep('/hwrwvp', {'handler_name': 'hwrwvp', 'args': [1]}, params={'limit': 1})
+    await assert_rep('/hwko', {'handler_name': 'hwko', 'limit': None})
+    await assert_rep('/hwko', {'handler_name': 'hwko', 'limit': 1}, params={'limit': 1})
