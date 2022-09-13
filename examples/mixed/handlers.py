@@ -1,8 +1,7 @@
-
 DB = {}
 
 
-def set_document(request, doc_id, body, errors):
+async def set_document(request, doc_id, body, errors):
     """ Simple handler for set document
     ---
     tags: [documents]

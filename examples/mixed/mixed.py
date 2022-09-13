@@ -8,7 +8,8 @@ from aiohttp_apiset.openapi.loader.v2_0 import Loader
 
 
 BASE = Path(__file__).parent
-loader = Loader(BASE)
+loader = Loader()
+loader.add_directory(BASE)
 loader.load('swagger.yaml')
 config = Config(
     loader=loader,
