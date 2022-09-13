@@ -3,6 +3,7 @@ from pathlib import Path
 from aiohttp import hdrs, web
 
 from aiohttp_apiset import Config, setup
+from aiohttp_apiset.config.app import UIType
 from aiohttp_apiset.config.operation import OperationIdMapping
 from aiohttp_apiset.middlewares import CorsConfig, cors, jsonify
 from aiohttp_apiset.openapi.loader.v3_1 import Loader
@@ -51,6 +52,7 @@ def main():
         loader=loader,
         operation_id_mapping=opmap,
         ui_path='/swagger/',
+        ui_type=UIType.redoc,
         ui_version=4
     )
     app = web.Application(middlewares=[
