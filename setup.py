@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup  # type: ignore
 
 
 try:
@@ -12,7 +12,7 @@ else:
     if not Path(swagger_ui.STATIC_DIR).exists():
         swagger_ui.setup_ui('2.2.10')
         swagger_ui.setup_ui('3.52.5')
-        swagger_ui.setup_ui('4.10.3')
+        swagger_ui.setup_ui('4.14.0')
 
 
 def read(f):
