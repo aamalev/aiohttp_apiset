@@ -35,7 +35,7 @@ class Payload:
         try:
             assert data == self.expected_data
         except AssertionError:  # pragma: no cover
-            print(repr(self))
+            print(repr(self))  # noqa
             raise
 
 
