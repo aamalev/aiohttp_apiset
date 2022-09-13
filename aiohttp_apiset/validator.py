@@ -1,7 +1,6 @@
 from types import GeneratorType
 from typing import Any
 
-from jsonschema import draft202012_format_checker
 from jsonschema.validators import Draft202012Validator
 
 from .errors import Errors
@@ -19,7 +18,7 @@ class WithMessages(BaseException):
 
 class Validator:
     check_schema = True
-    format_checker = draft202012_format_checker
+    format_checker = Draft202012Validator.FORMAT_CHECKER
 
     @classmethod
     def factory(cls, *args, **kwargs):
