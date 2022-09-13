@@ -17,17 +17,17 @@ aiohttp-apiset
 .. image:: https://img.shields.io/pypi/pyversions/aiohttp_apiset.svg
   :target: https://pypi.python.org/pypi/aiohttp_apiset
 
-Package to build routes and validate request using swagger specification 2.0.
+Package to build routes and validate request using Swagger 2.0/OpenAPI 3.1.
 
 Features
 --------
 
-- Building of the routing from specification swagger
-- Using inclusions other specifications with concatenate url
-- Optional output of the resulting specification and view embed `swagger-ui <https://github.com/swagger-api/swagger-ui>`_
-- Advanced router with TreeResource
-- Extract specify parameters from request and validate with jsonschema
-- Serialize data as response with middleware
+- Building of the routing from OpenAPI specification
+- Include multiple specification files with URL path concatenation
+- Optional output of the resulting specification and view embed `Swagger UI <https://github.com/swagger-api/swagger-ui>`_
+- Extracting specified parameters from request and validating them with jsonschema
+- Serializing response data with middlewares
+- CORS support
 
 Usecase
 -------
@@ -38,7 +38,7 @@ Package aiohttp_apiset allows supports several strategies:
   is made and maintained by another team.
 - The specification in the code. When the fragments of specification
   are placed in the docstrings.
-- Mixed strategy. When routing are located in the specification files
+- Mixed strategy. When routes are located in the specification files
   and operations are described in the docstrings.
 
 Example
@@ -75,21 +75,17 @@ Example
 
 
   def main():
-      router = SwaggerRouter(
-          swagger_ui='/swagger/',
-          version_ui=2,
-      )
-      router.add_get('/pets/{pet_id}', handler=handler)
-
-      app = web.Application(
-          router=router,
-          middlewares=[jsonify],
-      )
-
+      loader = Loader.default()
+      config = Config(loader, ui_path='/swagger/', ui_version=3)
+      config.add_operation('GET', r'/pets/{pet_id:\d+}', handler)
+      app = web.Application(middlewares=[jsonify()])
+      setup(config, app)
       web.run_app(app)
 
-Is now available in the swagger-ui to the address http://localhost:8080/swagger/.
-Available both branch swagger-ui. For use branch 3.x visit http://localhost:8080/swagger/?version=3
+Swagger UI is now available on http://localhost:8080/swagger/.
+Supported Swagger UI versions: 2, 3 and 4.
+To see another UI version visit ```http://localhost:8080/swagger/?version=<version>```
+where ```<version>``` is one of supported versions (2, 3, 4).
 
 
-Examples: `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_
+See `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_ directory for more information.
