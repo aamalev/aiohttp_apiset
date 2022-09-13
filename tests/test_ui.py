@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -19,6 +20,7 @@ from aiohttp_apiset.ui import (
 DATA_ROOT = Path(__file__).parent / 'data' / 'ui'
 
 
+@pytest.mark.skipif(os.environ.get('FAKE_UI') == 'yes', reason='UI is not downloaded')
 @pytest.mark.parametrize('ui_type', [UIType.swagger_ui, UIType.redoc])
 @pytest.mark.parametrize('ui_spec_url', ['/custom-spec-url', None])
 async def test_handler(aiohttp_client, ui_type, ui_spec_url):
