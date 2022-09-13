@@ -1,0 +1,10 @@
+openapi: 3.1.0
+info:
+  title: API
+  version: 1.0.0
+paths:
+  /:
+    - $include: 'users/profile.yaml'
+    - $include: 'users/login.yaml'
+  /pets:
+    $include: 'pets.yaml'

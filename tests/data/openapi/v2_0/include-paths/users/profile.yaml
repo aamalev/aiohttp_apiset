@@ -1,0 +1,10 @@
+basePath: /users
+paths:
+  /profile:
+    get:
+      operationId: getUserProfile
+      security:
+        - UserSecurity: []
+      responses:
+        '200':
+          description: Ok

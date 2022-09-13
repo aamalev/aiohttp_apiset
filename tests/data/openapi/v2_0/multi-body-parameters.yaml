@@ -1,0 +1,33 @@
+# According to specification there can only be one body parameter
+swagger: '2.0'
+basePath: '/api'
+info:
+  title: example
+  version: '1.0'
+paths:
+  /pets:
+    post:
+      description: 'Creates a new pet in the store.'
+      operationId: 'addPet'
+      parameters:
+        - name: pet1
+          in: body
+          description: 'Pet to add to the store'
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+        - name: pet2
+          in: body
+          description: 'Pet to add to the store'
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+      responses:
+        '200':
+          description: OK

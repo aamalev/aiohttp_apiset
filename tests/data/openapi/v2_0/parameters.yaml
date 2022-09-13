@@ -1,0 +1,22 @@
+swagger: '2.0'
+basePath: '/api'
+info:
+  title: example
+  version: '1.0'
+paths:
+  /pets/{pet_id}:
+    get:
+      parameters:
+        - name: q
+          in: query
+          type: string
+        - name: h
+          in: header
+          type: string
+        - name: pet_id
+          in: path
+          type: integer
+          required: true
+      responses:
+        '200':
+          description: OK

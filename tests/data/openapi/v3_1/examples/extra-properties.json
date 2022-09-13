@@ -1,0 +1,22 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Extra properties for aiohttp apiset"
+  },
+  "paths": {
+    "/items": {
+      "$name": "items",
+      "get": {
+        "description": "test",
+        "$handler": "project.package.views.get_list",
+        "$validate": true,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

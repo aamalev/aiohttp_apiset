@@ -1,0 +1,24 @@
+swagger: '2.0'
+basePath: '/api'
+info:
+  title: example
+  version: '1.0'
+paths:
+  /pets:
+    parameters:
+      - name: pet
+        in: body
+        description: 'Pet to add to the store'
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+    post:
+      description: 'Creates a new pet in the store.'
+      operationId: 'addPet'
+      responses:
+        '200':
+          description: OK

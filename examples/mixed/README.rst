@@ -3,9 +3,12 @@ Mixed strategy
 
 Example run:
 
-    python main.py
+    python mixed.py
 
 
-Run with `aioworker-aiohttp==0.3`:
+Run with `aioworkers-aiohttp==0.3`:
 
     aioworkers -c config.yaml --logging debug
+
+
+# TODO: update aioworkers-aiohttp

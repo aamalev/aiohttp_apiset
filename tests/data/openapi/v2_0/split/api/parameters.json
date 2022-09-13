@@ -1,0 +1,10 @@
+{
+  "PetID": {
+    "name": "id",
+    "in": "path",
+    "description": "ID of pet to delete",
+    "required": true,
+    "type": "integer",
+    "format": "int64"
+  }
+}

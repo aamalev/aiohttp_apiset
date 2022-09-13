@@ -1,0 +1,23 @@
+swagger: '2.0'
+basePath: '/'
+info:
+  title: example
+  version: '1.0'
+paths:
+  /:
+    get:
+      operationId: root
+      responses:
+        '200':
+          description: Ok
+  /greet/{user}:
+    get:
+      $handler: tests.test_config.test_app.greet
+      parameters:
+        - name: user
+          in: path
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Ok

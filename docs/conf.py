@@ -19,6 +19,9 @@
 #
 import os
 import sys
+from typing import Any, Dict
+
+
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
@@ -245,7 +248,7 @@ htmlhelp_basename = 'aiohttp_apisetdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements = {
+latex_elements: Dict[str, Any] = {
      # The paper size ('letterpaper' or 'a4paper').
      #
      # 'papersize': 'letterpaper',

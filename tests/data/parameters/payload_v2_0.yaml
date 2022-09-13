@@ -1,0 +1,142 @@
+swagger: '2.0'
+basePath: '/'
+info:
+  title: API
+  version: '1.0'
+paths:
+  /any:
+    post:
+      operationId: any
+      consumes:
+        - '*/*'
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            type: string
+            format: binary
+      responses:
+        200:
+          description: OK
+  /any-binary:
+    post:
+      operationId: any_binary
+      consumes:
+        - application/octet-stream
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            type: string
+            format: binary
+      responses:
+        200:
+          description: OK
+  /json:
+    post:
+      operationId: json
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              key:
+                type: string
+            required:
+              - key
+      responses:
+        200:
+          description: OK
+  /images:
+    post:
+      operationId: images
+      consumes:
+        - image/png
+        - image/jpeg
+        - image/gif
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            type: string
+            format: binary
+      responses:
+        200:
+          description: OK
+  /string-array:
+    post:
+      operationId: string_array
+      consumes:
+        - text/plain
+      parameters:
+        - name: payload
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        200:
+          description: OK
+  /multipart:
+    post:
+      operationId: multipart
+      consumes:
+        - 'multipart/form-data'
+      parameters:
+        - name: object_id
+          in: formData
+          type: string
+          format: uuid
+        - name: city_id
+          in: formData
+          type: integer
+          required: true
+        - name: address
+          in: formData
+          type: string
+        - name: profile_image
+          in: formData
+          type: file
+        - name: cover_image
+          in: formData
+          type: string
+          format: binary
+        - name: photos
+          in: formData
+          type: array
+          items:
+            type: string
+            format: binary
+        - name: children
+          in: formData
+          type: array
+          items:
+            type: string
+      responses:
+        200:
+          description: OK
+  /urlencoded:
+    post:
+      operationId: urlencoded
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: object_id
+          in: formData
+          type: string
+          format: uuid
+        - name: address
+          in: formData
+          type: array
+          items:
+            type: string
+      responses:
+        200:
+          description: OK

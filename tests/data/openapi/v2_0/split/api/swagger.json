@@ -1,0 +1,175 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Swagger Petstore",
+    "description": "A sample API",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "Swagger API Team",
+      "email": "apiteam@swagger.io",
+      "url": "http://swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host": "petstore.swagger.io",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/pets": {
+      "get": {
+        "description": "Returns all pets from the system that the user has access to",
+        "operationId": "findPets",
+        "parameters": [
+          {
+            "$ref": "../common/parameters.json#/tagsParam"
+          },
+          {
+            "$ref": "../common/parameters.json#/limitsParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pet response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "definitions/pet.json"
+              }
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "../common/error.json"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Creates a new pet in the store.",
+        "operationId": "addPet",
+        "parameters": [
+          {
+            "name": "pet",
+            "in": "body",
+            "description": "Pet to add to the store",
+            "required": true,
+            "schema": {
+              "$ref": "definitions/new_pet.json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pet response",
+            "schema": {
+              "$ref": "definitions/pet.json"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "../common/error.json"
+            }
+          }
+        }
+      }
+    },
+    "/pets/{id}": {
+      "get": {
+        "description": "Returns a user based on a single ID",
+        "operationId": "findPet",
+        "parameters": [
+          {
+            "$ref": "parameters.json#PetID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pet response",
+            "schema": {
+              "$ref": "definitions/pet.json"
+            }
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "../common/error.json"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Updates a single pet based on the ID supplied",
+        "operationId": "updatePet",
+        "parameters": [
+          {
+            "$ref": "parameters.json#PetID"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "in": "formData"
+          },
+          {
+            "name": "tag",
+            "type": "string",
+            "in": "formData"
+          },
+          {
+            "name": "description",
+            "type": "integer",
+            "format": "int64",
+            "in": "formData"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "pet updated"
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "../common/error.json"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "Deletes a single pet based on the ID supplied",
+        "operationId": "deletePet",
+        "parameters": [
+          {
+            "$ref": "parameters.json#PetID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "pet deleted"
+          },
+          "default": {
+            "description": "unexpected error",
+            "schema": {
+              "$ref": "../common/error.json"
+            }
+          }
+        }
+      }
+    },
+    "/pets/{id}/avatar": {
+      "$ref": "./avatar.json"
+    }
+  }
+}
