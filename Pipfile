@@ -15,7 +15,7 @@ yarl = "==1.7.2"
 [dev-packages]
 pytest = "==7.0.1"
 pytest-aiohttp = "==0.3.0"
-pytest-cov = "==3.0.0"
+pytest-cov = "==4.0.0"
 pytest-mock = "==3.6.1"
 
 [requires]
