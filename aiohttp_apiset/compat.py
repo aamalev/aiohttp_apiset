@@ -12,6 +12,7 @@ from types import MappingProxyType
 from aiohttp import HttpVersion11, hdrs
 from aiohttp.abc import AbstractMatchInfo, AbstractRouter, AbstractView
 from aiohttp.web_exceptions import HTTPExpectationFailed
+from aiohttp.web_urldispatcher import SystemRoute as OrigSystemRoute
 
 
 HTTP_METHOD_RE = re.compile(r"^[0-9A-Za-z!#\$%&'\*\+\-\.\^_`\|~]+$")
@@ -158,7 +159,7 @@ class UrlMappingMatchInfo(dict, AbstractMatchInfo):  # pragma: no cover
         return "<MatchInfo {}: {}>".format(super().__repr__(), self._route)
 
 
-class SystemRoute(AbstractRoute):  # pragma: no cover
+class SystemRoute(AbstractRoute, OrigSystemRoute):  # pragma: no cover
 
     def __init__(self, http_exception):
         super().__init__(hdrs.METH_ANY, self._handler)
