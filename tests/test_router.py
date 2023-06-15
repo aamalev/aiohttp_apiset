@@ -74,3 +74,9 @@ def test_Path():
     spec = base / 'data/root.yaml'
     router.include(spec)
     assert router._swagger_data
+
+
+def test_add_static():
+    router = SwaggerRouter()
+    a = web.Application(router=router)
+    a.add_routes([web.static("/", Path(__file__).parent)])
