@@ -622,6 +622,8 @@ class TreeUrlDispatcher(CompatRouter, Mapping):
                                content, name=name)
         route.set_info(prefix=prefix, directory=str(path), default=default)
 
+        return route.resource
+
 
 async def form_receiver(request):
     try:
