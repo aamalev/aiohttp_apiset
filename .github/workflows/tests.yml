@@ -11,29 +11,6 @@ on:
       - 0.9.X
 
 jobs:
-  isort-mypy-flake8:
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2.4.0
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.6'
-      - name: Install dependencies
-        run: |
-          pip install -U pip setuptools
-          pip install -U pipenv isort mypy flake8 flake8-print
-      - name: isort
-        run: |
-          isort -c aiohttp_apiset tests
-      - name: flake8
-        run: |
-          flake8 aiohttp_apiset tests
-      - name: mypy
-        run: |
-          mypy aiohttp_apiset tests
-
   tests:
     strategy:
       max-parallel: 7
@@ -50,6 +27,7 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.8'
             coverage: true
+            lint: true
           - os: macOS-latest
             python-version: '3.8'
           - os: windows-latest
