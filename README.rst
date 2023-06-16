@@ -6,6 +6,11 @@ aiohttp-apiset
 
 .. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/aamalev/aiohttp_apiset
+  :alt: Coverage
+
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json
+  :target: https://github.com/charliermarsh/ruff
+  :alt: Code style: ruff
 
 .. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
   :target: https://pypi.python.org/pypi/aiohttp_apiset
@@ -13,6 +18,13 @@ aiohttp-apiset
 .. image:: https://readthedocs.org/projects/aiohttp-apiset/badge/?version=latest
   :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
+
+.. image:: https://img.shields.io/pypi/dm/aiohttp-apiset.svg
+  :target: https://pypi.org/project/aiohttp-apiset
+
+.. image:: https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg
+  :alt: Hatch project
+  :target: https://github.com/pypa/hatch
 
 Package to build routes and validate request using swagger specification 2.0.
 
@@ -90,3 +102,35 @@ Available both branch swagger-ui. For use branch 3.x visit http://localhost:8080
 
 
 Examples: `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_
+
+
+
+Development
+-----------
+
+Check code:
+
+.. code-block:: shell
+
+    hatch run lint:all
+
+
+Format code:
+
+.. code-block:: shell
+
+    hatch run lint:fmt
+
+
+Run tests:
+
+.. code-block:: shell
+
+    hatch run pytest
+
+
+Run tests with coverage:
+
+.. code-block:: shell
+
+    hatch run cov
