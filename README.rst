@@ -19,6 +19,9 @@ aiohttp-apiset
   :target: http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
 
+.. image:: https://img.shields.io/pypi/dm/aiohttp-apiset.svg
+  :target: https://pypi.org/project/aiohttp-apiset
+
 .. image:: https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg
   :alt: Hatch project
   :target: https://github.com/pypa/hatch
