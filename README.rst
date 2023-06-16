@@ -12,6 +12,10 @@ aiohttp-apiset
   :target: https://github.com/charliermarsh/ruff
   :alt: Code style: ruff
 
+.. image:: https://img.shields.io/badge/types-Mypy-blue.svg
+  :target: https://github.com/python/mypy
+  :alt: Code style: Mypy
+
 .. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
   :target: https://pypi.python.org/pypi/aiohttp_apiset
 
