@@ -6,6 +6,11 @@ aiohttp-apiset
 
 .. image:: https://codecov.io/gh/aamalev/aiohttp_apiset/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/aamalev/aiohttp_apiset
+  :alt: Coverage
+
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v0.json
+  :target: https://github.com/charliermarsh/ruff
+  :alt: Code style: ruff
 
 .. image:: https://img.shields.io/pypi/v/aiohttp_apiset.svg
   :target: https://pypi.python.org/pypi/aiohttp_apiset
