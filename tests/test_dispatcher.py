@@ -194,8 +194,8 @@ def test_treeresource():
 
 
 def test_sublocation_notresolved(mocker):
-    l = Location(formatter='')
-    m, allow = l.resolve(mocker.Mock(), '/not', {})
+    location = Location(formatter='')
+    m, allow = location.resolve(mocker.Mock(), '/not', {})
     assert not m
     assert not allow
 
