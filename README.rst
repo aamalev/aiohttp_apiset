@@ -94,3 +94,35 @@ Available both branch swagger-ui. For use branch 3.x visit http://localhost:8080
 
 
 Examples: `examples <https://github.com/aamalev/aiohttp_apiset/tree/master/examples>`_
+
+
+
+Development
+-----------
+
+Check code:
+
+.. code-block:: shell
+
+    hatch run lint:all
+
+
+Format code:
+
+.. code-block:: shell
+
+    hatch run lint:fmt
+
+
+Run tests:
+
+.. code-block:: shell
+
+    hatch run pytest
+
+
+Run tests with coverage:
+
+.. code-block:: shell
+
+    hatch run cov
