@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union  # noqa
 
 from aiohttp import web
 
