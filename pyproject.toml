@@ -75,7 +75,6 @@ include = [
 ]
 
 [tool.hatch.envs.default]
-python = "3.8"
 features = [
     "dev-test",
     "jinja2",
@@ -160,6 +159,7 @@ module = [
 line-length = 79
 
 [tool.hatch.envs.lint]
+python = "3.8"
 features = [
     "dev-lint",
 ]
