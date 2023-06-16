@@ -74,7 +74,7 @@ jobs:
         run: |
           hatch run lint:isort -c aiohttp_apiset tests
       - name: black
-        if: ${{ matrix.lint }}
+        if: ${{ matrix.black }}
         run: |
           hatch run lint:black --check --diff aiohttp_apiset tests
       - name: mypy
