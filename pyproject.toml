@@ -12,17 +12,26 @@ requires-python = ">=3.5.3"
 authors = [
     { name = "Alexander Malev", email = "malev@somedev.ru" },
 ]
+keywords = [
+    "aiohttp",
+    "apiset",
+]
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: AsyncIO",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Internet :: WWW/HTTP",
 ]
 dependencies = [
@@ -30,14 +39,13 @@ dependencies = [
     "jsonschema",
     "pyyaml",
 ]
-
 [project.optional-dependencies]
 jinja2 = [
     "aiohttp-jinja2",
 ]
 dev-test = [
     "pytest",
-    "pytest-aiohttp",
+    "pytest-aiohttp<1",
     "pytest-cov",
     "pytest-mock",
 ]
@@ -54,6 +62,9 @@ dev-lint = [
 
 [project.urls]
 Homepage = "https://github.com/aamalev/aiohttp_apiset/"
+Documentation = "http://aiohttp-apiset.readthedocs.io/en/latest/?badge=latest"
+Issues = "https://github.com/aamalev/aiohttp-apiset/issues"
+Source = "https://github.com/aamalev/aiohttp-apiset"
 
 [tool.hatch.version]
 path = "aiohttp_apiset/__init__.py"
@@ -64,6 +75,7 @@ include = [
 ]
 
 [tool.hatch.envs.default]
+python = "3.8"
 features = [
     "dev-test",
     "jinja2",
@@ -93,6 +105,9 @@ testpaths = [
 addopts = [
     "-vs",
     "--doctest-modules",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
 ]
 
 [tool.coverage.run]
@@ -137,15 +152,14 @@ warn_redundant_casts = true
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
 module = [
-  "pytest",
-  "aiohttp_jinja2",
+    "pytest",
+    "aiohttp_jinja2",
 ]
 
 [tool.ruff]
 line-length = 79
 
 [tool.hatch.envs.lint]
-python = "3.8"
 features = [
     "dev-lint",
 ]
