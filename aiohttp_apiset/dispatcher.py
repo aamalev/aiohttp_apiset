@@ -397,7 +397,7 @@ class LocationsView(Sized, Iterable, Container):
         self._resources = self._append(location, [location])
 
     def _append(self, location: Location, acc):
-        ptrns = (l for p, l in location._patterns)
+        ptrns = (loc for p, loc in location._patterns)
         for i in chain(location._subs.values(), ptrns):
             acc.append(i)
             self._append(i, acc)
@@ -420,7 +420,7 @@ class RoutesView(Sized, Iterable, Container):
         self._routes = self._append(location, [])
 
     def _append(self, location: Location, acc):
-        ptrns = (l for p, l in location._patterns)
+        ptrns = (loc for p, loc in location._patterns)
         for i in chain(location._subs.values(), ptrns):
             acc.extend(i._routes.values())
             self._append(i, acc)
