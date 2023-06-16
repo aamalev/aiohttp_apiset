@@ -33,8 +33,10 @@ jobs:
             python-version: '3.8'
           - os: ubuntu-20.04
             python-version: '3.5'
+            without_hatch: true
           - os: ubuntu-20.04
             python-version: '3.6'
+            without_hatch: true
 
     runs-on: ${{ matrix.os }}
 
@@ -45,6 +47,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
+        if: ${{ !matrix.without_hatch }}
         run: |
           pip install -U hatch
       - name: ruff
@@ -64,6 +67,7 @@ jobs:
         run: |
           hatch run lint:mypy aiohttp_apiset tests
       - name: Tests with coverage
+        if: ${{ !matrix.without_hatch }}
         run: |
           hatch run cov
       - name: coverage.xml
