@@ -46,10 +46,14 @@ jobs:
         uses: actions/setup-python@v4.6.1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install hatch
         if: ${{ !matrix.without_hatch }}
         run: |
           pip install -U hatch
+      - name: Install dependencies
+        if: ${{ matrix.without_hatch }}
+        run: |
+          pip install -e .[dev-test,jinja2]
       - name: ruff
         if: ${{ matrix.lint }}
         run: |
@@ -70,6 +74,9 @@ jobs:
         if: ${{ !matrix.without_hatch }}
         run: |
           hatch run cov
+      - name: Tests
+        if: ${{ matrix.without_hatch }}
+        run: pytest
       - name: coverage.xml
         if: ${{ matrix.coverage }}
         run: |
