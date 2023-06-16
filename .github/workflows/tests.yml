@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+    tags: [ '*' ]
   pull_request:
     branches:
       - master
@@ -34,76 +35,91 @@ jobs:
           mypy aiohttp_apiset tests
 
   tests:
-    runs-on: ${{ matrix.os }}
-    env:
-      FAKE_UI: 'yes'
     strategy:
+      max-parallel: 7
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python:
-          - version: '3.6'
-            file: python3.6
-            requirements: aiohttp
+        os:
+          - ubuntu-latest
+        python-version:
+          - '3.7'
+          - '3.9'
+          - '3.10'
+          - pypy-3.8
+          - pypy-3.9
         include:
           - os: ubuntu-latest
-            python:
-              version: '3.5'
-              file: python3.5
-              requirements: aiohttp 'aiohttp-jinja2<1.3'
-          - os: ubuntu-latest
-            python:
-              version: '3.6'
-              file: python3.6
-              requirements: aiohttp==3.7.2
-          - os: ubuntu-latest
-            python:
-              version: '3.7'
-              file: python3.7
-              requirements: aiohttp
-          - os: ubuntu-latest
-            python:
-              version: '3.8'
-              file: python3.8
-              requirements: aiohttp
-          - os: ubuntu-latest
-            python:
-              version: '3.9'
-              file: python3.9
-              requirements: aiohttp
-          - os: ubuntu-latest
-            python:
-              version: '3.10'
-              file: python3.10
-              requirements: aiohttp
-          - os: ubuntu-latest
-            python:
-              version: pypy3
-              file: pypy3
-              requirements: aiohttp pytest-aiohttp pytest-mock pytest-cov
+            python-version: '3.8'
+            coverage: true
+          - os: macOS-latest
+            python-version: '3.8'
+          - os: windows-latest
+            python-version: '3.8'
+          - os: ubuntu-20.04
+            python-version: '3.5'
+            deps: >-
+              'pytest-aiohttp<1'
+              pytest-mock
+              'aiohttp-jinja2<1.3'
+              jsonschema
+              pyyaml
+          - os: ubuntu-20.04
+            python-version: '3.6'
+            deps: >-
+              'pytest-aiohttp<1'
+              pytest-mock
+              aiohttp-jinja2
+              jsonschema
+              pyyaml
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python.version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python.version }}
-    - name: Install dependencies
-      run: |
-        pip install --user pip setuptools
-        pip install --user pipenv
-        python -m pipenv --python ${{ matrix.python.file }}
-        python -m pipenv run pip install -U pip setuptools codecov
-        echo "__version__ = 'tests'" > aiohttp_apiset/version.py
-        python -m pipenv run pip install -e .[dev]
-        python -m pipenv run pip install ${{ matrix.python.requirements }}
-    - name: Test with pytest
-      run: |
-        python -m pipenv run pytest --cov=aiohttp_apiset --cov-report=xml
-    - name: Upload coverage to Codecov
-      if: ${{ matrix.python.version == '3.5' && matrix.os == 'ubuntu-latest' }}
-      uses: codecov/codecov-action@v3.1.0
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: true
+      - uses: actions/checkout@v3.5.2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4.6.1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install hatch
+        if: ${{ !matrix.deps }}
+        run: |
+          pip install -U hatch
+      - name: Install dependencies
+        if: ${{ matrix.deps }}
+        run: |
+          pip install ${{ matrix.deps }}
+      - name: ruff
+        if: ${{ matrix.lint }}
+        run: |
+          hatch run lint:ruff check aiohttp_apiset tests
+      - name: isort
+        if: ${{ matrix.lint }}
+        run: |
+          hatch run lint:isort -c aiohttp_apiset tests
+      - name: black
+        if: ${{ matrix.lint }}
+        run: |
+          hatch run lint:black --check --diff aiohttp_apiset tests
+      - name: mypy
+        if: ${{ matrix.lint }}
+        run: |
+          hatch run lint:mypy aiohttp_apiset tests
+      - name: Tests with coverage
+        if: ${{ !matrix.deps }}
+        run: |
+          hatch run cov
+      - name: Tests
+        if: ${{ matrix.deps }}
+        run: pytest
+      - name: coverage.xml
+        if: ${{ matrix.coverage }}
+        run: |
+          hatch run coverage xml
+      - name: Upload coverage to Codecov
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v3.1.4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
