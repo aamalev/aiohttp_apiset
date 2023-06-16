@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         if: ${{ matrix.without_hatch }}
         run: |
-          pip install 'pytest-aiohttp<1' aiohttp-jinja2 jsonschema pyyaml
+          pip install 'pytest-aiohttp<1' pytest-mock aiohttp-jinja2 jsonschema pyyaml
       - name: ruff
         if: ${{ matrix.lint }}
         run: |
