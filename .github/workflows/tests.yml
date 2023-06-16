@@ -33,10 +33,20 @@ jobs:
             python-version: '3.8'
           - os: ubuntu-20.04
             python-version: '3.5'
-            without_hatch: true
+            deps: >-
+              'pytest-aiohttp<1'
+              pytest-mock
+              'aiohttp-jinja2<1.4.2'
+              jsonschema
+              pyyaml
           - os: ubuntu-20.04
             python-version: '3.6'
-            without_hatch: true
+            deps: >-
+              'pytest-aiohttp<1'
+              pytest-mock
+              aiohttp-jinja2
+              jsonschema
+              pyyaml
 
     runs-on: ${{ matrix.os }}
 
@@ -47,13 +57,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install hatch
-        if: ${{ !matrix.without_hatch }}
+        if: ${{ !matrix.deps }}
         run: |
           pip install -U hatch
       - name: Install dependencies
-        if: ${{ matrix.without_hatch }}
+        if: ${{ matrix.deps }}
         run: |
-          pip install 'pytest-aiohttp<1' pytest-mock aiohttp-jinja2 jsonschema pyyaml
+          pip install ${{ matrix.deps }}
       - name: ruff
         if: ${{ matrix.lint }}
         run: |
@@ -71,11 +81,11 @@ jobs:
         run: |
           hatch run lint:mypy aiohttp_apiset tests
       - name: Tests with coverage
-        if: ${{ !matrix.without_hatch }}
+        if: ${{ !matrix.deps }}
         run: |
           hatch run cov
       - name: Tests
-        if: ${{ matrix.without_hatch }}
+        if: ${{ matrix.deps }}
         run: pytest
       - name: coverage.xml
         if: ${{ matrix.coverage }}
