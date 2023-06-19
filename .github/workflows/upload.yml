@@ -22,6 +22,7 @@ jobs:
         pip install --upgrade hatch
     - name: Build
       run: |
+        make swagger_ui
         hatch version $GITHUB_REF_NAME
         hatch build
     - name: Upload artifacts
