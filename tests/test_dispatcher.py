@@ -257,7 +257,6 @@ async def test_branch_path():
     assert mi.route is route
 
 
-@pytest.mark.skip("not implemented")
 async def test_subrouter():
     request = make_request('GET', '/a/b/c/d')
     router = TreeUrlDispatcher()
