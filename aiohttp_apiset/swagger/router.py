@@ -166,7 +166,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             dumps=dumps,
         )
 
-    def _handler_swagger_ui(self, request, spec, version):
+    def _handler_swagger_ui(self, request, spec = "", version = 0):
         """
         ---
         parameters:
