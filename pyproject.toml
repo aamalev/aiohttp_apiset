@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Build routes using swagger specification"
 readme = "README.rst"
 license = "Apache-2.0"
-requires-python = ">=3.5.3"
+requires-python = ">=3.9"
 authors = [
     { name = "Alexander Malev", email = "malev@somedev.ru" },
 ]
@@ -21,15 +21,13 @@ classifiers = [
     "Framework :: AsyncIO",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.5",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Internet :: WWW/HTTP",
@@ -89,12 +87,11 @@ cov = [
 
 [[tool.hatch.envs.all.matrix]]
 python = [
-    "3.5",
-    "3.6",
-    "3.7",
-    "3.8",
     "3.9",
     "3.10",
+    "3.11",
+    "3.12",
+    "3.13",
 ]
 
 [tool.pytest.ini_options]
@@ -130,12 +127,11 @@ exclude_lines = [
 line-length = 79
 skip-string-normalization = true
 target-version = [
-    "py35",
-    "py36",
-    "py37",
-    "py38",
     "py39",
     "py310",
+    "py311",
+    "py312",
+    "py313",
 ]
 
 [tool.isort]
@@ -161,7 +157,7 @@ module = [
 line-length = 79
 
 [tool.hatch.envs.lint]
-python = "3.8"
+python = "3.9"
 features = [
     "dev-lint",
 ]

@@ -318,7 +318,9 @@ class Route(AbstractRoute):
                 vi.request = request
                 return vi
         if not asyncio.iscoroutinefunction(handler):
-            handler = asyncio.coroutine(handler)
+            func = handler
+            async def handler(*args, **kwargs):
+                return func(*args, **kwargs)
         if 'request' in handler_kwargs:
             @functools.wraps(handler)
             async def wrap_handler(request, *args, **kwargs):
