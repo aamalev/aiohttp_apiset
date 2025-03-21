@@ -85,6 +85,10 @@ class Location:
             locations[-1] = ''
         return locations
 
+    @property
+    def canonical(self):
+        return self._canon
+
     def resolve(self, request, path: str, match_dict: dict):
         method = request.method
         allowed_methods = set()
@@ -350,6 +354,10 @@ class TreeResource:
     @property
     def name(self):
         return self._name
+
+    @property
+    def canonical(self) -> str:
+        return self._location.canonical or ""
 
     def add_prefix(self, prefix):
         self._location = self._location.make_prefix_location(prefix)
