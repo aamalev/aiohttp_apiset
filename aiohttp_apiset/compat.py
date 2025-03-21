@@ -139,6 +139,10 @@ class UrlMappingMatchInfo(dict, AbstractMatchInfo):  # pragma: no cover
     def current_app(self):
         return self._current_app
 
+    @current_app.setter
+    def current_app(self, app) -> None:
+        self._current_app = app
+
     @contextmanager
     def set_current_app(self, app):
         assert app in self._apps, (
