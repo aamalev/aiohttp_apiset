@@ -193,7 +193,7 @@ async def test_json():
 
     assert resp['jso', 'f'], resp
 
-    request.json = asyncio.coroutine(lambda: {})
+    request.json = make_mocked_coro({})
     try:
         await r.handler(request)
     except web.HTTPBadRequest as e:
