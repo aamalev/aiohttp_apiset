@@ -92,6 +92,10 @@ class Location:
             locations[-1] = ''
         return locations
 
+    @property
+    def canonical(self):
+        return self._canon
+
     def resolve(self, request, path: str, match_dict: dict):
         method = request.method
         allowed_methods = set()  # type: Set[str]
@@ -325,7 +329,9 @@ class Route(AbstractRoute):
                 vi.request = request
                 return vi
         if not asyncio.iscoroutinefunction(handler):
-            handler = asyncio.coroutine(handler)
+            func = handler
+            async def handler(*args, **kwargs):
+                return func(*args, **kwargs)
         if 'request' in handler_kwargs:
             @functools.wraps(handler)
             async def wrap_handler(request, *args, **kwargs):
@@ -355,6 +361,10 @@ class TreeResource:
     @property
     def name(self):
         return self._name
+
+    @property
+    def canonical(self) -> str:
+        return self._location.canonical or ""
 
     def add_prefix(self, prefix):
         self._location = self._location.make_prefix_location(prefix)

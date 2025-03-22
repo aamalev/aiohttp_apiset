@@ -139,6 +139,10 @@ class UrlMappingMatchInfo(dict, AbstractMatchInfo):  # pragma: no cover
     def current_app(self):
         return self._current_app
 
+    @current_app.setter
+    def current_app(self, app) -> None:
+        self._current_app = app
+
     @contextmanager
     def set_current_app(self, app):
         assert app in self._apps, (
@@ -249,6 +253,7 @@ class CompatRouter(AbstractRouter):
         self._app = None
         self._resources = []
         self._named_resources = {}
+        self._resource_index = {}
 
     def __iter__(self):
         return iter(self._named_resources)
@@ -289,6 +294,33 @@ class CompatRouter(AbstractRouter):
                                  .format(name, self._named_resources[name]))
             self._named_resources[name] = resource
         self._resources.append(resource)
+        self.index_resource(resource)
+
+    def _get_resource_index_key(self, resource) -> str:
+        """Return a key to index the resource in the resource index."""
+        if not (index_key := resource.canonical):
+            return ""
+        elif "{" in index_key:
+            # strip at the first { to allow for variables, and than
+            # rpartition at / to allow for variable parts in the path
+            # For example if the canonical path is `/core/locations{tail:.*}`
+            # the index key will be `/core` since index is based on the
+            # url parts split by `/`
+            index_key = index_key.partition("{")[0].rpartition("/")[0]
+        return index_key.rstrip("/") or "/"
+
+    def index_resource(self, resource) -> None:
+        """Add a resource to the resource index."""
+        resource_key = self._get_resource_index_key(resource)
+        # There may be multiple resources for a canonical path
+        # so we keep them in a list to ensure that registration
+        # order is respected.
+        self._resource_index.setdefault(resource_key, []).append(resource)
+
+    def unindex_resource(self, resource) -> None:
+        """Remove a resource from the resource index."""
+        if resource_key := self._get_resource_index_key(resource):
+            self._resource_index.get(resource_key).remove(resource)
 
     def validate_name(self, name: str):
         """

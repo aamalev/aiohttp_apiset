@@ -192,7 +192,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
             dumps=dumps,
         )
 
-    def _handler_swagger_ui(self, request, spec, version):
+    def _handler_swagger_ui(self, request, spec = "", version = 0):
         """
         ---
         parameters:
@@ -202,7 +202,7 @@ class SwaggerRouter(dispatcher.TreeUrlDispatcher):
           - name: version
             in: query
             type: integer
-            enum: [2,3,4]
+            enum: [2,3,4,5]
         """
         version = version or self._version_ui
         if self._spec_url:

@@ -19,10 +19,12 @@ DIR = os.path.dirname(__file__)
 STATIC_DIR = os.path.join(DIR, PACKAGE, 'static', 'swagger-ui')
 TEMPLATES_DIR = os.path.join(DIR, PACKAGE, 'templates', 'swagger-ui')
 
+SCHEMA_URL = 'https://petstore.swagger.io/v2/swagger.json'
+
 PREFIX = '{{static_prefix}}'
 REPLACE_STRINGS = [
     ('http://petstore.swagger.io/v2/swagger.json', '{{url}}'),
-    ('https://petstore.swagger.io/v2/swagger.json', '{{url}}'),
+    (SCHEMA_URL, '{{url}}'),
     ('href="images', 'href="' + PREFIX + 'images'),
     ('src="images', 'src="' + PREFIX + 'images'),
     ("href='css", "href='" + PREFIX + 'css'),
@@ -65,6 +67,12 @@ def setup_ui(version=VERSION):
     with open(template_ui, 'wt') as f:
         f.write(s)
 
+    swagger_init = os.path.join(static_dir, 'swagger-initializer.js')
+    if os.path.exists(swagger_init):
+        with open(swagger_init, "rt") as f:
+            s = f.read().replace(SCHEMA_URL, "swagger.yaml")
+        with open(swagger_init, "wt") as f:
+            f.write(s)
 
 def delete():
     shutil.rmtree(TEMPLATES_DIR)

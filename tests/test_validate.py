@@ -6,8 +6,7 @@ import multidict
 import pytest
 import yaml
 from aiohttp import hdrs, web
-from aiohttp.test_utils import make_mocked_request
-
+from aiohttp.test_utils import make_mocked_coro, make_mocked_request
 from aiohttp_apiset import SwaggerRouter
 from aiohttp_apiset.exceptions import Errors, ValidationError
 from aiohttp_apiset.middlewares import jsonify
@@ -176,14 +175,14 @@ async def test_json():
             hdrs.CONTENT_TYPE: 'application/json'
         }),
     )
-    request.json = asyncio.coroutine(lambda: {'f': ''})
+    request.json = make_mocked_coro({'f': ''})
     request._match_info = {}
     resp = await r.handler(request)
     assert isinstance(resp, dict), resp
     assert 'road_id' in resp, resp
 
     # not valid data
-    request.json = asyncio.coroutine(lambda: {'f': 1})
+    request.json = make_mocked_coro({'f': 1})
     with pytest.raises(web.HTTPBadRequest):
         await r.handler(request)
 

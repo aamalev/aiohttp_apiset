@@ -16,10 +16,10 @@ def template(template_name, *, app_key=APP_KEY, encoding='utf-8', status=200):
         @functools.wraps(func)
         async def wrapped(*args, **kwargs):
             if asyncio.iscoroutinefunction(func):
-                coro = func
+                context = await func(*args, **kwargs)
             else:
-                coro = asyncio.coroutine(func)
-            context = await coro(*args, **kwargs)
+                context = func(*args, **kwargs)
+
             if isinstance(context, web.StreamResponse):
                 return context
 
