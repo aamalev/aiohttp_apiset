@@ -152,6 +152,11 @@ module = [
     "pytest",
     "aiohttp_jinja2",
 ]
+[[tool.mypy.overrides]]
+follow_imports = "skip"
+module = [
+    "referencing.*",
+]
 
 [tool.ruff]
 line-length = 79
